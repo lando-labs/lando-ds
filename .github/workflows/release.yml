@@ -59,21 +59,29 @@ jobs:
 
       - name: Create Release PR or Publish to npm
         id: changesets
-        uses: changesets/action@v2
+        # Pin an exact version: changesets/action ships no moving major tag —
+        # neither `@v1` nor `@v2` resolves, only `vX.Y.Z` (and `v2.0.0-next.*`
+        # prereleases). Pinning also keeps a retagged action from sliding in.
+        uses: changesets/action@v1.9.0
         with:
+          # The inputs are `publish` / `version` — NOT `publish-script` /
+          # `version-script`. Unknown `with:` keys are silently ignored, which
+          # would leave the action with no publish command at all.
+          #
           # `npm run release` builds a fresh dist/ then runs `changeset publish`.
-          publish-script: npm run release
+          publish: npm run release
           # `npm run version-packages` runs `changeset version` (bumps
           # package.json + writes CHANGELOG.md for the "Version Packages" PR).
-          version-script: npm run version-packages
-          create-github-releases: true
-          push-git-tags: true
+          version: npm run version-packages
+          createGithubReleases: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           # npm auth. `setup-node` wrote an .npmrc referencing NODE_AUTH_TOKEN;
           # NPM_TOKEN covers the changesets action's own .npmrc fallback path.
+          # NOTE: this npm account has 2FA-on-publish, so NPM_TOKEN must be an
+          # npm AUTOMATION token — automation tokens bypass the OTP prompt.
           # ALTERNATIVE: npm trusted publishing (OIDC) removes the need for a
-          # long-lived token — see reference/public-launch/go-live-checklist.md.
+          # long-lived token entirely.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Emit build provenance. Requires a public repo + id-token: write.
