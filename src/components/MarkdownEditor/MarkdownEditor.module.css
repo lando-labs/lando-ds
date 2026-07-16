@@ -1,0 +1,187 @@
+/**
+ * MarkdownEditor Component Styles
+ *
+ * Sprint 15 / #93. The editor we wrap (`@uiw/react-md-editor`) styles
+ * itself off a small set of GitHub-Primer-flavored CSS custom properties
+ * (--color-canvas-default, --color-fg-default, --color-border-default,
+ * etc.) plus a `--md-editor-*` namespace. We map those onto DS tokens
+ * here so the editor inherits ocean theming + dark-mode semantics with
+ * zero JS work.
+ *
+ * The mapping is scoped to `.editor` (a wrapper we render around the
+ * editor) so it does not leak to the rest of the page.
+ *
+ * Variable surface mapped (audited 2026-04-26 against
+ * node_modules/@uiw/react-md-editor/markdown-editor.css and
+ * node_modules/@uiw/react-markdown-preview/dist/markdown.css):
+ *
+ *   --md-editor-background-color   → --color-surface
+ *   --md-editor-box-shadow-color   → --color-border-default
+ *   --md-editor-font-family        → --font-family-base
+ *   --color-canvas-default         → --color-surface
+ *   --color-canvas-subtle          → --color-surface-elevated
+ *   --color-fg-default             → --color-text-primary
+ *   --color-fg-muted               → --color-text-secondary
+ *   --color-fg-subtle              → --color-text-tertiary
+ *   --color-border-default         → --color-border-default
+ *   --color-border-muted           → --color-border-subtle
+ *   --color-accent-fg              → --color-primary
+ *   --color-accent-emphasis        → --color-primary
+ *   --color-danger-fg              → --color-error-base
+ *   --color-danger-emphasis        → --color-error-base
+ *   --color-success-fg             → --color-success-dark
+ *   --color-success-emphasis       → --color-success-base
+ *   --color-attention-fg           → --color-warning-dark
+ *   --color-attention-emphasis     → --color-warning-base
+ *   --color-attention-subtle       → --color-warning-lightest
+ *   --color-neutral-muted          → --color-surface-hover
+ *   --color-done-fg                → --color-info-dark
+ *   --color-done-emphasis          → --color-info-base
+ *
+ * Unmapped (left at editor defaults — these are syntax-highlighting
+ * shades for the textarea code-fence preview; remapping would muddy
+ * code legibility, so we keep GitHub Primer's tuned values):
+ *   --color-prettylights-syntax-* (comment, constant, entity, keyword,
+ *                                   string, variable, markup-bold,
+ *                                   markup-deleted-{bg,text},
+ *                                   markup-inserted-{bg,text},
+ *                                   meta-diff-range, entity-tag)
+ *   --color-copied-active-bg
+ *
+ * The editor's preview pane is hidden (we render <Markdown> via
+ * components.preview), but the wrapper still inherits these vars in
+ * case a future code-fence-in-preview path picks them up.
+ */
+
+.editor {
+  /* ===== Editor body / canvas ===== */
+  --md-editor-background-color: var(--color-surface);
+  --md-editor-box-shadow-color: var(--color-border-default);
+  --md-editor-font-family: var(--font-family-base);
+
+  --color-canvas-default: var(--color-surface);
+  --color-canvas-subtle: var(--color-surface-elevated);
+
+  /* ===== Foreground (text) ===== */
+  --color-fg-default: var(--color-text-primary);
+  --color-fg-muted: var(--color-text-secondary);
+  --color-fg-subtle: var(--color-text-tertiary);
+
+  /* ===== Borders ===== */
+  --color-border-default: var(--color-border-default);
+  --color-border-muted: var(--color-border-subtle);
+
+  /* ===== Brand / accent (links, focus, active toolbar button) ===== */
+  --color-accent-fg: var(--color-primary);
+  --color-accent-emphasis: var(--color-primary);
+
+  /* ===== Status colors ===== */
+  --color-danger-fg: var(--color-error-base);
+  --color-danger-emphasis: var(--color-error-base);
+  --color-success-fg: var(--color-success-dark);
+  --color-success-emphasis: var(--color-success-base);
+  --color-attention-fg: var(--color-warning-dark);
+  --color-attention-emphasis: var(--color-warning-base);
+  --color-attention-subtle: var(--color-warning-lightest);
+  --color-done-fg: var(--color-info-dark);
+  --color-done-emphasis: var(--color-info-base);
+
+  /* ===== Subtle surface tones ===== */
+  --color-neutral-muted: var(--color-surface-hover);
+
+  /* Container concerns: own the radius + border so the editor sits
+     flush inside DS surfaces (cards, modals, page sections). */
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-surface);
+  font-family: var(--font-family-base);
+}
+
+/*
+ * The editor renders its own `.w-md-editor` root inside our wrapper.
+ * Strip its default border/shadow so our wrapper owns the outer chrome
+ * and we don't get a doubled border in dark mode.
+ */
+.editor :global(.w-md-editor) {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  border: none;
+}
+
+/*
+ * Toolbar — sit it on the elevated surface so it reads as a separate
+ * affordance from the writing area, matching common editor chrome.
+ */
+.editor :global(.w-md-editor-toolbar) {
+  background-color: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.editor :global(.w-md-editor-toolbar) ul > li > button {
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.editor :global(.w-md-editor-toolbar) ul > li > button:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.editor :global(.w-md-editor-toolbar) ul > li.active > button {
+  color: var(--color-primary);
+  background-color: var(--color-surface-hover);
+}
+
+/* Focus rings on toolbar buttons — match the DS focus-ring tokens. */
+.editor :global(.w-md-editor-toolbar) ul > li > button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/*
+ * Textarea — match base type, neutralize the editor's slight blue-grey.
+ */
+.editor :global(.w-md-editor-text),
+.editor :global(.w-md-editor-text-input),
+.editor :global(.w-md-editor-text-pre) {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.editor :global(.w-md-editor-text-input)::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * Focus ring on the textarea itself so authors see a clear DS-flavored
+ * focus state instead of the editor's pale blue default.
+ */
+.editor :global(.w-md-editor-text-input):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+/*
+ * Preview pane container — give it room to breathe and inherit DS
+ * surface color so the rendered <Markdown> sits naturally next to the
+ * editor pane in 'live' (split) mode.
+ */
+.previewSurface {
+  padding: var(--component-padding-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  min-height: 100%;
+}
+
+/*
+ * Edge-case: when `mode='preview'` is the only pane on screen, the
+ * editor's wrapper shrinks the preview to fit content. Guarantee a
+ * comfortable minimum so the surface feels like a reading view.
+ */
+.editor :global(.w-md-editor-preview) {
+  background-color: var(--color-surface);
+}

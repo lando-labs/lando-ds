@@ -1,0 +1,186 @@
+/**
+ * Callout Component Styles
+ *
+ * Left-border accent block with optional uppercase label and leading icon.
+ * Token-only — no hardcoded colors. Six accents: primary, success, warning,
+ * danger, info, neutral.
+ *
+ * Token mapping (see src/styles/tokens.css):
+ *   primary  → ocean-medium  / ocean-lightest  / ocean-darker
+ *   success  → success-base  / success-lightest / success-darkest
+ *   warning  → warning-base  / warning-lightest / warning-darkest
+ *   danger   → error-base    / error-lightest   / error-darkest
+ *   info     → info-base     / info-lightest    / info-darkest
+ *   neutral  → neutral-400   / neutral-100      / neutral-700
+ *
+ * The brief proposes `--color-{accent}-medium` / `-lightest`, but the
+ * canonical scale is `lightest | lighter | light | base | medium | dark |
+ * darker | darkest` and most semantic palettes (`success | warning | info |
+ * error`) skip the `medium` step. We map to the actual tokens and document
+ * the choice in components.md / Callout.tsx.
+ */
+
+.callout {
+  /* Base layout */
+  position: relative;
+  padding: var(--component-padding-md);
+  border-inline-start: 3px solid var(--color-primary-medium);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-lightest);
+  color: var(--color-text-primary);
+
+  /* Reset blockquote defaults so `as="blockquote"` matches `as="div"` */
+  margin: 0;
+}
+
+/* Layout for icon + content */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.iconSlot {
+  display: inline-flex;
+  align-items: center;
+  /* Match the cap-height of the label / first line of content */
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 0.125rem;
+  color: var(--color-primary-darker);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Uppercase label slot */
+.label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-primary-darker);
+  line-height: 1.2;
+}
+
+/* ------------------------------------------------------------
+ * Accent variants
+ * ----------------------------------------------------------- */
+
+.accent-primary {
+  border-inline-start-color: var(--color-primary-medium);
+  background-color: var(--color-primary-lightest);
+}
+.accent-primary .label,
+.accent-primary .iconSlot {
+  color: var(--color-primary-darker);
+}
+
+.accent-success {
+  border-inline-start-color: var(--color-success-base);
+  background-color: var(--color-success-lightest);
+}
+.accent-success .label,
+.accent-success .iconSlot {
+  color: var(--color-success-darkest);
+}
+
+.accent-warning {
+  border-inline-start-color: var(--color-warning-base);
+  background-color: var(--color-warning-lightest);
+}
+.accent-warning .label,
+.accent-warning .iconSlot {
+  color: var(--color-warning-darkest);
+}
+
+.accent-danger {
+  border-inline-start-color: var(--color-error-base);
+  background-color: var(--color-error-lightest);
+}
+.accent-danger .label,
+.accent-danger .iconSlot {
+  color: var(--color-error-darkest);
+}
+
+.accent-info {
+  border-inline-start-color: var(--color-info-base);
+  background-color: var(--color-info-lightest);
+}
+.accent-info .label,
+.accent-info .iconSlot {
+  color: var(--color-info-darkest);
+}
+
+.accent-neutral {
+  border-inline-start-color: var(--color-neutral-400);
+  background-color: var(--color-neutral-100);
+}
+.accent-neutral .label,
+.accent-neutral .iconSlot {
+  color: var(--color-neutral-700);
+}
+
+/* ------------------------------------------------------------
+ * Dark mode adjustments
+ * Background tints become very low for readability and the label /
+ * icon ink gets brightened to the lighter step of each scale so the
+ * AA contrast threshold holds against the elevated surface tier.
+ * ----------------------------------------------------------- */
+
+[data-theme='dark'] .accent-primary {
+  background-color: rgb(var(--color-primary-lightest-rgb) / 0.08);
+}
+[data-theme='dark'] .accent-primary .label,
+[data-theme='dark'] .accent-primary .iconSlot {
+  color: var(--color-primary-light);
+}
+
+[data-theme='dark'] .accent-success {
+  background-color: color-mix(in oklab, var(--color-success), transparent 92%);
+  border-inline-start-color: var(--color-success-light);
+}
+[data-theme='dark'] .accent-success .label,
+[data-theme='dark'] .accent-success .iconSlot {
+  color: var(--color-success-light);
+}
+
+[data-theme='dark'] .accent-warning {
+  background-color: color-mix(in oklab, var(--color-warning), transparent 92%);
+  border-inline-start-color: var(--color-warning-light);
+}
+[data-theme='dark'] .accent-warning .label,
+[data-theme='dark'] .accent-warning .iconSlot {
+  color: var(--color-warning-light);
+}
+
+[data-theme='dark'] .accent-danger {
+  background-color: color-mix(in oklab, var(--color-error), transparent 92%);
+  border-inline-start-color: var(--color-error-light);
+}
+[data-theme='dark'] .accent-danger .label,
+[data-theme='dark'] .accent-danger .iconSlot {
+  color: var(--color-error-light);
+}
+
+[data-theme='dark'] .accent-info {
+  background-color: color-mix(in oklab, var(--color-info), transparent 92%);
+  border-inline-start-color: var(--color-info-light);
+}
+[data-theme='dark'] .accent-info .label,
+[data-theme='dark'] .accent-info .iconSlot {
+  color: var(--color-info-light);
+}
+
+[data-theme='dark'] .accent-neutral {
+  background-color: var(--color-surface-elevated);
+  border-inline-start-color: var(--color-neutral-500);
+}
+[data-theme='dark'] .accent-neutral .label,
+[data-theme='dark'] .accent-neutral .iconSlot {
+  color: var(--color-neutral-300);
+}

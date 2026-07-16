@@ -1,0 +1,21 @@
+/**
+ * AspectRatio Component Styles
+ *
+ * The wrapper itself owns the `aspect-ratio` inline style; the descendant
+ * rule forces any single child (img/video/iframe/etc.) to fill the box so
+ * the ratio is honored without per-consumer media reset CSS.
+ */
+
+.aspectRatio {
+  display: block;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.aspectRatio > * {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}

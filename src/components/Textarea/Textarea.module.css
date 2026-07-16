@@ -1,0 +1,194 @@
+/**
+ * Textarea Component Styles
+ * Ocean-inspired with smooth focus transitions
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ===== TEXTAREA WRAPPER ===== */
+
+.textareaWrapper {
+  position: relative;
+  display: flex;
+}
+
+/* ===== TEXTAREA ===== */
+
+.textarea {
+  width: 100%;
+  min-height: 5rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: var(--transition-default);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.textarea:hover:not(:disabled):not(:read-only) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * #38 — Unified focus-ring treatment: border shift to focus color +
+ * subtle halo. :focus-visible gates this to keyboard navigation so
+ * mouse clicks don't light up an otherwise-resting field. Previously
+ * Textarea had NO :focus rule here other than the browser default —
+ * keyboard users got whatever the user-agent painted. outline: none
+ * suppresses the global :focus-visible fallback so we don't stack
+ * rings.
+ */
+.textarea:focus-visible {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.textarea:disabled {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.textarea:read-only {
+  background-color: var(--color-surface-hover);
+  cursor: default;
+}
+
+/* ===== RESIZE OPTIONS ===== */
+
+.resize-none {
+  resize: none;
+}
+
+.resize-vertical {
+  resize: vertical;
+}
+
+.resize-horizontal {
+  resize: horizontal;
+}
+
+.resize-both {
+  resize: both;
+}
+
+/* ===== ERROR STATE ===== */
+
+.textarea.error {
+  border-color: var(--color-error-base);
+}
+
+.textarea.error:hover:not(:disabled) {
+  border-color: var(--color-error-dark);
+}
+
+.textarea.error:focus-visible {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+  outline: none;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperWrapper {
+  flex: 1;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/*
+ * #43 DS-POLISH-5 — Character counter was --color-text-tertiary at
+ * font-size-xs (too dim at 12px). Bumped to --color-text-secondary
+ * (which also rides the newly WCAG-AA-compliant token system from
+ * #12) and promoted to font-size-sm for legibility. Transitions
+ * smoothly to error color when at/past maxLength via `.charCountLimit`.
+ */
+.charCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  line-height: var(--line-height-snug);
+  transition: color var(--duration-fast) var(--easing-ease-out);
+}
+
+.charCountLimit {
+  color: var(--color-error-base);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== SCROLLBAR STYLING (WEBKIT) ===== */
+
+.textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-full);
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-strong);
+}
+
+/* Firefox scrollbar */
+.textarea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) var(--color-surface-hover);
+}

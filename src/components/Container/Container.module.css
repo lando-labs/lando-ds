@@ -1,0 +1,58 @@
+/**
+ * Container Component Styles
+ * Responsive max-width and padding
+ */
+
+.container {
+  width: 100%;
+}
+
+.centered {
+  margin-inline-start: auto;
+  margin-inline-end: auto;
+}
+
+/* ===== MAX WIDTHS ===== */
+
+.sm {
+  max-width: 640px;
+}
+
+.md {
+  max-width: 768px;
+}
+
+.lg {
+  max-width: 1024px;
+}
+
+.xl {
+  max-width: 1280px;
+}
+
+.full {
+  max-width: 100%;
+}
+
+/* ===== PADDING ===== */
+
+.padding {
+  padding-inline-start: var(--component-padding-md);
+  padding-inline-end: var(--component-padding-md);
+}
+
+/* Tablet and up: increase padding */
+@media (min-width: 768px) {
+  .padding {
+    padding-inline-start: var(--component-padding-lg);
+    padding-inline-end: var(--component-padding-lg);
+  }
+}
+
+/* Desktop and up: increase padding */
+@media (min-width: 1024px) {
+  .padding {
+    padding-inline-start: var(--component-padding-xl);
+    padding-inline-end: var(--component-padding-xl);
+  }
+}

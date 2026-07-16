@@ -1,0 +1,149 @@
+/**
+ * NavTabs Component Styles (#377)
+ *
+ * Horizontal area-switcher for top-bars and section navigation. Replaces the
+ * hand-rolled `.topbar-area-link` rule that consumers were
+ * shipping in `globals.css`.
+ *
+ * ## Active-indicator
+ *
+ * Active item gets a 2px bottom underline in `--color-primary`. We paint it
+ * with `box-shadow: inset 0 -2px 0 …` rather than `border-bottom` so toggling
+ * the active state does NOT shift the item's box (a real border would change
+ * the height by 2px on toggle). The shadow lives inside the item's padding,
+ * costs no layout, and re-skins automatically with the brand primary token.
+ *
+ * All inactive items get a `box-shadow: inset 0 -2px 0 transparent` so the
+ * indicator can transition smoothly between states.
+ *
+ * ## No new tokens
+ *
+ * Per the sprint scope, only existing tokens are used: spacing (`--spacing-*`),
+ * radii (`--radius-*`), color (`--color-primary`, `--color-text-*`,
+ * `--color-surface-hover`), font (`--font-size-sm`, `--font-weight-*`),
+ * motion (`--duration-fast`, `--easing-ease-out`), and the focus-ring trio
+ * (`--focus-ring-width`, `--focus-ring-color`, `--focus-ring-offset`).
+ */
+
+/* ── Nav landmark wrapper ──────────────────────────────────────────────────── */
+
+.navTabs {
+  display: block;
+  font-family: var(--font-family-base);
+}
+
+/* ── List ──────────────────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itemWrapper {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── Item (anchor / slotted child) ─────────────────────────────────────────── */
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  /* Reserve the 2px inset underline track on EVERY item so toggling the
+   * active state never shifts layout. The shadow's color changes; its
+   * geometry stays put. */
+  box-shadow: inset 0 -2px 0 transparent;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--easing-ease-out),
+    background-color var(--duration-fast) var(--easing-ease-out),
+    box-shadow var(--duration-fast) var(--easing-ease-out);
+}
+
+.item:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Active state ──────────────────────────────────────────────────────────── */
+
+/*
+ * Active = font-weight bump + 2px underline in --color-primary.
+ * Spatial (weight) + indicator (underline), NOT color-only — keeps the
+ * affordance legible for color-blind users and for tinted themes.
+ */
+.itemActive {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+.itemActive:hover {
+  color: var(--color-text-primary);
+  /* Keep the underline visible on hover; the hover background subtly
+   * elevates the item but does not eat the indicator. */
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+/* ── Icon slot ─────────────────────────────────────────────────────────────── */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  /* Lucide icons render at the inherited font-size by default; nudge them up
+   * a touch so they read at parity with the label baseline. */
+  font-size: 1.15em;
+  color: currentColor;
+}
+
+/* ── Label ─────────────────────────────────────────────────────────────────── */
+
+.label {
+  display: inline-block;
+  /* No truncation by default — area labels are short. Consumers who need it
+   * can pass `className` and apply their own ellipsis treatment. */
+}
+
+/* ── Badge slot ────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--spacing-2);
+}
+
+/* ── High-contrast support ─────────────────────────────────────────────────── */
+
+@media (prefers-contrast: more) {
+  .itemActive {
+    /* In high-contrast mode the 2px shadow can lose contrast on certain
+     * themes. Underline the label too as a belt-and-braces affordance. */
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+  }
+}

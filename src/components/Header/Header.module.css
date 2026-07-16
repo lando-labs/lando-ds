@@ -1,0 +1,315 @@
+/**
+ * Header Component Styles
+ * Ocean-inspired with smooth transitions and responsive design
+ */
+
+.header {
+  position: relative;
+  width: 100%;
+  /*
+   * Sprint 10 (#59) — the default Header now gets a very subtle ocean-foam
+   * → surface gradient from left to right. The left edge carries a hint of
+   * ocean-lightest (composited via the RGB channel at 40% alpha so the
+   * effective saturation lands in the 2–4% range), fading cleanly to the
+   * page surface. Consumers that want the pre-Sprint-10 pure-white Header
+   * pass `variant="flat"`.
+   *
+   * Intentionally subtle: "slightly warmer on the left," not "branded
+   * stripe." If you can see where the gradient ends, it's too strong.
+   */
+  background-color: var(--color-surface);
+  background-image: linear-gradient(
+    90deg,
+    rgb(var(--color-primary-lightest-rgb) / 0.4) 0%,
+    rgb(var(--color-primary-lightest-rgb) / 0) 60%
+  );
+  border-bottom: 1px solid var(--color-border-default);
+  transition: var(--transition-default);
+  z-index: var(--z-header);
+}
+
+[data-theme='dark'] .header {
+  /* Dark mode: deep-ocean tint on the left. Slightly warmer effective
+   * alpha (~8%) because the dark surface swallows low-contrast hints. */
+  background-image: linear-gradient(
+    90deg,
+    rgb(var(--color-primary-darkest-rgb) / 0.5) 0%,
+    rgb(var(--color-primary-darkest-rgb) / 0) 60%
+  );
+}
+
+/* ===== FLAT VARIANT (Sprint 10 #59 opt-out) ===== */
+
+.header.flat {
+  background-image: none;
+}
+
+/* ===== SKIP LINK (WCAG 2.4.1 "Bypass Blocks") =====
+ *
+ * Visually hidden until keyboard focus lands on it, at which point it
+ * becomes a prominent button pinned to the top-left of the Header.
+ *
+ * We use clip/inset tricks instead of `display: none` because hidden
+ * elements are unreachable by keyboard. The transform-left trick (-200%)
+ * moves the link off-screen without removing it from the a11y tree or
+ * tab order.
+ */
+.skipLink {
+  position: absolute;
+  top: var(--spacing-8, 8px);
+  left: var(--spacing-8, 8px);
+  z-index: calc(var(--z-header, 100) + 1);
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  background-color: var(--color-primary-medium);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  /* Move off-screen until focused. Using transform instead of visibility
+     keeps the element in the tab order. */
+  transform: translateY(calc(-100% - 16px));
+  transition: transform var(--duration-fast) var(--easing-ease-out);
+}
+
+.skipLink:focus,
+.skipLink:focus-visible {
+  transform: translateY(0);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color, currentColor);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.header.sticky {
+  position: sticky;
+  top: 0;
+}
+
+.header.sticky.scrolled {
+  box-shadow: var(--shadow-md);
+}
+
+.header.transparent {
+  background-color: transparent;
+  /* Transparent variant overrides the default ocean-foam gradient so
+   * the page shows through (hero overlays, etc.). */
+  background-image: none;
+  border-bottom-color: transparent;
+}
+
+.header.transparent.scrolled {
+  background-color: var(--color-surface);
+  /* When scrolled past the top, transparent Headers pick up the default
+   * ocean-foam hint to re-establish the Lando Labs feel. */
+  background-image: linear-gradient(
+    90deg,
+    rgb(var(--color-primary-lightest-rgb) / 0.4) 0%,
+    rgb(var(--color-primary-lightest-rgb) / 0) 60%
+  );
+  border-bottom-color: var(--color-border-default);
+}
+
+[data-theme='dark'] .header.transparent.scrolled {
+  background-image: linear-gradient(
+    90deg,
+    rgb(var(--color-primary-darkest-rgb) / 0.5) 0%,
+    rgb(var(--color-primary-darkest-rgb) / 0) 60%
+  );
+}
+
+/* Container with max width and padding */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-24);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  min-height: 4rem;
+}
+
+/* ===== LOGO SECTION ===== */
+
+.logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ===== NAVIGATION SECTION ===== */
+
+.navigation {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+/* Hide navigation on mobile */
+@media (max-width: 768px) {
+  .navigation {
+    display: none;
+  }
+}
+
+/* ===== ACTIONS SECTION ===== */
+
+.actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  /*
+   * Right-pin actions regardless of which other slots are populated.
+   *
+   * Without this, a Header that only receives `actions` (no logo, no nav)
+   * gets `justify-content: space-between` with a single child — which
+   * flex interprets as flex-start, leaving actions pinned to the LEFT.
+   *
+   * `margin-left: auto` consumes all leading free space, so actions
+   * always end up on the right. Benign when a nav slot (flex: 1)
+   * already fills the middle.
+   *
+   * See issue #21.
+   */
+  margin-inline-start: auto;
+}
+
+/*
+ * Hide actions on mobile ONLY when a navigation slot exists — in that case
+ * the hamburger is rendered and actions move into the slide-down mobile
+ * menu. When no navigation is provided there is no hamburger, so hiding
+ * actions would lock users out of the Header below 768px. See issue #36.
+ */
+@media (max-width: 768px) {
+  .container.hasNavigation .actions {
+    display: none;
+  }
+}
+
+/* ===== MOBILE MENU BUTTON ===== */
+
+.mobileMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-default);
+  border-radius: var(--radius-md);
+}
+
+.mobileMenuButton:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.mobileMenuButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (max-width: 768px) {
+  .mobileMenuButton {
+    display: flex;
+  }
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hamburgerLine {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  transition: var(--transition-default);
+}
+
+.mobileMenuButton[aria-expanded='true'] .hamburgerLine:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.mobileMenuButton[aria-expanded='true'] .hamburgerLine:nth-child(2) {
+  opacity: 0;
+}
+
+.mobileMenuButton[aria-expanded='true'] .hamburgerLine:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ===== MOBILE MENU ===== */
+
+.mobileMenu {
+  display: none;
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-surface);
+  animation: slideDown 0.3s var(--easing-wave);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .mobileMenu {
+    display: block;
+  }
+}
+
+.mobileNavigation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--component-padding-md) var(--component-padding-lg);
+}
+
+.mobileActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  border-top: 1px solid var(--color-border-default);
+}
+
+/* ===== OCEAN GRADIENT VARIANT ===== */
+
+.header.gradient {
+  /* `background` shorthand resets both background-color and the default
+   * subtle ocean-foam background-image so the strong hero gradient owns
+   * the whole surface. */
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-primary-medium) 50%,
+    var(--color-primary-dark) 100%
+  );
+  border-bottom-color: transparent;
+  color: white;
+}
+
+.header.gradient .mobileMenu {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-primary-medium) 100%
+  );
+  color: white;
+}

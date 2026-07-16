@@ -1,0 +1,110 @@
+/**
+ * AppShell Component Styles
+ *
+ * Layout: 3-row grid (header / body / footer), body is a 2-column flex
+ * (sidebar | main). Keeps the header sticky to the viewport top and the
+ * footer pinned to the bottom of the shell.
+ */
+
+.shell {
+  /* Customizable via consumer-provided CSS variables */
+  --app-shell-header-height: auto;
+  --app-shell-footer-height: auto;
+  --app-shell-max-width: 100%;
+  --app-shell-gap: 0;
+  --app-shell-body-bg: var(--color-background);
+  /*
+   * Default main-content padding and max-width. The TSX applies these as
+   * inline vars when `contentPadding` / `contentMaxWidth` props are set;
+   * otherwise these defaults apply. Consumers can also override by setting
+   * the var in their own CSS (class wins over the inline style fallback
+   * that's using var() lookup).
+   */
+  --app-shell-content-padding: var(--component-padding-md);
+  --app-shell-content-max-width: none;
+
+  display: grid;
+  grid-template-rows: var(--app-shell-header-height) 1fr var(--app-shell-footer-height);
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: var(--app-shell-max-width);
+  margin: 0 auto;
+  background-color: var(--app-shell-body-bg);
+  color: var(--color-text-primary);
+}
+
+/* ===== HEADER ROW ===== */
+
+.header {
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+}
+
+/* ===== BODY ROW (sidebar + main) ===== */
+
+.body {
+  grid-row: 2;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  /*
+   * Use `clip` not `hidden` — `hidden` on a single axis implicitly forces
+   * the other axis to `auto`, creating a phantom scroll context that
+   * breaks `position: sticky` in descendants (e.g., StickyBar).
+   * `clip` contains horizontal overflow without that side effect.
+   */
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  padding: var(--app-shell-content-padding, var(--component-padding-md));
+  max-width: var(--app-shell-content-max-width, none);
+  width: 100%;
+}
+
+/*
+ * When `contentMaxWidth` is set (anything other than the default `none`)
+ * we center the main content inside the body row. We put the centering
+ * on a scoped modifier class so the default full-width path doesn't have
+ * any surprise margin behavior.
+ */
+.shell.hasContentMaxWidth .main {
+  margin-inline-start: auto;
+  margin-inline-end: auto;
+}
+
+/* When no sidebar, main takes the full body width */
+.shell.noSidebar .main {
+  width: 100%;
+}
+
+/* ===== FOOTER ROW ===== */
+
+.footer {
+  grid-row: 3;
+  width: 100%;
+}
+
+/* ===== MOBILE (sidebar upgrades to drawer; body is single-column) ===== */
+
+@media (max-width: 767.98px) {
+  .body {
+    /* Sidebar becomes position:fixed on mobile (handled by Sidebar CSS),
+       so the body just shows main full-width. */
+    flex-direction: column;
+  }
+
+  .main {
+    width: 100%;
+  }
+}

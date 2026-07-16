@@ -1,0 +1,61 @@
+/**
+ * Sparkline styles.
+ *
+ * The wrapper `<span>` receives the consumer-provided color via inline style;
+ * the inner SVG paints with `currentColor` so the whole surface is themeable
+ * from a single `color` prop (or CSS token).
+ */
+
+.sparkline {
+  display: inline-block;
+  vertical-align: middle;
+  /* Kill the inline-baseline gap so the SVG sits flush with surrounding text. */
+  line-height: 0;
+}
+
+.svg {
+  display: block;
+}
+
+/* Empty state — em-dash or consumer-supplied fallback. */
+.empty {
+  /* Override the line-height: 0 so the em-dash is actually visible. */
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  min-width: 0.6em;
+  text-align: center;
+}
+
+.bar {
+  fill: currentColor;
+  opacity: 0.9;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/*
+ * Gradient fill below the line. The actual gradient stops are defined
+ * inline on `<linearGradient>` (so they pick up `currentColor` via the
+ * `stopColor` attribute); this class just makes the path non-strokeable
+ * so the gradient reads as a clean area without a competing outline.
+ */
+.fill {
+  stroke: none;
+}
+
+/*
+ * End-of-line dot. Filled with currentColor so it matches the resolved
+ * `color` prop. Stroke kept off — a halo can be added later via tokens
+ * if we want a contrast ring against busy backgrounds.
+ */
+.dot {
+  fill: currentColor;
+  stroke: none;
+}

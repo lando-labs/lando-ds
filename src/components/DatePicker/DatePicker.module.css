@@ -1,0 +1,266 @@
+/**
+ * DatePicker styles (#312).
+ *
+ * Visual contract
+ * ---------------
+ * The trigger is an Input-shaped surface — same border, focus ring, padding,
+ * and size scale as `<Input>` / `<Combobox>`. The popover panel is a
+ * Portal-rendered fixed container that hosts the inline `<Calendar>` plus
+ * the dialog wrappers. Calendar carries its own visuals (border + padding +
+ * shadow via its CSS Module), so this stylesheet stays minimal — it only
+ * needs to host the trigger affordance + the dialog wrapper.
+ *
+ * Sizing strategy mirrors `<Combobox>` so DatePicker can drop next to it in
+ * forms with no alignment drift. Reuses `--focus-ring-color`,
+ * `--color-surface`, `--color-border-default` etc. — re-skins via the same
+ * `--color-primary` override path as the rest of the DS.
+ *
+ * No width-@media — the panel is a fixed-width dialog by design.
+ */
+
+/* ====================================================================== */
+/* WRAPPER + LABEL                                                        */
+/* ====================================================================== */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+/* ====================================================================== */
+/* TRIGGER CONTAINER (input affordance)                                    */
+/* ====================================================================== */
+
+/*
+ * Container hosts the border + focus ring — same model as Combobox so the
+ * clear button can sit inside the field at flush-right without breaking the
+ * focus indicator.
+ */
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: text;
+  transition: var(--transition-default);
+}
+
+.container:hover:not(.disabled) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * Focus ring lives on the container — uses :focus-within so the clear button
+ * doesn't lose the indicator when focused.
+ */
+.container:focus-within,
+.container.open {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.container.error {
+  border-color: var(--color-error-base);
+}
+
+.container.error:hover:not(.disabled) {
+  border-color: var(--color-error-dark);
+}
+
+.container.error:focus-within {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+}
+
+.container.disabled {
+  background-color: var(--color-surface-hover);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ----- Size variants (mirror Combobox) ----- */
+
+.size_sm {
+  min-height: 2rem;
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  font-size: var(--font-size-xs);
+}
+
+.size_md {
+  min-height: 2.5rem;
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+}
+
+.size_lg {
+  min-height: 3rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-size: var(--font-size-base);
+}
+
+/* ====================================================================== */
+/* INPUT                                                                  */
+/* ====================================================================== */
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-disabled);
+}
+
+/* ====================================================================== */
+/* TRAILING ICONS — clear button + calendar glyph                          */
+/* ====================================================================== */
+
+.iconGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-padding-2xs);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.iconButton:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.calendarGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  padding: var(--component-padding-2xs);
+  pointer-events: none;
+}
+
+/* ====================================================================== */
+/* FOOTER (helper / error text)                                            */
+/* ====================================================================== */
+
+.footer {
+  display: flex;
+  align-items: flex-start;
+  min-height: 1.25rem;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ====================================================================== */
+/* DIALOG PANEL (Portal-rendered)                                          */
+/* ====================================================================== */
+
+/*
+ * The popover panel hosts the Calendar inline. We don't add border / shadow
+ * here because Calendar's own root already supplies them — stacking two
+ * borders looks doubled. We just position absolutely and provide a
+ * stacking context.
+ *
+ * Two-pass positioning mirrors Combobox: opacity 0 during measurement, fade
+ * in at the computed position. Using opacity (not visibility) keeps the
+ * dialog discoverable for testing-library queries.
+ */
+.panel {
+  position: fixed;
+  z-index: var(--z-index-popover, 1200);
+  margin: 0;
+}
+
+.positioning {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.positioned {
+  opacity: 1;
+  animation: datePickerFadeIn var(--duration-fast) var(--easing-ease-out);
+}
+
+@keyframes datePickerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ====================================================================== */
+/* MOTION                                                                 */
+/* ====================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .positioned {
+    animation: none;
+  }
+}

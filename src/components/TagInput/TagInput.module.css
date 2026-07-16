@@ -1,0 +1,280 @@
+/**
+ * TagInput Component Styles
+ *
+ * Visual contract: matches Input height/padding for in-form parity, with a
+ * chip row that wraps. Free-text combobox affordance: chips render inline,
+ * the editor input grows to fill remaining space.
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* ===== LABEL (mirrors Input.module.css for visual parity) ===== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ===== COMBOBOX WRAPPER ===== */
+
+/*
+ * The combobox wrapper visually replaces the <input> element. It owns the
+ * border, focus ring, and padding. The actual <input type="text"> lives
+ * inside as the active editor; chips wrap onto multiple rows alongside it.
+ */
+.combobox {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: text;
+  transition: var(--transition-default);
+}
+
+.combobox:hover:not(.disabled) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * Sprint 7 unified focus ring (#38). The wrapper hosts the border-shift +
+ * halo treatment because the inner <input> is borderless. We trigger on
+ * .focused (set when the inner input is focused) AND on :focus-within so
+ * keyboard focus across remove buttons / chips still indicates the
+ * editable surface.
+ */
+.combobox.focused,
+.combobox:focus-within {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.combobox.disabled {
+  background-color: var(--color-surface-hover);
+  cursor: not-allowed;
+}
+
+.combobox.error {
+  border-color: var(--color-error-base);
+}
+
+.combobox.error:hover:not(.disabled) {
+  border-color: var(--color-error-dark);
+}
+
+.combobox.error.focused,
+.combobox.error:focus-within {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+  outline: none;
+}
+
+/* ===== CHIP ===== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .chip {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-lighter);
+}
+
+.chipText {
+  /* Allow long tags to ellipsize without breaking layout. */
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition-default);
+}
+
+.chipRemove:hover {
+  opacity: 1;
+  background-color: rgb(var(--color-primary-base-rgb) / 0.15);
+}
+
+.chipRemove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  opacity: 1;
+}
+
+/* ===== EDITOR INPUT ===== */
+
+.input {
+  flex: 1 1 6rem;
+  min-width: 6rem;
+  padding: var(--component-padding-2xs) var(--component-padding-2xs);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+/* ===== SUGGESTIONS ===== */
+
+/*
+ * Suggestions render via Portal (position: fixed) so the dropdown escapes
+ * any overflow:hidden / overflow:clip ancestor — Card, Modal, table rows,
+ * scrollable containers. Mirrors Select's pattern using usePortalPosition.
+ *
+ * The previous v0.10.0-rc.1 inline (position: absolute) approach was
+ * clipped behind Card boundaries, which is the most common TagInput-in-form
+ * placement. Switched to Portal in v0.10.0-rc.2.
+ */
+.suggestions {
+  position: fixed;
+  z-index: var(--z-dropdown, 1000);
+  max-height: 14rem;
+  overflow-y: auto;
+  padding: var(--component-padding-2xs);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  margin: 0;
+}
+
+/*
+ * Two-pass positioning: first render is invisible (opacity 0) so the
+ * usePortalPosition hook can measure the overlay's size, then we fade in
+ * at the computed top/left. Using opacity (not visibility) keeps the
+ * element discoverable for testing-library's role queries.
+ */
+.positioning {
+  opacity: 0;
+  pointer-events: none;
+}
+.positioned {
+  opacity: 1;
+}
+
+.suggestion {
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.suggestion:hover,
+.suggestion.highlighted {
+  background-color: var(--color-surface-hover);
+}
+
+.suggestion.highlighted {
+  /* Reinforce keyboard highlight beyond hover so screen-reader users see
+     the same affordance their AT announces via aria-activedescendant. */
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+}
+
+[data-theme='dark'] .suggestion.highlighted {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-lighter);
+}
+
+.suggestionEmpty {
+  padding: var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperWrapper {
+  flex: 1;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+.maxHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  line-height: var(--line-height-snug);
+}

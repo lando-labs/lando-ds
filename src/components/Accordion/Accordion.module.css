@@ -1,0 +1,159 @@
+/**
+ * Accordion Component Styles
+ * Ocean-inspired with smooth height animations
+ */
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+/* ===== ACCORDION ITEM ===== */
+
+.item {
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item.itemDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== TRIGGER (HEADER BUTTON) ===== */
+
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  font-family: var(--font-family-base);
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.trigger:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+}
+
+.itemExpanded .trigger {
+  background-color: var(--color-surface-elevated);
+}
+
+.itemExpanded .trigger:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+/* ===== ICON ===== */
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+/* ===== TITLE ===== */
+
+.title {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+}
+
+/* ===== CHEVRON ===== */
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transform: rotate(0deg);
+  transition: transform var(--duration-normal) var(--easing-wave);
+}
+
+.itemExpanded .chevron {
+  transform: rotate(180deg);
+}
+
+/* ===== CONTENT ===== */
+
+.content {
+  overflow: hidden;
+  transition: height var(--duration-normal) var(--easing-wave);
+}
+
+.contentInner {
+  padding: 0 var(--component-padding-lg) var(--component-padding-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes accordionSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes accordionSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.itemExpanded .contentInner {
+  animation: accordionSlideDown var(--duration-normal) var(--easing-wave);
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+[data-theme='dark'] .accordion {
+  background-color: var(--color-surface);
+  border-color: var(--color-border-subtle);
+}
+
+[data-theme='dark'] .item {
+  border-color: var(--color-border-subtle);
+}
+
+[data-theme='dark'] .itemExpanded .trigger {
+  background-color: var(--color-surface-elevated);
+}
+
+[data-theme='dark'] .trigger:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}

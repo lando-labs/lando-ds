@@ -1,0 +1,18 @@
+/**
+ * Center Component Styles
+ * Two-axis flex centering. `.block` participates as a block-level box;
+ * `.inline` flows inline with surrounding text for tiny icon-like centers.
+ */
+
+.center {
+  align-items: center;
+  justify-content: center;
+}
+
+.block {
+  display: flex;
+}
+
+.inline {
+  display: inline-flex;
+}

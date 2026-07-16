@@ -1,0 +1,205 @@
+/**
+ * Divider Component Styles
+ * Ocean-inspired separators with optional labels
+ */
+
+/* ===== BASE HORIZONTAL DIVIDER ===== */
+
+.divider {
+  border: 0;
+  font-family: var(--font-family-base);
+}
+
+.horizontal {
+  width: 100%;
+  border-top: 1px solid var(--color-border-default);
+}
+
+/* ===== VERTICAL DIVIDER ===== */
+
+.vertical {
+  display: inline-flex;
+  width: 1px;
+  min-height: 2.5rem;
+  align-self: stretch;
+  flex-shrink: 0;
+  background-color: var(--color-border-default);
+}
+
+/* ===== VARIANTS ===== */
+
+.solid {
+  border-style: solid;
+}
+
+.vertical.solid {
+  background-color: var(--color-border-default);
+}
+
+.dashed {
+  border-style: dashed;
+  border-top-width: 1px;
+}
+
+.vertical.dashed {
+  background: none;
+  border: none;
+  border-inline-start: 1px dashed var(--color-border-default);
+}
+
+.dotted {
+  border-style: dotted;
+  border-top-width: 2px;
+}
+
+.vertical.dotted {
+  background: none;
+  border: none;
+  border-inline-start: 2px dotted var(--color-border-default);
+}
+
+/* ===== SPACING ===== */
+
+.spacing-sm {
+  margin: var(--spacing-8) 0;
+}
+
+.vertical.spacing-sm {
+  margin: 0 var(--spacing-8);
+}
+
+.spacing-md {
+  margin: var(--spacing-16) 0;
+}
+
+.vertical.spacing-md {
+  margin: 0 var(--spacing-16);
+}
+
+.spacing-lg {
+  margin: var(--spacing-24) 0;
+}
+
+.vertical.spacing-lg {
+  margin: 0 var(--spacing-24);
+}
+
+/* ===== DIVIDER WITH LABEL ===== */
+
+/*
+ * Section-break labeled divider.
+ *
+ * Typography mirrors the DS `<Text variant="caption" size="md">` style:
+ *   - font-size:   var(--font-size-sm)
+ *   - line-height: var(--line-height-snug)
+ *   - color:       var(--color-text-secondary)
+ *
+ * We keep font-weight: medium (vs. Text-caption's default 400) to give
+ * the inline label just enough emphasis to read as a section break
+ * without competing with adjacent headings.
+ *
+ * See issue #22.
+ */
+.withLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  border: none;
+  margin: var(--spacing-16) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.withLabel.spacing-sm {
+  margin: var(--spacing-8) 0;
+  gap: var(--spacing-8);
+}
+
+.withLabel.spacing-lg {
+  margin: var(--spacing-24) 0;
+  gap: var(--spacing-16);
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border-default);
+}
+
+.dashed .line {
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-border-default),
+    var(--color-border-default) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.dotted .line {
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-border-default),
+    var(--color-border-default) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
+.label {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 0 var(--component-padding-2xs);
+}
+
+/* ===== LABEL POSITIONS ===== */
+
+.label-left .line:first-child {
+  flex: 0 0 2rem;
+}
+
+.label-right .line:last-child {
+  flex: 0 0 2rem;
+}
+
+/* Center is default (both lines flex: 1) */
+
+/* ===== OCEAN GRADIENT VARIANT ===== */
+
+/* Optional: Add subtle ocean gradient for special use cases */
+.divider.ocean {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-primary-lighter),
+    transparent
+  );
+  border: none;
+  height: 1px;
+}
+
+[data-theme='dark'] .divider.ocean {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-primary-dark),
+    transparent
+  );
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .horizontal,
+  .line {
+    border-top-width: 2px;
+  }
+
+  .vertical {
+    width: 2px;
+  }
+}

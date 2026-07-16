@@ -1,0 +1,20 @@
+/**
+ * Spacer Component Styles
+ * `flex: 1 1 auto` is the universal "consume remaining space" preset.
+ * Axis classes also set a minimum dimension so the element retains some
+ * presence in non-flex parents (otherwise an empty <span> is zero-size).
+ */
+
+.spacer {
+  flex: 1 1 auto;
+  align-self: stretch;
+  pointer-events: none;
+}
+
+.horizontal {
+  min-width: 0;
+}
+
+.vertical {
+  min-height: 0;
+}

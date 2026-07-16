@@ -1,0 +1,65 @@
+/**
+ * Icon Component Styles
+ * Ocean-themed icon system with animations
+ */
+
+.icon {
+  /* Default to current text color for flexibility */
+  color: currentColor;
+
+  /* Ensure icons align nicely with text */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+
+  /* Smooth color transitions for ocean theme */
+  transition: color var(--duration-fast) var(--easing-out);
+
+  /* Prevent icon from shrinking in flex containers */
+  flex-shrink: 0;
+}
+
+/* Interactive icons (used in buttons, clickable areas) */
+.icon.interactive {
+  cursor: pointer;
+}
+
+.icon.interactive:hover {
+  color: var(--ocean-bright);
+}
+
+/* Spinning animation for loading icons */
+.icon.spinning {
+  animation: iconSpin 1s linear infinite;
+}
+
+@keyframes iconSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ocean wave pulse animation */
+.icon.pulsing {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .icon {
+  /* Icons inherit color, no specific dark mode changes needed */
+}

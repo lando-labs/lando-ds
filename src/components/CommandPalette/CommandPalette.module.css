@@ -1,0 +1,215 @@
+/**
+ * CommandPalette styles (#378).
+ *
+ * Visual contract:
+ *   - The palette is a "spotlight" — search input on top, list of grouped
+ *     options below. Tight vertical rhythm, single-color chrome.
+ *   - Active item gets `--color-surface-hover` (tinted background), the same
+ *     hover token used across the DS overlays so dark mode + theme overrides
+ *     re-skin automatically.
+ *   - Group headings render as ALL-CAPS micro-text — the conventional
+ *     command-k category style. Uses `--color-text-tertiary` so they read
+ *     as section dividers, not navigable content.
+ *   - Lives INSIDE Modal's body padding. We deliberately don't reach into
+ *     Modal's internals to remove its padding — that would couple the two
+ *     components by class-name. Instead we accept the host padding as the
+ *     palette's outer frame and use negative inline margin on a few elements
+ *     where we want the active-state tint to extend wider than the content
+ *     column. This keeps the active highlight visually distinct without
+ *     touching Modal's CSS.
+ *
+ * No width-`@media` here. The host Modal is the container-query host
+ * (`container: modal / inline-size`); narrowing collapses the modal to
+ * full-bleed (Modal's own @container rule) and we inherit that automatically.
+ * The sweep guard at src/test/container-query-sweep.test.ts confirms we
+ * don't smuggle viewport queries into component CSS.
+ */
+
+/* ===== Root container =====
+ * Flexbox column — search row on top, listbox fills remaining space.
+ *
+ * Uses negative inline margin to bleed slightly past Modal's body padding so
+ * the active-state tint (on items) extends to where the body padding starts,
+ * matching the spotlight aesthetic. The `calc(var(--spacing-xl) * -1)`
+ * exactly cancels Modal's body padding (`var(--spacing-xl)`). This is the
+ * standard DS pattern for "in this slot I need edge-to-edge" — see e.g.
+ * CardBody's negative-margin Tabs slot.
+ */
+.root {
+  display: flex;
+  flex-direction: column;
+  margin-inline: calc(var(--spacing-xl) * -1);
+  margin-block: calc(var(--spacing-xl) * -1);
+  /* Cap height so very long command lists scroll within the dialog instead
+   * of stretching it past the viewport. */
+  max-height: min(60vh, 480px);
+  min-height: 200px;
+}
+
+/* ===== Search row =====
+ * The leading magnifying-glass icon + the borderless search input. */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  border-bottom: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+  padding: 0;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Focus-visible on the search input is suppressed because the palette IS
+ * the focus surface — the dialog has just opened and the input is auto-
+ * focused. A focus ring on a borderless input inside a dialog reads as
+ * visual noise (the dialog itself is the focused affordance). */
+.searchInput:focus-visible {
+  outline: none;
+}
+
+/* ===== Listbox =====
+ * Scrollable container. role="listbox" lives here in markup. */
+.listbox {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--component-padding-sm) 0;
+  /* Defensive: never let focus paint on the listbox itself. The active item
+   * is announced via aria-activedescendant on the input (which keeps DOM
+   * focus); the listbox should never receive focus. */
+  outline: none;
+}
+
+.listbox::-webkit-scrollbar {
+  width: 8px;
+}
+
+.listbox::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+.listbox::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+/* ===== Group =====
+ * `role="group"` wrapper with a category heading. Collapsed when empty via
+ * the :has() rule below — no JS bookkeeping needed; CSS owns the visual.
+ * `:has()` is Baseline 2023 and within the DS browser-floor (#319). */
+.group:not(:has(> [role='option'])) {
+  display: none;
+}
+
+.groupHeading {
+  /* Compact, all-caps section label — the standard command-k pattern. */
+  padding: var(--component-padding-sm) var(--component-padding-lg) var(--component-padding-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+}
+
+/* First group's heading shouldn't have extra top padding — the listbox's
+ * own top padding already separates it from the search row. */
+.group:first-child .groupHeading {
+  padding-top: var(--component-padding-xs);
+}
+
+/* ===== Item =====
+ * Three-column row: icon | label/description | shortcut. The icon and the
+ * shortcut are optional; the body grows to fill. */
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--component-padding-sm) var(--component-padding-lg);
+  cursor: pointer;
+  user-select: none;
+  /* No transitions on the active-state tint — keyboard nav should feel
+   * snappy. A 150ms fade would lag arrow-key holding. */
+}
+
+.itemActive {
+  background-color: var(--color-surface-hover);
+}
+
+.itemDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.itemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  /* Lock icon container to a consistent width so labels align across rows
+   * with and without icons. 20px = the lucide-react default icon body. */
+  width: 20px;
+  height: 20px;
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemLabel {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemShortcut {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  /* Right-aligned by virtue of being the last flex child + the body's
+   * flex: 1 pushing it. No explicit alignment needed. */
+}
+
+/* ===== Empty state =====
+ * Centered muted message when the filter matches nothing. */
+.empty {
+  padding: var(--component-padding-xl) var(--component-padding-lg);
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}

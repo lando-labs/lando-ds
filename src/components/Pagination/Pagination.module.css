@@ -1,0 +1,166 @@
+/**
+ * Pagination Component Styles
+ * Ocean-inspired with smooth transitions
+ */
+
+.pagination {
+  font-family: var(--font-family-base);
+
+  /* #270 — container-query responsive. Pagination placed in a narrow slot
+   * shrinks its buttons/gaps by ITS OWN width, not the viewport. The
+   * `pagination` container-name is GLOBAL (CSS Modules does not hash it).
+   * Threshold preserved: 40rem (640px). Token: tokens/containerQueries. */
+  container: pagination / inline-size;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ===== BUTTON BASE ===== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: var(--component-padding-xs);
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  cursor: pointer;
+  transition: var(--transition-default);
+  user-select: none;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* ===== PAGE BUTTON (Numbers) ===== */
+
+.pageButton {
+  font-variant-numeric: tabular-nums;
+}
+
+.pageButton.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pageButton.active:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: var(--color-on-primary);
+}
+
+/* ===== NAV BUTTONS (Arrows) ===== */
+
+.navButton {
+  padding: var(--component-padding-xs);
+}
+
+.navButton svg {
+  flex-shrink: 0;
+}
+
+/* ===== ELLIPSIS ===== */
+
+.ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+
+/* ===== DISABLED STATE ===== */
+
+.disabled .button {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.disabled .button:hover {
+  background: transparent;
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
+  transform: none;
+}
+
+.disabled .pageButton.active {
+  opacity: 0.6;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* #270 — buttons/gaps shrink on the pagination's own width (was viewport
+ * @media). Threshold preserved: 40rem (640px). All rules target descendants of
+ * `.pagination`. */
+@container pagination (max-width: 40rem) {
+  .list {
+    gap: var(--spacing-2);
+  }
+
+  .button {
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: var(--component-padding-2xs);
+    font-size: var(--font-size-xs);
+  }
+
+  .navButton svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .ellipsis {
+    min-width: 2rem;
+    min-height: 2rem;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .button {
+    border-width: 2px;
+  }
+
+  .pageButton.active {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+}

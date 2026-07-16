@@ -1,0 +1,297 @@
+/**
+ * ThemeBuilder Component Styles
+ * Ocean-inspired theme builder with smooth transitions
+ */
+
+.themeBuilder {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  /* #281 — container-query host. The ThemeBuilder reflows its color grid and
+   * preview panels by ITS OWN width, not the viewport, so it compacts correctly
+   * when embedded in a narrower shell. Every `@container theme-builder` rule
+   * below targets a DESCENDANT (`.title`, `.colorGrid`, `.colorSwatch`,
+   * `.preview`, `.previewGrid`) — never `.themeBuilder` itself — so no wrapper is
+   * needed (cf. Modal/Card). The `theme-builder` container-name is GLOBAL (CSS
+   * Modules does not hash it). Thresholds preserved: 48rem (768px) and 30rem
+   * (480px). Token: tokens/containerQueries. */
+  container: theme-builder / inline-size;
+}
+
+/* Header */
+.header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Controls */
+.controls {
+  margin-bottom: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.themeDescription {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  padding: var(--component-padding-md);
+  background: var(--color-surface);
+  border-inline-start: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  transition: var(--transition-background);
+}
+
+/* Sections */
+.section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.sectionDescription {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* Color Palette */
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.colorItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--component-padding-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-default);
+}
+
+/*
+ * #64 — Trimmed to match card-family hover amplitude: -1px lift + shadow
+ * step. Border-color shift removed (was effect #3 on a 150ms window).
+ */
+.colorItem:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.colorSwatch {
+  width: 100%;
+  height: 80px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-transform);
+  cursor: pointer;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.colorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.colorName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  text-transform: capitalize;
+}
+
+.colorValue {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  background: var(--color-background);
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Preview Section */
+.preview {
+  padding: var(--component-padding-2xl);
+  background: var(--preview-background, var(--color-background));
+  border: 2px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-slow) var(--easing-wave);
+  box-shadow: var(--shadow-lg);
+}
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-2xl);
+}
+
+.previewGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.previewGroupTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--preview-text-secondary, var(--color-text-secondary));
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.previewRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+/* Responsive */
+/* #281 — reflows on the ThemeBuilder's own width (was viewport @media).
+ * Thresholds preserved: 48rem (768px) and 30rem (480px). Every selector here is
+ * a DESCENDANT of the `.themeBuilder` container host (see the note on
+ * `.themeBuilder`), so the rules match without a wrapper. */
+@container theme-builder (max-width: 48rem) {
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .colorGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .colorSwatch {
+    height: 60px;
+  }
+
+  .preview {
+    padding: var(--component-padding-lg);
+  }
+
+  .previewGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+}
+
+@container theme-builder (max-width: 30rem) {
+  .colorGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preview {
+    padding: var(--component-padding-md);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section {
+  animation: fadeIn var(--duration-slow) var(--easing-ease-out);
+}
+
+/* Ocean-inspired wave effect on hover */
+.preview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--preview-primary, var(--color-primary)) 0%,
+    var(--preview-info, var(--color-info)) 50%,
+    var(--preview-success, var(--color-success-base)) 100%
+  );
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--easing-ease-out);
+}
+
+.preview:hover::before {
+  opacity: 1;
+}
+
+/* Smooth color transitions */
+.preview * {
+  transition: background-color var(--duration-slow) var(--easing-wave),
+              border-color var(--duration-slow) var(--easing-wave),
+              color var(--duration-slow) var(--easing-wave);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .preview,
+  .colorItem,
+  .colorSwatch,
+  .section {
+    animation: none;
+    transition: none;
+  }
+
+  .preview * {
+    transition: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .colorItem {
+    border-width: 2px;
+  }
+
+  .colorSwatch {
+    border-width: 2px;
+  }
+
+  .preview {
+    border-width: 3px;
+  }
+}

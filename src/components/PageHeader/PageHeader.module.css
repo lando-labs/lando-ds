@@ -1,0 +1,61 @@
+/**
+ * PageHeader Component Styles
+ *
+ * Layout: two-column flex row — title column (left, flex-grow) +
+ * actions column (right). At narrow viewports (<640px), the row
+ * wraps so actions drop below the title.
+ *
+ * Horizontal padding is intentionally 0 — consumers control page
+ * gutters via their page container (Container, StickyBar, etc.).
+ */
+
+.pageHeader {
+  display: block;
+  width: 100%;
+  padding: var(--component-padding-lg) 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.titleColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1 1 auto;
+  /* Allow text truncation / wrapping inside the column */
+  min-width: 0;
+}
+
+.breadcrumbs {
+  margin-bottom: var(--spacing-xs);
+}
+
+.subtitle {
+  margin-top: 0;
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Mobile: actions drop below the title */
+@media (max-width: 639.98px) {
+  .main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}

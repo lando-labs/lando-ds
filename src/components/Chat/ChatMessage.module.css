@@ -1,0 +1,138 @@
+/* #270 — container-query host (inner-wrapper pattern).
+ *
+ * A chat message reflows (tighter padding, wider bubble) by the THREAD'S width,
+ * not the viewport — so a chat surface embedded in a narrow panel compacts
+ * correctly. The responsive rule below tightens `.message`'s OWN padding, which
+ * is the bug-prone case: an element's `@container` query is evaluated against
+ * its nearest ANCESTOR container, never itself, so putting the container on
+ * `.message` AND querying `.message` from it would silently do nothing.
+ *
+ * `.sizer` is a zero-box wrapper (a plain block — fills the thread's inline
+ * size, adds no padding/border/background/layout of its own) that carries the
+ * container. `.message` is its child, so the `@container chat-message` rules
+ * that style `.message` (and `.messageContent` / `.bubble`) now correctly
+ * match. The `chat-message` container-name is GLOBAL (CSS Modules does not hash
+ * it). Threshold preserved: 40rem (640px). Token: tokens/containerQueries. */
+.sizer {
+  display: block;
+  container: chat-message / inline-size;
+}
+
+.message {
+  display: flex;
+  gap: var(--spacing-12);
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  animation: fadeIn var(--duration-normal) var(--easing-ease-out);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User messages: right-aligned */
+.user {
+  flex-direction: row-reverse;
+}
+
+/* AI messages: left-aligned */
+.ai {
+  flex-direction: row;
+}
+
+/* System messages: centered */
+.system {
+  justify-content: center;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+}
+
+.systemContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.messageContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 70%;
+}
+
+.user .messageContent {
+  align-items: flex-end;
+}
+
+.ai .messageContent {
+  align-items: flex-start;
+}
+
+.bubble {
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  border-radius: var(--radius-lg);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.user .bubble {
+  background-color: var(--color-primary-medium);
+  color: var(--color-text-inverse);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.ai .bubble {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border-bottom-left-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.content {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.timestamp {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  padding: 0 var(--component-padding-2xs);
+}
+
+/* Responsive adjustments */
+/* #270 — reflows on the message's own width (was viewport @media). Threshold
+ * preserved: 40rem (640px). `.message`, `.messageContent`, and `.bubble` are all
+ * DESCENDANTS of the `.sizer` container host (see the note on `.sizer` above),
+ * which is why these rules match — including the `.message` padding override
+ * that would NOT have applied as a container self-rule. */
+@container chat-message (max-width: 40rem) {
+  .message {
+    padding: var(--component-padding-xs) var(--component-padding-sm);
+  }
+
+  .messageContent {
+    max-width: 85%;
+  }
+
+  .bubble {
+    padding: var(--component-padding-sm) var(--component-padding-sm);
+  }
+}

@@ -1,0 +1,253 @@
+/**
+ * Text Component Styles
+ * Polymorphic text component with design tokens
+ */
+
+.text {
+  /* Reset margin and set base styles */
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  transition: var(--transition-color);
+}
+
+/* ===== VARIANTS ===== */
+
+.variant-body {
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.variant-caption {
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-text-secondary);
+}
+
+.variant-small {
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-text-tertiary);
+}
+
+.variant-overline {
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * The `mono` variant uses the monospace family for code/identifiers/debug
+ * values inline in body copy. Replaces the `style={{fontFamily:'var(--font-family-mono)'}}`
+ * inline overrides scattered through a consumer app (#379).
+ *
+ * Line-height and letter-spacing match `body` so a mono span composes
+ * cleanly with surrounding body text without forcing baseline shifts.
+ * For block-level code with custom styling, prefer the `CodeBlock`
+ * component — this variant is for inline mono nudges.
+ */
+.variant-mono {
+  font-family: var(--font-family-mono);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/*
+ * The `link` variant is a tappable/clickable text affordance.
+ * Pair with `as="a"` (+ href) for navigation or `as="button"`
+ * (+ onClick) for an in-page action — this rule normalizes both so
+ * they look identical. Underline appears on hover/focus only; the
+ * focus ring is provided by the shared `.text:focus-visible` rule.
+ */
+.variant-link {
+  /*
+   * Reset native <button> chrome first so as="button" matches as="a".
+   * `font: inherit` is a shorthand and resets line-height too, so the
+   * explicit longhands below must come AFTER it to take effect.
+   */
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.variant-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.variant-link:active {
+  color: var(--color-primary-active);
+}
+
+.variant-link:focus-visible {
+  text-decoration: underline;
+}
+
+.variant-link:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/*
+ * Dark mode: --color-primary (ocean-medium #1B7FA8) only reaches ~3:1
+ * on the dark background, short of the WCAG AA 4.5:1 for body text.
+ * Lift the link through the semantic ramp — --color-primary-light
+ * resolves to #66C2D9 (~7.6:1), the same shade used by
+ * --color-text-tertiary, a documented AA-passing dark-mode color.
+ */
+[data-theme='dark'] .variant-link {
+  color: var(--color-primary-light);
+}
+
+[data-theme='dark'] .variant-link:hover {
+  color: var(--color-primary-lighter);
+}
+
+[data-theme='dark'] .variant-link:active {
+  color: var(--color-primary-base);
+}
+
+[data-theme='dark'] .variant-link:disabled {
+  color: var(--color-text-disabled);
+}
+
+/* ===== SIZES ===== */
+
+/* Body variant sizes */
+.variant-body.size-sm {
+  font-size: var(--font-size-sm);
+}
+
+.variant-body.size-md {
+  font-size: var(--font-size-base);
+}
+
+.variant-body.size-lg {
+  font-size: var(--font-size-lg);
+}
+
+/* Link variant sizes (mirrors the body scale — links sit in body copy) */
+.variant-link.size-sm {
+  font-size: var(--font-size-sm);
+}
+
+.variant-link.size-md {
+  font-size: var(--font-size-base);
+}
+
+.variant-link.size-lg {
+  font-size: var(--font-size-lg);
+}
+
+/* Caption variant sizes */
+.variant-caption.size-sm {
+  font-size: var(--font-size-xs);
+}
+
+.variant-caption.size-md {
+  font-size: var(--font-size-sm);
+}
+
+.variant-caption.size-lg {
+  font-size: var(--font-size-base);
+}
+
+/* Small variant sizes */
+.variant-small.size-sm {
+  font-size: var(--font-size-2xs);
+}
+
+.variant-small.size-md {
+  font-size: var(--font-size-xs);
+}
+
+.variant-small.size-lg {
+  font-size: var(--font-size-sm);
+}
+
+/* Overline variant sizes */
+.variant-overline.size-sm {
+  font-size: var(--font-size-2xs);
+}
+
+.variant-overline.size-md {
+  font-size: var(--font-size-xs);
+}
+
+.variant-overline.size-lg {
+  font-size: var(--font-size-sm);
+}
+
+/* Mono variant sizes — mono is typically used inline in body copy, so
+ * its scale mirrors the body scale exactly. A "lg" mono span composes
+ * cleanly with surrounding `<Text size="lg">` body text. */
+.variant-mono.size-sm {
+  font-size: var(--font-size-sm);
+}
+
+.variant-mono.size-md {
+  font-size: var(--font-size-base);
+}
+
+.variant-mono.size-lg {
+  font-size: var(--font-size-lg);
+}
+
+/* ===== WEIGHTS ===== */
+
+.weight-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Ensure focus is visible for interactive text (e.g., with onClick) */
+.text:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* Slightly reduce font sizes on smaller screens for better readability.
+ *
+ * #281 — intentionally kept as a viewport `@media` (category B). Responsive type
+ * scale is a page/viewport-tier decision. Text is also polymorphic and
+ * inline-capable (`as="span"`/`"a"`/`"button"`), so there is no safe container
+ * host: the rule styles the element's OWN variant/size (a self-rule), and any
+ * `.sizer` wrapper would force a box around inline text and break `Stack`/
+ * `Inline` direct-child `gap` + adjacent-sibling selectors. */
+@media (max-width: 640px) {
+  .variant-body.size-lg {
+    font-size: var(--font-size-base);
+  }
+}

@@ -1,0 +1,187 @@
+/**
+ * EmptyState Component Styles
+ * Ocean-inspired empty state with subtle animations
+ */
+
+/* #281 — container-query host (inner-wrapper pattern).
+ *
+ * An EmptyState dropped into a narrow card/panel should compact (tighter
+ * padding, smaller icon, stacked full-width buttons) by ITS OWN width, not the
+ * viewport. The responsive rule below tightens `.emptyState`'s OWN
+ * padding/gap/min-height (flex container props) plus its descendants. Because
+ * `.emptyState` is the component root, a container placed on it AND queried from
+ * it would be a self-rule no-op for those container properties. `.sizer` is a
+ * zero-styling wrapper (plain block, fills the available inline size, no box of
+ * its own) carrying the container; `.emptyState` is its DOM child, so every
+ * `@container empty-state` rule below matches. The `empty-state` container-name
+ * is GLOBAL (CSS Modules does not hash it). Threshold preserved: 40rem (640px).
+ * Token: tokens/containerQueries. */
+.sizer {
+  display: block;
+  container: empty-state / inline-size;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-24);
+  padding: var(--component-padding-3xl) var(--component-padding-xl);
+  text-align: center;
+  min-height: 400px;
+}
+
+/* ===== ICON WRAPPER ===== */
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-lightest),
+    var(--color-primary-lighter)
+  );
+  color: var(--color-primary-base);
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+}
+
+[data-theme='dark'] .iconWrapper {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-darker),
+    var(--color-primary-dark)
+  );
+  color: var(--color-primary-light);
+}
+
+.iconWrapper::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light),
+    var(--color-primary-base)
+  );
+  opacity: 0.2;
+  z-index: -1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+/* ===== CONTENT ===== */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  max-width: 480px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+/* ===== ACTIONS ===== */
+
+.actions {
+  display: flex;
+  gap: var(--spacing-12);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* #281 — reflows on the empty-state's own width (was viewport @media). Threshold
+ * preserved: 40rem (640px). `.emptyState` and its descendants (`.iconWrapper`,
+ * `.title`, `.description`, `.actions`, action buttons) all live inside the
+ * `.sizer` container host (see the note on `.sizer`), which is why these rules
+ * match — including the `.emptyState` padding/gap/min-height override that would
+ * NOT have applied as a container self-rule. */
+@container empty-state (max-width: 40rem) {
+  .emptyState {
+    padding: var(--component-padding-2xl) var(--component-padding-lg);
+    gap: var(--spacing-20);
+    min-height: 320px;
+  }
+
+  .iconWrapper {
+    width: 96px;
+    height: 96px;
+  }
+
+  .iconWrapper svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .title {
+    font-size: var(--font-size-xl);
+  }
+
+  .description {
+    font-size: var(--font-size-sm);
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .iconWrapper {
+    animation: none;
+  }
+
+  .iconWrapper::before {
+    animation: none;
+  }
+}

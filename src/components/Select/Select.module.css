@@ -1,0 +1,303 @@
+/**
+ * Select Component Styles
+ * Ocean-inspired dropdown with smooth animations
+ */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Select trigger */
+.select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.select:hover:not(.disabled) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * #38 — Unified focus ring. The `.open` state also paints a halo via
+ * box-shadow, but that's the "open combobox" treatment rather than the
+ * focus indicator — keyboard-only focus goes through this rule.
+ */
+.select:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.select.open {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-outline);
+}
+
+.select.disabled {
+  background-color: var(--color-surface-hover);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.select.error {
+  border-color: var(--color-error-base);
+}
+
+/* Value display */
+.value {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select.disabled .value {
+  color: var(--color-text-disabled);
+}
+
+/* Multiple selection chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+/* Indicators (clear + chevron) */
+.indicators {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-shrink: 0;
+  margin-inline-start: var(--spacing-12);
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.clearButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.chevron {
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-normal) var(--easing-wave);
+}
+
+.select.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* Error message */
+.errorMessage {
+  font-size: var(--font-size-xs);
+  color: var(--color-error-base);
+}
+
+/* Dropdown
+ *
+ * Explicit flex column layout — this is load-bearing. Previously:
+ *   - `.dropdown` had `overflow: hidden` while `.options` had `max-height: inherit`
+ *   - A trailing `padding-bottom: var(--spacing-48)` on `.options` collapsed the
+ *     scroll container so only a single option was visible
+ *
+ * The fix: the dropdown is a flex column whose height is driven by the inline
+ * `max-height` prop. The search wrapper has intrinsic height; the `.options`
+ * panel uses `flex: 1 1 auto; min-height: 0` so it takes the remaining height
+ * and scrolls internally via `overflow-y: auto`.
+ */
+.dropdown {
+  position: fixed;
+  z-index: var(--z-index-dropdown);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  /* Clip only the rounded corners; internal scrolling lives on .options */
+  overflow: hidden;
+}
+
+/* Positioning states — hide until measured to prevent flash at off-screen coords */
+.dropdown.positioning {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropdown.positioned {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  animation: dropdownSlideIn var(--duration-fast) var(--easing-ease-out);
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search input (intrinsic height, does not flex-grow) */
+.searchWrapper {
+  flex: 0 0 auto;
+  padding: var(--component-padding-xs);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  transition: var(--transition-default);
+}
+
+.searchInput:focus-visible {
+  outline: none;
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Options list
+ *
+ * `flex: 1 1 auto; min-height: 0` is the idiomatic pattern for a scrollable
+ * flex child: it lets the container shrink to fit its parent's max-height
+ * while `overflow-y: auto` provides scrolling for overflow content.
+ *
+ * The previous `max-height: inherit` + `overflow: hidden` on the parent +
+ * `padding-bottom: var(--spacing-48)` trailing padding caused the container
+ * to collapse to a single-option height (#1).
+ */
+.options {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--component-padding-xs) 0;
+}
+
+.options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.options::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+.options::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+/* Individual option */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+/*
+ * #64 — Focus/hover bg differentiation.
+ *
+ * Previously `.option:hover` and `.option.highlighted` (keyboard cursor)
+ * both painted the same --color-surface-hover tint, making the mouse
+ * and keyboard states visually identical. For a keyboard user mousing
+ * over a different option, the signal is muddled — two items look
+ * "active" at once.
+ *
+ * Mouse hover keeps the neutral surface-hover tint; keyboard highlight
+ * uses the ocean-foam tint that Dropdown adopted in Sprint 10 (#59) so
+ * the two states are adjacent but unambiguously different. Both remain
+ * AA-legible against the primary text color.
+ */
+.option:hover:not(.disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.option.highlighted:not(.disabled) {
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .option.highlighted:not(.disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.option.selected {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.option.disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.checkmark {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* Empty state */
+.empty {
+  padding: var(--component-padding-lg);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .dropdown,
+  .dropdown.positioned {
+    animation: none;
+  }
+
+  .chevron {
+    transition: none;
+  }
+}

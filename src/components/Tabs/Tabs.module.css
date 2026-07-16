@@ -1,0 +1,168 @@
+/**
+ * Tabs Component Styles
+ * Ocean-inspired tabs with animated indicator
+ */
+
+/* Container */
+.container {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.container.horizontal {
+  flex-direction: column;
+}
+
+.container.vertical {
+  flex-direction: row;
+}
+
+/* Tab List */
+.tabList {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.vertical .tabList {
+  flex-direction: column;
+  border-bottom: none;
+  border-inline-end: 1px solid var(--color-border-subtle);
+  padding-inline-end: var(--component-padding-md);
+}
+
+/* Enclosed variant */
+.enclosed .tabList {
+  border-bottom: none;
+  background-color: var(--color-surface);
+  padding: var(--component-padding-2xs);
+  border-radius: var(--radius-lg);
+  gap: var(--spacing-2);
+}
+
+/* Tab Button */
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-default);
+  white-space: nowrap;
+}
+
+.tab:hover:not(.disabled) {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.tab.active {
+  color: var(--color-primary);
+}
+
+.tab.disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tab:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Enclosed variant tabs */
+.enclosed .tab {
+  padding: var(--component-padding-xs) var(--component-padding-md);
+}
+
+.enclosed .tab.active {
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Tab Icon */
+.tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+/* Tab Label */
+.tabLabel {
+  line-height: var(--line-height-tight);
+}
+
+/* Tab Badge */
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Animated Indicator */
+.indicator {
+  position: absolute;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-base),
+    var(--color-primary-light)
+  );
+  border-radius: var(--radius-full);
+  transition: all var(--duration-normal) var(--easing-wave);
+  pointer-events: none;
+}
+
+.horizontal .indicator {
+  bottom: 0;
+}
+
+.vertical .indicator {
+  right: 0;
+}
+
+/* Enclosed variant doesn't show indicator */
+.enclosed .indicator {
+  display: none;
+}
+
+/* Tab Panel */
+.tabPanel {
+  padding: var(--component-padding-lg) 0;
+  animation: tabPanelFadeIn var(--duration-fast) var(--easing-ease-out);
+}
+
+@keyframes tabPanelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Vertical layout adjustments */
+.vertical .tabPanel {
+  flex: 1;
+  padding: 0 0 0 var(--component-padding-lg);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .indicator,
+  .tabPanel {
+    transition: none;
+    animation: none;
+  }
+}

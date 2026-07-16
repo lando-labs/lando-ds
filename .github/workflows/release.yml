@@ -1,0 +1,83 @@
+name: Release (public npm)
+
+# ---------------------------------------------------------------------------
+# Public-npm release pipeline (Changesets).
+#
+# On every push to `main` the changesets action either:
+#   - opens/updates a "Version Packages" PR aggregating pending changesets, OR
+#   - if that PR was just merged (no changesets left), runs `npm run release`
+#     to publish to public npmjs.org WITH PROVENANCE, then creates the GitHub
+#     Release + git tag.
+#
+# The `release` job is guarded by
+#     if: github.repository == 'lando-labs/lando-ds'
+# so forks never publish — only this repository can.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches:
+      - main
+
+# Serialize releases: never let two publish runs race on the same ref.
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Version PR or Publish to npm
+    runs-on: ubuntu-latest
+
+    # ---- Fork-safety guard (job level) -----------------------------------
+    # Only this repository publishes — forks evaluate the guard to false and
+    # skip the job. Do not remove or weaken it.
+    if: github.repository == 'lando-labs/lando-ds'
+
+    permissions:
+      contents: write # commit version bump, push git tags, create GitHub Releases
+      pull-requests: write # open/update the "Version Packages" PR
+      id-token: write # OIDC token for npm provenance (sigstore signing)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          # Full history so the changelog generator can resolve commit/PR links.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          # Pin the publish target to PUBLIC npm explicitly (this repo's
+          # publishConfig historically pointed at GitHub Packages; being
+          # explicit here guarantees the release targets npmjs.org).
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Release PR or Publish to npm
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          # `npm run release` builds a fresh dist/ then runs `changeset publish`.
+          publish-script: npm run release
+          # `npm run version-packages` runs `changeset version` (bumps
+          # package.json + writes CHANGELOG.md for the "Version Packages" PR).
+          version-script: npm run version-packages
+          create-github-releases: true
+          push-git-tags: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          # npm auth. `setup-node` wrote an .npmrc referencing NODE_AUTH_TOKEN;
+          # NPM_TOKEN covers the changesets action's own .npmrc fallback path.
+          # ALTERNATIVE: npm trusted publishing (OIDC) removes the need for a
+          # long-lived token — see reference/public-launch/go-live-checklist.md.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Emit build provenance. Requires a public repo + id-token: write.
+          NPM_CONFIG_PROVENANCE: 'true'
+          # Token for @changesets/changelog-github to link PRs/commits/authors
+          # while generating CHANGELOG.md during `changeset version`.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

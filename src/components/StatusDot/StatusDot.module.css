@@ -1,0 +1,92 @@
+/**
+ * StatusDot Component Styles
+ *
+ * Small semantic-colored circle. Inline-block so it sits cleanly next
+ * to text on the same baseline. No border — the dot IS the indicator.
+ *
+ * Sizes:
+ *   sm → 8px  (0.5rem) — default
+ *   md → 10px (0.625rem)
+ *
+ * Tokens used per variant:
+ *   success → --color-success (Sprint 19, semantic)
+ *   warning → --color-warning
+ *   danger  → --color-error    (no --color-danger token in tokens.css;
+ *                               flagged for Sprint 20 alias work)
+ *   neutral → --color-text-tertiary
+ *   info    → --color-info
+ */
+
+.dot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  /* No transition: status changes are typically instantaneous and
+   * animating the color would be misleading. */
+}
+
+/* ===== LABELED MODE (Sprint 20, #113) =====
+ *
+ * When the `label` prop is provided, StatusDot renders as an inline
+ * group: `[dot][label]`. The wrapper aligns the dot to the text
+ * baseline and uses the same gap as the canonical
+ * `<Inline gap="xs"><StatusDot/><Text/></Inline>` pattern that this
+ * shorthand replaces.
+ */
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  /* Inherit body-copy typography from existing tokens — Phase 2 of
+   * Sprint 20 will sweep this to a semantic alias if we add one. */
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+/* ===== SIZES ===== */
+
+.sm {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.md {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/* ===== VARIANTS ===== */
+
+.success {
+  background-color: var(--color-success);
+}
+
+.warning {
+  background-color: var(--color-warning);
+}
+
+/*
+ * No --color-danger token exists today. The project's semantic error
+ * scale is keyed on `error` (--color-error / --color-error-base / ...).
+ * Mapping `variant="danger"` to `--color-error` keeps the StatusDot API
+ * consistent with the rest of the system's *prop* naming (Badge also
+ * uses `variant="danger"`) while reading from the existing token.
+ *
+ * Sprint 20 should consider adding `--color-danger: var(--color-error)`
+ * as an alias so the token name matches the prop name.
+ */
+.danger {
+  background-color: var(--color-error);
+}
+
+.neutral {
+  background-color: var(--color-text-tertiary);
+}
+
+.info {
+  background-color: var(--color-info);
+}

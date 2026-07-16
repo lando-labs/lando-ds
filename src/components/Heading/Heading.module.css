@@ -1,0 +1,119 @@
+/**
+ * Heading Component Styles
+ * Semantic heading with independent size control and design tokens
+ */
+
+.heading {
+  /* Reset margin and set base styles */
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-display);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  transition: var(--transition-color);
+}
+
+/* ===== SIZES ===== */
+
+.size-xs {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-snug);
+}
+
+.size-sm {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-snug);
+}
+
+.size-md {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+}
+
+.size-lg {
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-tight);
+}
+
+.size-xl {
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tighter);
+}
+
+.size-2xl {
+  font-size: var(--font-size-5xl);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tighter);
+}
+
+/* ===== VARIANTS ===== */
+
+/*
+ * The `section` variant is the canonical "section header" treatment:
+ * small, uppercase, and letter-spaced. It overrides the size-derived
+ * font-size/letter-spacing so consumers stop hand-rolling
+ * `textTransform: 'uppercase'` on a Heading. The semantic level
+ * (h1-h6) stays fully independent — this only changes the visual style.
+ */
+.variant-section {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-widest);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ===== WEIGHTS ===== */
+
+.weight-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* Reduce heading sizes slightly on mobile for better fit.
+ *
+ * #281 — intentionally kept as a viewport `@media` (category B). This is a
+ * responsive TYPE SCALE, a page/viewport-tier decision. It also can't become
+ * `@container` without harm: the rule styles the heading's OWN size class (a
+ * self-rule), the `<hN>` is a leaf with no child to host a container, and
+ * wrapping it in a `.sizer` would break `Stack`/`Inline` direct-child `gap` and
+ * any adjacent-sibling selectors consumers rely on. */
+@media (max-width: 640px) {
+  .size-2xl {
+    font-size: var(--font-size-4xl);
+  }
+
+  .size-xl {
+    font-size: var(--font-size-3xl);
+  }
+
+  .size-lg {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Ensure focus is visible for interactive headings (e.g., with onClick) */
+.heading:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}

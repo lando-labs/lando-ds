@@ -1,0 +1,166 @@
+/**
+ * SidebarNavItem styles
+ *
+ * Absorbs the `.nav-item` pattern hand-rolled by consumer apps.
+ * All values use design tokens from src/styles/tokens.css.
+ *
+ * 44px min-height: WCAG 2.5.8 touch target (Sprint 7 #40)
+ * 20px icon default: DS-MOD-2 (#43)
+ * Tooltip wrapping in collapsed-rail: DS-MOD-3 (#43)
+ */
+
+/* ── Base item wrapper ─────────────────────────────────────────────────────── */
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);                        /* 0.75rem / 12px */
+  padding: var(--component-padding-xs) var(--component-padding-md);  /* 0.5rem 1rem */
+  min-height: 44px;                              /* WCAG 2.5.8 touch target */
+  border-radius: var(--radius-md);
+  width: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  /* Reset any inherited button chrome */
+  background: transparent;
+  border: none;
+  /* Ensure text alignment is consistent for <button> roots */
+  text-align: left;
+  /* Collapsed-rail centering is controlled via .collapsed below */
+  transition:
+    background-color var(--duration-fast) var(--easing-ease-out),
+    color var(--duration-fast) var(--easing-ease-out);
+}
+
+/* ── Hover ─────────────────────────────────────────────────────────────────── */
+
+.item:hover {
+  background-color: var(--color-surface-elevated);    /* neutral-100 */
+  color: var(--color-text-primary);
+}
+
+/* ── Focus-visible ─────────────────────────────────────────────────────────── */
+
+.item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Active / current page ─────────────────────────────────────────────────── */
+
+/*
+ * #389 — `.item.active` is now the SINGLE owner of the active-state background
+ * for SidebarNavItem. The Sidebar's descendant `[aria-current="page"]` paint
+ * was dropped in the same fix (it stacked with this rule into a box-in-box).
+ *
+ * `--color-primary-lighter` (derived from the active --color-primary via
+ * `color-mix(in oklab, var(--color-primary), white 70%)`) re-skins with the
+ * consumer's theme AND contrasts against the Sprint 10 ocean-lightest
+ * sidebar tint in light mode.
+ *
+ * Dark mode needs its own rung: the light-mode token resolves near-white,
+ * which on a dark sidebar reads as a broken-looking pale wash. Use
+ * `--color-primary-dark` to match the existing dark aria-current convention
+ * (it's the same rung the legacy Sidebar descendant rule used pre-#389).
+ */
+.item.active {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+}
+
+[data-theme='dark'] .item.active {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-light);
+}
+
+.item.active:hover {
+  background-color: var(--color-primary-light);
+}
+
+[data-theme='dark'] .item.active:hover {
+  background-color: var(--color-primary-darker);
+}
+
+/* ── Icon slot ─────────────────────────────────────────────────────────────── */
+
+.icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;    /* DS-MOD-2 (#43): nav icon default 20px */
+  height: 20px;
+  color: currentColor;
+}
+
+/* ── Label slot ─────────────────────────────────────────────────────────────── */
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  /* Reset <a> / <button> chrome when the label IS the interactive element */
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: inherit;
+  display: block;
+  width: 100%;
+  text-align: inherit;
+  transition: color var(--duration-fast) var(--easing-ease-out);
+}
+
+/*
+ * Active label colors — inherit from the wrapper so light/dark stay in lockstep
+ * with the `.item.active` rule above (#389). Using `inherit` here means we only
+ * have to keep the wrapper's color mode-aware in one place.
+ */
+.item.active .label {
+  color: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* For asChild usage: active modifier placed on the Slot's element */
+.labelActive {
+  color: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.label:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── Badge slot ─────────────────────────────────────────────────────────────── */
+
+.badge {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* ── Collapsed rail mode ────────────────────────────────────────────────────── */
+
+/*
+ * #391 — Width must remain 100% so the item spans the rail column; that's
+ * what makes `justify-content: center` actually centre the icon on the rail's
+ * horizontal midline. (Previous `width: auto` collapsed the item to its
+ * content width, making the centering a no-op and pushing the icon to wherever
+ * the parent's flex/grid layout happened to anchor it.)
+ */
+.item.collapsed {
+  padding: var(--component-padding-xs);     /* symmetric padding so icon centres */
+  justify-content: center;
+  width: 100%;
+}
+
+/* Label and badge are hidden in CSS as well; the Tooltip carries the label. */
+.item.collapsed .label,
+.item.collapsed .badge {
+  display: none;
+}

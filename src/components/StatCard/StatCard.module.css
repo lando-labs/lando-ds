@@ -1,0 +1,280 @@
+/**
+ * StatCard Component Styles
+ * Ocean-inspired statistic cards with gradient accents
+ */
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  /* #269 — ROOT SELF-RULES: a StatCard in a 4-up grid is far narrower than the
+   * viewport, so its compact padding/gap must key off the card's OWN width.
+   * The root can't query its own container, so gap + padding use `cqi`
+   * (1cqi = 1% of the card's inline size) instead of a viewport @media step.
+   * Endpoints preserved: gap 16px / padding 24px at a 640px-wide card,
+   * collapsing to 12px / 20px floors below (the old <640px @media values).
+   * Descendant tweaks (.value, .iconWrapper) moved to `@container stat-card`. */
+  gap: clamp(var(--spacing-12), 0.75rem + 0.625cqi, var(--spacing-16));
+  padding: clamp(var(--component-padding-lg), 1.25rem + 0.625cqi, var(--component-padding-lg));
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-default);
+  position: relative;
+  overflow: hidden;
+
+  /* Container name `stat-card` is GLOBAL (not hashed by CSS Modules); a card
+   * nested inside this one queries the right ancestor by name. */
+  container: stat-card / inline-size;
+}
+
+/*
+ * #62 Defect 1 — StatCard is a pure-display primitive: no `clickable`,
+ * no `onClick`, no `tabIndex`. The previous `.statCard:hover` lift +
+ * shadow-md promised interactivity that never existed — traversing a
+ * 4-up stat row lit up every card as if it were a button. Hover is gated
+ * behind an explicit `.clickable` class, consistent with Card and Table
+ * (which ship opt-in hover affordances). Consumers who want a clickable
+ * stat tile compose StatCard inside a Card variant='default' clickable.
+ */
+.statCard.clickable:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ===== GRADIENT ACCENT BAR ===== */
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-color-light),
+    var(--accent-color-base)
+  );
+  opacity: 0.8;
+}
+
+/* ===== HEADER ===== */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    135deg,
+    var(--accent-color-lightest),
+    var(--accent-color-light)
+  );
+  color: var(--accent-color-dark);
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .iconWrapper {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color-darker),
+    var(--accent-color-dark)
+  );
+  color: var(--accent-color-light);
+}
+
+/* ===== VALUE ===== */
+
+.valueWrapper {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-8);
+}
+
+.value {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* ===== VALUE GROUP (value + optional subtitle) =====
+ *
+ * Wraps the value row with an optional subtitle so the two read as a
+ * single visual beat — tighter than the .statCard column gap.
+ */
+
+.valueGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* ===== SUBTITLE =====
+ *
+ * Contextual caption rendered beneath the value (and above any trend).
+ * Used to explain a value that would be misleading on its own — e.g.
+ * "0 sub-agents (all events from Claude Code root)". See issue #32.
+ *
+ * Typography matches the DS `<Text variant="caption">` feel: smaller
+ * than .label, secondary color, tight line height. Deliberately
+ * does NOT bold — the primary value must stay dominant.
+ */
+
+.subtitle {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* ===== TREND ===== */
+
+.trendWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-wrap: wrap;
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  border-radius: var(--radius-md);
+}
+
+.trendValue {
+  line-height: 1;
+}
+
+/* #467 — trend pill color keys off SENTIMENT (good/bad), not arrow direction.
+ * `positive`/`negative` were previously `.trend-up`/`.trend-down`; the split
+ * lets an inverted metric render an up-arrow in the negative (error) color.
+ * Sentiment defaults to the direction (up→positive, down→negative) in the TSX,
+ * so existing consumers are visually unchanged. */
+.trend-positive {
+  background-color: var(--color-success-lightest);
+  color: var(--color-success-dark);
+}
+
+[data-theme='dark'] .trend-positive {
+  background-color: var(--color-success-darkest);
+  color: var(--color-success-light);
+}
+
+.trend-negative {
+  background-color: var(--color-error-lightest);
+  color: var(--color-error-dark);
+}
+
+[data-theme='dark'] .trend-negative {
+  background-color: var(--color-error-darkest);
+  color: var(--color-error-light);
+}
+
+.trend-neutral {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+[data-theme='dark'] .trend-neutral {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-300);
+}
+
+.trendLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* ===== COLOR VARIANTS ===== */
+
+.color-primary {
+  --accent-color-lightest: var(--color-primary-lightest);
+  --accent-color-light: var(--color-primary-light);
+  --accent-color-base: var(--color-primary-base);
+  --accent-color-dark: var(--color-primary-dark);
+  --accent-color-darker: var(--color-primary-darker);
+}
+
+.color-success {
+  --accent-color-lightest: var(--color-success-lightest);
+  --accent-color-light: var(--color-success-light);
+  --accent-color-base: var(--color-success-base);
+  --accent-color-dark: var(--color-success-dark);
+  --accent-color-darker: var(--color-success-darkest);
+}
+
+.color-warning {
+  --accent-color-lightest: var(--color-warning-lightest);
+  --accent-color-light: var(--color-warning-light);
+  --accent-color-base: var(--color-warning-base);
+  --accent-color-dark: var(--color-warning-dark);
+  --accent-color-darker: var(--color-warning-darkest);
+}
+
+.color-error {
+  --accent-color-lightest: var(--color-error-lightest);
+  --accent-color-light: var(--color-error-light);
+  --accent-color-base: var(--color-error-base);
+  --accent-color-dark: var(--color-error-dark);
+  --accent-color-darker: var(--color-error-darkest);
+}
+
+.color-neutral {
+  --accent-color-lightest: var(--color-neutral-100);
+  --accent-color-light: var(--color-neutral-300);
+  --accent-color-base: var(--color-neutral-500);
+  --accent-color-dark: var(--color-neutral-700);
+  --accent-color-darker: var(--color-neutral-800);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* #269 — descendants reflow on the card's own width (was viewport @media).
+ * The former `.statCard { padding; gap }` root step-down that lived here moved
+ * onto the `.statCard` rule above as fluid `cqi` clamps (a root element can't
+ * query its own container). */
+@container stat-card (max-width: 40rem) {
+  .value {
+    font-size: var(--font-size-3xl);
+  }
+
+  .iconWrapper {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .statCard {
+    transition: none;
+  }
+
+  .statCard.clickable:hover {
+    transform: none;
+  }
+}

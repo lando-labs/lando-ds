@@ -1,0 +1,79 @@
+/**
+ * Toast Container Styles
+ * Positioning for toast notifications
+ */
+
+.container {
+  position: fixed;
+  z-index: var(--z-index-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--component-padding-md);
+  pointer-events: none;
+}
+
+.container > * {
+  pointer-events: auto;
+}
+
+/* Top positions */
+.topleft {
+  top: 0;
+  left: 0;
+  align-items: flex-start;
+}
+
+.topcenter {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.topright {
+  top: 0;
+  right: 0;
+  align-items: flex-end;
+}
+
+/* Bottom positions */
+.bottomleft {
+  bottom: 0;
+  left: 0;
+  align-items: flex-start;
+  flex-direction: column-reverse;
+}
+
+.bottomcenter {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+  flex-direction: column-reverse;
+}
+
+.bottomright {
+  bottom: 0;
+  right: 0;
+  align-items: flex-end;
+  flex-direction: column-reverse;
+}
+
+/* Responsive adjustments */
+/* #281 — intentionally kept as a viewport `@media` (category B). The toast stack
+ * is `position: fixed` page chrome anchored to a viewport EDGE; these rules
+ * collapse the centered placements edge-to-edge on a narrow SCREEN. That's a
+ * viewport decision, not an embedding-container one — stays `@media`. */
+@media (max-width: 640px) {
+  .container {
+    inset-inline: 0;
+    transform: none;
+  }
+
+  .topcenter,
+  .bottomcenter {
+    inset-inline: 0;
+    transform: none;
+  }
+}

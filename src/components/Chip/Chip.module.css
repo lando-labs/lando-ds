@@ -1,0 +1,170 @@
+/**
+ * Chip Component Styles
+ *
+ * Pill-shaped interactive filter chip. Multi-select toggle (each Chip
+ * owns its own selected state), unlike SegmentedControl which is
+ * single-select. Visually lighter than Button — sits between Badge
+ * (non-interactive) and Button (full action).
+ *
+ * Tokens used:
+ * - `--color-border-default` — default border
+ * - `--color-surface` / `--color-surface-hover` — neutral / hover bg
+ * - `--color-text-primary` / `--color-text-secondary` — label color
+ * - `--color-ocean-lighter` (light) / `--color-ocean-dark` (dark) —
+ *   selected-state tinted background. There's no `--color-primary-soft-bg`
+ *   semantic alias yet (Sprint 20 will sweep); falling back to the
+ *   ocean palette tier the Badge `.primary` variant already uses.
+ * - `--color-ocean-darker` / `--color-ocean-lighter` — selected-state text
+ * - `--color-primary` — selected-state border
+ * - `--radius-full` — pill shape
+ * - `--focus-ring-*` — unified focus ring tokens (#38)
+ * - `--transition-default` — 150ms ease-out
+ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition-default);
+  user-select: none;
+  /* Reset native button defaults */
+  appearance: none;
+  margin: 0;
+}
+
+.chip:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.chip:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.chip:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* ===== SELECTED STATE ===== */
+
+/*
+ * Selected mirrors the Badge `.primary` variant's tinted-bg + dark-text
+ * relationship: `--color-ocean-lighter` bg with `--color-ocean-darker`
+ * text in light mode, inverted in dark mode. Border lifts to
+ * `--color-primary` to make the toggled state read clearly even when
+ * adjacent unselected chips are present.
+ */
+.chip.selected {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+  border-color: var(--color-primary);
+}
+
+.chip.selected:hover:not(:disabled) {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+[data-theme='dark'] .chip.selected {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-lighter);
+  border-color: var(--color-primary-base);
+}
+
+[data-theme='dark'] .chip.selected:hover:not(:disabled) {
+  background-color: var(--color-primary-darker);
+  border-color: var(--color-primary-base);
+}
+
+/* ===== DISABLED STATE ===== */
+
+.chip:disabled,
+.chip.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== SIZES ===== */
+
+.sm {
+  min-height: 1.5rem; /* 24px */
+  padding: var(--spacing-2) var(--component-padding-sm);
+  font-size: var(--font-size-xs);
+  gap: var(--spacing-4);
+}
+
+.md {
+  min-height: 2rem; /* 32px */
+  padding: var(--component-padding-2xs) var(--component-padding-md);
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-8);
+}
+
+/* ===== INTERNAL ELEMENTS ===== */
+
+.leftIcon,
+.rightIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sm .leftIcon,
+.sm .rightIcon {
+  width: 0.875rem; /* 14px */
+  height: 0.875rem;
+}
+
+.sm .leftIcon > :global(svg),
+.sm .rightIcon > :global(svg) {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.md .leftIcon,
+.md .rightIcon {
+  width: 1rem; /* 16px */
+  height: 1rem;
+}
+
+.md .leftIcon > :global(svg),
+.md .rightIcon > :global(svg) {
+  width: 1rem;
+  height: 1rem;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+}
+
+/*
+ * Count is rendered as a parenthesized inline span (e.g. "Failed (42)")
+ * with a slight de-emphasis so the label stays primary. In selected
+ * state it inherits the chip's `currentColor` text so it stays legible
+ * on the tinted background.
+ */
+.count {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip.selected .count {
+  color: currentColor;
+  opacity: 0.8;
+}

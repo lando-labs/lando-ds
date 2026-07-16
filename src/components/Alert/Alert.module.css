@@ -1,0 +1,258 @@
+/**
+ * Alert Component Styles
+ * Ocean-inspired with semantic colors and smooth animations
+ */
+
+.alert {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  padding: var(--component-padding-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  font-family: var(--font-family-base);
+  animation: slideIn var(--duration-normal) var(--easing-ease-out);
+}
+
+/* ===== VARIANTS ===== */
+
+.info {
+  background-color: var(--color-info-lightest);
+  border-color: var(--color-info-light);
+  color: var(--color-info-darkest);
+}
+
+[data-theme='dark'] .info {
+  background-color: rgb(var(--color-primary-base-rgb) / 0.1);
+  border-color: var(--color-info-dark);
+  color: var(--color-info-light);
+}
+
+.success {
+  background-color: var(--color-success-lightest);
+  border-color: var(--color-success-light);
+  color: var(--color-success-darkest);
+}
+
+[data-theme='dark'] .success {
+  background-color: color-mix(in srgb, var(--color-success-base) 10%, transparent);
+  border-color: var(--color-success-dark);
+  color: var(--color-success-light);
+}
+
+.warning {
+  background-color: var(--color-warning-lightest);
+  border-color: var(--color-warning-light);
+  color: var(--color-warning-darkest);
+}
+
+[data-theme='dark'] .warning {
+  background-color: color-mix(in srgb, var(--color-warning-base) 10%, transparent);
+  border-color: var(--color-warning-dark);
+  color: var(--color-warning-light);
+}
+
+.error {
+  background-color: var(--color-error-lightest);
+  border-color: var(--color-error-light);
+  color: var(--color-error-darkest);
+}
+
+[data-theme='dark'] .error {
+  background-color: color-mix(in srgb, var(--color-error-base) 10%, transparent);
+  border-color: var(--color-error-dark);
+  color: var(--color-error-light);
+}
+
+/* ===== INLINE SHAPE =====
+ *
+ * Slim, no-card visual treatment for in-page guidance / teaching banners
+ * (surfaced in a design-system recomposition audit where consumers
+ * hand-rolled the same shape). Composes with the semantic variants above —
+ * the variant rules supply the color, the .inline rules slim down the
+ * padding and tone down the surface so it reads as flowing copy with a
+ * tint rather than an elevated card.
+ *
+ * NOTE: this is distinct from the v0.11.0 <Banner> component, which is a
+ * viewport-fixed (position: fixed) persistent notification bar.
+ */
+
+.inline {
+  /* Slimmer vertical padding — half the block padding */
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  /* Tighter gap between icon and content */
+  gap: var(--spacing-8);
+  /* Drop the "card" feel: thinner border, slightly tighter radius */
+  border-width: 1px;
+  border-radius: var(--radius-md);
+  /* Drop the slide-in entrance — inline lives in flowing content */
+  animation: none;
+}
+
+/* Override variant backgrounds with a subtler tint so inline reads as
+ * tinted copy rather than an elevated surface. Uses color-mix() for a
+ * lighter, mostly-transparent variant tint while keeping the existing
+ * variant border + text colors intact. */
+
+.alert.inline.info {
+  background-color: color-mix(in srgb, var(--color-info-base) 8%, transparent);
+}
+[data-theme='dark'] .alert.inline.info {
+  background-color: color-mix(in srgb, var(--color-info-base) 14%, transparent);
+}
+
+.alert.inline.success {
+  background-color: color-mix(in srgb, var(--color-success-base) 8%, transparent);
+}
+[data-theme='dark'] .alert.inline.success {
+  background-color: color-mix(in srgb, var(--color-success-base) 14%, transparent);
+}
+
+.alert.inline.warning {
+  background-color: color-mix(in srgb, var(--color-warning-base) 10%, transparent);
+}
+[data-theme='dark'] .alert.inline.warning {
+  background-color: color-mix(in srgb, var(--color-warning-base) 16%, transparent);
+}
+
+.alert.inline.error {
+  background-color: color-mix(in srgb, var(--color-error-base) 10%, transparent);
+}
+[data-theme='dark'] .alert.inline.error {
+  background-color: color-mix(in srgb, var(--color-error-base) 16%, transparent);
+}
+
+/* Tighter title spacing inline */
+.inline .title {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-2);
+}
+
+.inline .message {
+  font-size: var(--font-size-sm);
+}
+
+/* Inline close button: smaller hit area to match the slimmer padding.
+ * Re-asserts flex-shrink: 0 so the button always reserves its space,
+ * even on very narrow containers where the message wraps to multiple
+ * lines (issue #115). The slim inline padding makes overlap especially
+ * visible at widths around 280px and below. */
+.inline .closeButton {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+}
+
+/* ===== LAYOUT ===== */
+
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem; /* Align with text */
+}
+
+.content {
+  flex: 1 1 auto;
+  /* min-width: 0 is REQUIRED for the message to wrap inside the flex
+   * container instead of pushing the close button outside the alert. The
+   * default flex-item min-width is `auto`, which would prevent shrinking
+   * below the content's intrinsic width and cause the close button to
+   * overlap wrapped text on narrow containers (issue #115). */
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-4);
+}
+
+.message {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  opacity: 0.9;
+  /* Ensure long words / URLs break instead of forcing the message wider
+   * than the flex slot, which would push the close button off-axis. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ===== CLOSE BUTTON ===== */
+
+.closeButton {
+  /* flex-shrink: 0 is REQUIRED so the close button never collapses when
+   * the message wraps to multiple lines on narrow containers (issue #115).
+   * Combined with .content { min-width: 0 }, this guarantees the message
+   * shrinks (wrapping vertically) before the close button does. */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: calc(var(--spacing-8) * -1);
+  margin-inline-start: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: var(--transition-default);
+}
+
+.closeButton:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, black 5%, transparent);
+}
+
+[data-theme='dark'] .closeButton:hover {
+  background-color: color-mix(in srgb, white 10%, transparent);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.closeButton:active {
+  transform: scale(0.95);
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.98);
+  }
+}
+
+.exiting {
+  animation: slideOut var(--duration-normal) var(--easing-ease-in) forwards;
+}

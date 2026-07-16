@@ -1,0 +1,1058 @@
+/**
+ * Lando Labs Design System - CSS Variable Tokens
+ * Generated from TypeScript tokens for runtime theming
+ *
+ * Structure:
+ * - Root variables for light mode (default)
+ * - [data-theme="dark"] for dark mode
+ * - Product themes can override via [data-product="name"]
+ *
+ * CASCADE LAYER (#267): the entire file is wrapped in `@layer ll.tokens`.
+ * These are design-token custom-property declarations (on :root / [data-theme]
+ * / inside @media), so they belong in the lowest-but-one DS layer. Consumers
+ * who override a token from *unlayered* CSS (or a later-ordered layer) win
+ * automatically — see reference/css-layers.md. The full layer order is
+ * declared once, first, in src/styles/index.css.
+ */
+
+@layer ll.tokens {
+  /* ==========================================================================
+   ROOT VARIABLES (Light Mode Default)
+   ========================================================================== */
+
+:root {
+  /* ===== COLORS ===== */
+
+  /* GENERATED:COLOR-RAMPS:START — emitted by scripts/emit-tokens.mjs. Do not edit by hand. */
+  /*
+   * Color ramps in OKLCH (Sprint 43 / #271). Authored as sRGB hex in
+   * src/tokens/colors.ts; translated to oklch() here at emit time. Each rung
+   * round-trips back to its source hex within < 1/255 per channel
+   * (src/tokens/oklch-roundtrip.test.ts), so the Ocean theme is perceptually
+   * unchanged. Regenerate with `node scripts/emit-tokens.mjs`.
+   */
+
+  /* Ocean Blues - Primary Brand */
+  --color-ocean-lightest: oklch(0.9576 0.0154 212);
+  --color-ocean-lighter: oklch(0.8712 0.0463 215.44);
+  --color-ocean-light: oklch(0.766 0.0934 216.13);
+  --color-ocean-base: oklch(0.6733 0.1236 230.92);
+  --color-ocean-medium: oklch(0.5614 0.1062 231.67);
+  --color-ocean-dark: oklch(0.4605 0.0868 231.84);
+  --color-ocean-darker: oklch(0.3597 0.0644 229.41);
+  --color-ocean-darkest: oklch(0.2684 0.0459 229.72);
+
+  /*
+   * RGB channel tokens for modern `rgb(var(--token) / α)` alpha composition.
+   * Prefer these over hardcoded rgba() literals in component stylesheets.
+   * See reference/design-tokens-implementation.md.
+   */
+  --color-ocean-lightest-rgb: 230 244 247;
+  --color-ocean-lighter-rgb: 179 221 232;
+  --color-ocean-light-rgb: 102 194 217;
+  --color-ocean-base-rgb: 43 163 212;
+  --color-ocean-medium-rgb: 27 127 168;
+  --color-ocean-dark-rgb: 19 96 128;
+  --color-ocean-darker-rgb: 13 67 88;
+  --color-ocean-darkest-rgb: 8 42 56;
+
+  /* Teals & Aqua - Success */
+  --color-teal-lightest: oklch(0.9636 0.0179 196.86);
+  --color-teal-lighter: oklch(0.9019 0.0568 196.19);
+  --color-teal-light: oklch(0.8192 0.1042 195.31);
+  --color-teal-base: oklch(0.7328 0.1162 194.92);
+  --color-teal-medium: oklch(0.6207 0.1011 194.86);
+  --color-teal-dark: oklch(0.5051 0.0819 194.87);
+  --color-teal-darker: oklch(0.3827 0.0608 194.91);
+  --color-teal-darkest: oklch(0.2568 0.0388 195.01);
+
+  /* ---------------------------------------------------------------------------
+   * Identity Palettes (#87, Sprint 16) — non-semantic source/identity colors.
+   * Back the Badge `colorScheme` prop (orthogonal to `variant`) so consumers can
+   * paint identities (a "RSS" source is always orange regardless of state)
+   * without abusing the semantic state palettes. Contrast verified WCAG AA on
+   * Badge text (lightest×darkest ≈ 8–10:1 light; light×darkest ≈ 5.5–7:1 dark).
+   * CSS-only ramps (no colors.ts home) — source of truth is scripts/emit-tokens.mjs.
+   * ------------------------------------------------------------------------- */
+
+  /* Orange — RSS / warm-source identity */
+  --color-orange-lightest: oklch(0.9542 0.0372 75.16);
+  --color-orange-light: oklch(0.8366 0.1165 66.29);
+  --color-orange-base: oklch(0.7049 0.1867 47.6);
+  --color-orange-dark: oklch(0.5534 0.1739 38.4);
+  --color-orange-darkest: oklch(0.4084 0.1165 38.17);
+
+  /* Blue — true blue, distinct from ocean (which trends teal) */
+  --color-blue-lightest: oklch(0.9319 0.0316 255.59);
+  --color-blue-light: oklch(0.8091 0.0956 251.81);
+  --color-blue-base: oklch(0.6231 0.188 259.81);
+  --color-blue-dark: oklch(0.4882 0.2172 264.38);
+  --color-blue-darkest: oklch(0.3791 0.1378 265.52);
+
+  /* Purple — research / academic identity */
+  --color-purple-lightest: oklch(0.9433 0.0284 294.59);
+  --color-purple-light: oklch(0.8112 0.1013 293.57);
+  --color-purple-base: oklch(0.6056 0.2189 292.72);
+  --color-purple-dark: oklch(0.4907 0.2412 292.58);
+  --color-purple-darkest: oklch(0.3796 0.1783 293.74);
+
+  /* Green — emerald, distinct from teal/success */
+  --color-green-lightest: oklch(0.9505 0.0507 163.05);
+  --color-green-light: oklch(0.8452 0.1299 164.98);
+  --color-green-base: oklch(0.6959 0.1491 162.48);
+  --color-green-dark: oklch(0.5081 0.1049 165.61);
+  --color-green-darkest: oklch(0.378 0.073 168.94);
+
+  /* Rose — pink/rose identity */
+  --color-rose-lightest: oklch(0.9414 0.0298 12.58);
+  --color-rose-light: oklch(0.8097 0.1061 11.64);
+  --color-rose-base: oklch(0.645 0.2154 16.44);
+  --color-rose-dark: oklch(0.5143 0.1978 16.93);
+  --color-rose-darkest: oklch(0.4103 0.1502 10.27);
+
+  /* Neutrals - Cool-tinted grays */
+  --color-neutral-white: oklch(1 0 0);
+  --color-neutral-50: oklch(0.9839 0.0025 228.78);
+  --color-neutral-100: oklch(0.9677 0.005 228.82);
+  --color-neutral-200: oklch(0.9271 0.0101 238.52);
+  --color-neutral-300: oklch(0.8601 0.0172 236.73);
+  --color-neutral-400: oklch(0.7928 0.0184 229.07);
+  --color-neutral-500: oklch(0.7064 0.0268 229.31);
+  --color-neutral-550: oklch(0.5294 0.0267 228.16); /* #12 — WCAG AA text tier (4.58:1 on #FFFFFF) */
+  --color-neutral-600: oklch(0.5724 0.0397 229.02);
+  --color-neutral-700: oklch(0.4541 0.0304 228.62);
+  --color-neutral-800: oklch(0.3873 0.0245 229.79);
+  --color-neutral-900: oklch(0.3087 0.0195 229.78);
+  --color-neutral-black: oklch(0 0 0);
+
+  /* Semantic Colors */
+  --color-success-lightest: oklch(0.9505 0.0507 163.05);
+  --color-success-light: oklch(0.8452 0.1299 164.98);
+  --color-success-base: oklch(0.6959 0.1491 162.48);
+  --color-success-dark: oklch(0.5081 0.1049 165.61);
+  --color-success-darkest: oklch(0.378 0.073 168.94);
+
+  --color-warning-lightest: oklch(0.9682 0.0254 78.92);
+  --color-warning-light: oklch(0.8963 0.1152 88.57);
+  --color-warning-base: oklch(0.7686 0.1647 70.08);
+  --color-warning-dark: oklch(0.6658 0.1574 58.32);
+  --color-warning-darkest: oklch(0.4732 0.1247 46.2);
+
+  --color-error-lightest: oklch(0.9356 0.0309 17.72);
+  --color-error-light: oklch(0.8077 0.1035 19.57);
+  --color-error-base: oklch(0.6368 0.2078 25.33);
+  --color-error-dark: oklch(0.5771 0.2152 27.33);
+  --color-error-darkest: oklch(0.3958 0.1331 25.72);
+
+  --color-info-lightest: oklch(0.9319 0.0316 255.59);
+  --color-info-light: oklch(0.8091 0.0956 251.81);
+  --color-info-base: oklch(0.6231 0.188 259.81);
+  --color-info-dark: oklch(0.4882 0.2172 264.38);
+  --color-info-darkest: oklch(0.3791 0.1378 265.52);
+
+  /* ---------------------------------------------------------------------------
+   * STATE-TINT DERIVATION LAYER (Sprint 43 / #271)
+   *
+   * Interactive state tints are DERIVED from the base token via 2-color
+   * color-mix() (Baseline May 2023), instead of being hand-mapped to adjacent
+   * ramp rungs. This is what lets a theme preset that overrides ONLY the base
+   * token (--color-primary / --color-secondary / --color-error) re-skin its
+   * hover/active/disabled states automatically — previously impossible because
+   * --color-primary-hover pointed at a fixed --color-ocean-base.
+   *
+   * Mix percentages were tuned so the Ocean defaults land perceptually next to
+   * the prior hand-picked rungs (primary-active ≈ ocean-dark ΔE≈0.0004;
+   * error-active ≈ error-darkest ΔE≈0.005; error-hover ≈ error-dark ΔE≈0.026).
+   * primary-hover lightens toward ocean-base in L and H; it is slightly less
+   * chromatic than the old rung because color-mix with white cannot ADD chroma
+   * (the old ocean-base rung was hand-saturated). This is the one intended,
+   * visible-on-close-inspection change. disabled mixes toward --color-surface so
+   * it tracks light/dark mode automatically.
+   *
+   * Constraint: oklab interpolation + 2-color color-mix only. No relative-color
+   * syntax / oklch(from …) — not Baseline-safe yet.
+   * ------------------------------------------------------------------------- */
+
+  /*
+   * Bare semantic BASE token for the secondary family. Mirrors the bare
+   * --color-primary (declared in the contextual colors block) so the
+   * secondary derivation below has a single base to mix from. Without it,
+   * color-mix(... var(--color-secondary) ...) had no value to resolve.
+   *
+   * v0.36.0 OSS-prep (#421): default points at a neutral cool gray so the
+   * library ships brand-neutral. The opt-in `lando` theme preset overrides
+   * this back to teal-base for the historical Lando ocean+teal look.
+   * Consumers re-skin the secondary state derivation by overriding this one
+   * token at :root (or via ThemeProvider).
+   */
+  --color-secondary: oklch(0.62 0.018 250);
+
+  /*
+   * BRAND SHADE RAMPS (Sprint 44 / #285)
+   *
+   * --color-{primary,secondary}-<shade> are DERIVED from the base token via
+   * per-rung-tuned 2-color color-mix(), replacing the old static aliases to
+   * --color-ocean-* / --color-teal-*. This is the keystone that makes
+   * overriding ONLY --color-primary (raw CSS or setProductTheme) re-skin the
+   * whole ramp — and therefore every surface routed through it (Avatar
+   * gradients, DetailCard, Header, Sidebar, CodeBlock, the chart default,
+   * --shadow-primary). Mix % per rung was chosen at emit time to minimize
+   * OKLab ΔE to the prior ocean/teal value, so the Ocean default holds.
+   *
+   * Known chroma cost (color-mix-with-white cannot ADD chroma, so the
+   * hand-saturated mid-light rungs land slightly less chromatic — the same
+   * intended shift #271 documented for the state layer):
+   *   primary-light  ΔE≈0.041, primary-base ΔE≈0.043 (the worst rungs);
+   *   secondary-light ΔE≈0.024. All other rungs ΔE < 0.02 (≈imperceptible).
+   */
+  --color-primary-lightest: color-mix(in oklab, var(--color-primary), white 90%); /* ~#E6F4F7 ΔE0.0066 */
+  --color-primary-lighter: color-mix(in oklab, var(--color-primary), white 70%); /* ~#B3DDE8 ΔE0.0183 */
+  --color-primary-light: color-mix(in oklab, var(--color-primary), white 45%); /* ~#66C2D9 ΔE0.0409 */
+  --color-primary-base: color-mix(in oklab, var(--color-primary), white 23%); /* ~#2BA3D4 ΔE0.0433 */
+  --color-primary-medium: var(--color-primary); /* base rung (identity) */
+  --color-primary-dark: color-mix(in oklab, var(--color-primary), black 18%); /* ~#136080 ΔE0.0004 */
+  --color-primary-darker: color-mix(in oklab, var(--color-primary), black 36%); /* ~#0D4358 ΔE0.0044 */
+  --color-primary-darkest: color-mix(in oklab, var(--color-primary), black 52.5%); /* ~#082A38 ΔE0.0051 */
+
+  --color-secondary-lightest: color-mix(in oklab, var(--color-secondary), white 86%); /* ~#E6F7F7 ΔE0.0020 */
+  --color-secondary-lighter: color-mix(in oklab, var(--color-secondary), white 61.5%); /* ~#B3EBEB ΔE0.0131 */
+  --color-secondary-light: color-mix(in oklab, var(--color-secondary), white 29%); /* ~#66D9D9 ΔE0.0235 */
+  --color-secondary-base: var(--color-secondary); /* base rung (identity) */
+  --color-secondary-medium: color-mix(in oklab, var(--color-secondary), black 15%); /* ~#1A9999 ΔE0.0032 */
+  --color-secondary-dark: color-mix(in oklab, var(--color-secondary), black 31%); /* ~#127373 ΔE0.0018 */
+  --color-secondary-darker: color-mix(in oklab, var(--color-secondary), black 48%); /* ~#0C4D4D ΔE0.0016 */
+  --color-secondary-darkest: color-mix(in oklab, var(--color-secondary), black 65%); /* ~#062929 ΔE0.0019 */
+
+  /*
+   * `-rgb` mirror EXCEPTION (#285): color-mix() cannot emit space-separated
+   * channels, and relative-color syntax (rgb(from …)) is not Baseline-safe, so
+   * the derived brand ramps have no `-rgb` form. The `--color-primary-*-rgb`
+   * mirrors stay pinned to ocean (hand-authored in the contextual-aliases
+   * block), so the ~36 `rgb(var(--…-rgb) / α)` alpha-composition sites keep
+   * working but do NOT re-skin — a documented exception. Follow-up: migrate
+   * those sites to `color-mix(in srgb, var(--color-primary-<shade>) <α>%,
+   * transparent)` so the alpha tints also track the base.
+   */
+
+  --color-primary-hover: color-mix(in oklab, var(--color-primary), white 22%);
+  --color-primary-active: color-mix(in oklab, var(--color-primary), black 18%);
+  --color-primary-disabled: color-mix(in oklab, var(--color-primary), var(--color-surface) 60%);
+
+  --color-secondary-hover: color-mix(in oklab, var(--color-secondary), white 18%);
+  --color-secondary-active: color-mix(in oklab, var(--color-secondary), black 18%);
+  --color-secondary-disabled: color-mix(in oklab, var(--color-secondary), var(--color-surface) 60%);
+
+  --color-error-hover: color-mix(in oklab, var(--color-error), black 7.5%);
+  --color-error-active: color-mix(in oklab, var(--color-error), black 38%);
+  --color-error-disabled: color-mix(in oklab, var(--color-error), var(--color-surface) 60%);
+  /* danger is an alias of error — mirror the derived state tints. */
+  --color-danger-hover: var(--color-error-hover);
+  --color-danger-active: var(--color-error-active);
+  --color-danger-disabled: var(--color-error-disabled);
+
+  /* GENERATED:COLOR-RAMPS:END */
+
+  /* Contextual Colors (Light Mode) */
+  /*
+   * v0.36.0 OSS-prep (#421): default --color-primary is now a NEUTRAL cool
+   * gray. Lando DS ships brand-neutral; consumers override this single token
+   * to skin the entire library. The opt-in `lando` theme preset restores the
+   * historical ocean-medium look via <ThemeProvider preset="lando">.
+   *
+   * The neutral mid-gray makes the "this is meant to be overridden" signal
+   * obvious — the unstyled look isn't trying to be a brand identity, just
+   * functional default chrome.
+   */
+  --color-primary: oklch(0.5 0.02 250);
+  /*
+   * #271 — --color-primary-hover / -active / -disabled are DERIVED from
+   * --color-primary via color-mix() in the generated derivation layer above
+   * (search GENERATED:COLOR-RAMPS). They are intentionally NOT re-declared here
+   * as fixed rungs, so a preset that overrides only --color-primary re-skins
+   * the interactive states automatically.
+   */
+  --color-on-primary: var(--color-neutral-white);
+
+  --color-background: var(--color-neutral-50);
+  --color-surface: var(--color-neutral-white);
+  --color-surface-elevated: var(--color-neutral-100);
+  --color-surface-hover: var(--color-neutral-200);
+
+  --color-text-primary: var(--color-neutral-800);
+  --color-text-secondary: var(--color-neutral-600);
+  /*
+   * #12 — tertiary bumped from neutral-500 (#90A4AE, 2.6:1) to neutral-550
+   * (#5C6F78, 4.58:1) to clear WCAG AA normal-text contrast on white/#F8FAFB
+   * surfaces. Used for placeholders, helper copy, and non-emphasized labels.
+   */
+  --color-text-tertiary: var(--color-neutral-550);
+  /*
+   * #12 — disabled text is scoped to genuinely disabled UI. Retained at
+   * neutral-400 (#B0BEC5) because WCAG SC 1.4.3 explicitly exempts
+   * "inactive user interface components." Do NOT use this token for
+   * ordinary muted prose — reach for --color-text-tertiary instead.
+   */
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-white);
+
+  --color-border-subtle: var(--color-neutral-200);
+  --color-border-default: var(--color-neutral-300);
+  --color-border-strong: var(--color-neutral-400);
+
+  /*
+   * #39 — semantic surface tokens for disabled interactive controls.
+   * These are distinct from the `loading` state (which keeps variant
+   * coloring + spinner) so a washed-out button cannot be mistaken for
+   * an in-flight request.
+   */
+  --color-surface-disabled: var(--color-neutral-100);
+  --color-text-on-disabled: var(--color-neutral-500);
+  --color-border-disabled: var(--color-neutral-200);
+
+  /* v0.36.0 OSS-prep (#421): focus colour routes through the semantic primary
+   * (which defaults to neutral) so it auto-re-skins when consumers (or the
+   * `lando` preset) override --color-primary. Was: var(--color-ocean-base). */
+  --color-focus: var(--color-primary);
+
+  /* ---------------------------------------------------------------------------
+   * #38 — Unified focus-ring tokens (single source of truth)
+   *
+   * Every interactive primitive (Button, Input, Textarea, Select, Checkbox,
+   * Radio, Switch, Dropdown, Tabs, etc.) must express its :focus-visible
+   * treatment via these tokens. Previously Input stacked border + outline +
+   * box-shadow simultaneously (3 rings) and Textarea inherited the browser
+   * default (none). This normalizes all primitives to ONE indicator:
+   *
+   *   outline: var(--focus-ring-width) solid var(--focus-ring-color);
+   *   outline-offset: var(--focus-ring-offset);
+   *
+   * For inputs with borders, we ALSO transition the border to
+   * --color-focus — that's a subtle color change (part of the field's own
+   * visual state, not a second focus ring) and the outline is the
+   * accessibility indicator.
+   * ------------------------------------------------------------------------- */
+  --focus-ring-color: var(--color-primary);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  /* Halo used by text inputs — applied AS the border state, not stacked.
+   * v0.36.0 OSS-prep (#421): uses color-mix() so the halo follows --color-primary
+   * automatically (rgb(var(--token-rgb) / α) couldn't because color-mix() can't
+   * emit space-separated channels for the -rgb mirrors). */
+  --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary), transparent 75%);
+
+  /* Accent Colors (for theme presets)
+   * v0.36.0 OSS-prep (#421): default to a neutral tied to --color-primary so
+   * accent and primary track together for one-token re-skins. The `lando`
+   * preset overrides them to the ocean rungs for the historical look. */
+  --color-accent: var(--color-primary);
+  --color-accent-light: var(--color-primary-light);
+  --color-accent-dark: var(--color-primary-darker);
+
+  /* ---------------------------------------------------------------------------
+   * Legacy / semantic aliases
+   *
+   * These names predate (or differ from) the current `lightest | lighter |
+   * light | base | medium | dark | darker | darkest` scale. They remain
+   * referenced across component stylesheets (Chart, DetailCard, Dropdown,
+   * Radio, Icon, Chat) — keeping them as aliases guarantees existing selectors
+   * resolve without touching component CSS. See GitHub #34.
+   *
+   * Prefer the scale tokens (e.g. `--color-ocean-base`) in new code; aliases
+   * are retained for backwards compatibility only.
+   * ------------------------------------------------------------------------- */
+
+  /* Ocean scale aliases */
+  --color-ocean-bright: var(--color-ocean-base);      /* #2BA3D4 */
+  --color-ocean-mist: var(--color-ocean-lighter);     /* pale ocean mist */
+  --color-ocean-foam: var(--color-ocean-lightest);    /* skeleton shimmer tint */
+  --color-ocean-deep: var(--color-ocean-dark);        /* deep-water accent */
+
+  /* Teal scale aliases */
+  --color-teal-bright: var(--color-teal-base);        /* #2DBFBF */
+  --color-teal-seafoam: var(--color-teal-light);      /* #66D9D9, chart highlight */
+  --color-teal-deep: var(--color-teal-dark);          /* deep-teal accent */
+
+  /* Unprefixed ocean aliases (Icon.module.css, docs examples) */
+  --ocean-bright: var(--color-ocean-base);
+  --ocean-light: var(--color-ocean-light);
+  --ocean-medium: var(--color-ocean-medium);
+
+  /* Semantic color short aliases — resolve to the "base" step of each scale */
+  --color-success: var(--color-success-base);
+  --color-warning: var(--color-warning-base);
+  --color-error: var(--color-error-base);
+  --color-info: var(--color-info-base);
+
+  /* Border short alias — maps to the default border tier */
+  --color-border: var(--color-border-default);
+
+  /* Surface layer aliases */
+  --color-surface-secondary: var(--color-surface-elevated);
+  --color-surface-tertiary: var(--color-surface-hover);
+
+  /*
+   * #66 — Consumer-compat `--color-bg-*` aliases.
+   *
+   * Same class as #53 (spacing aliases): consumers write `--color-bg-primary`
+   * / `--color-bg-secondary` / `--color-bg-tertiary` out of Tailwind muscle
+   * memory. The DS canonical names are `--color-surface-*`. Without these
+   * aliases the var() references fall back to their hardcoded defaults
+   * (usually light-grey), which stays stuck on light-grey in dark mode →
+   * invisible text on hover. Aliasing to the surface tokens inherits the
+   * dark-mode overrides automatically.
+   */
+  --color-bg-primary: var(--color-surface);
+  --color-bg-secondary: var(--color-surface-hover);
+  --color-bg-tertiary: var(--color-surface-elevated);
+
+  /* Primary color with 40% alpha — used by Radio ripple keyframes.
+   * v0.36.0 OSS-prep (#421): color-mix() so this tracks --color-primary instead
+   * of the static ocean rgb mirror — single-token re-skin reaches the ripple. */
+  --color-primary-alpha-40: color-mix(in oklab, var(--color-primary), transparent 60%);
+
+  /* ---------------------------------------------------------------------------
+   * #101 (Sprint 20 / v0.14.0) — Semantic alias surface for re-skinning
+   *
+   * Component CSS used to reference brand-specific tokens directly
+   * (--color-ocean-*, --color-teal-*) in 244 places across 41 components.
+   * That meant consumers who overrode the semantic tokens (--color-primary,
+   * --color-surface, etc.) but not the brand ramps got a partial re-skin —
+   * borders + text updated, but tinted backgrounds, gradients, and shadows
+   * remained ocean-blue. A consumer app had to override --color-ocean-* and
+   * --color-teal-* (~60 lines) as a workaround.
+   *
+   * The alias surface below gives every brand-ramp shade a role-named
+   * sibling. Defaults pass straight through to the existing ocean/teal
+   * values, so this is a zero-visual-regression change. Component CSS
+   * now references aliases only; consumers re-skin by overriding the
+   * aliases (or, equivalently, the brand tokens) at :root.
+   *
+   * Mental model:
+   *   --color-primary-{shade}    → the dominant brand ramp (was: ocean)
+   *   --color-secondary-{shade}  → the supporting ramp (was: teal)
+   *
+   * Both ramps follow the canonical lightest/lighter/light/base/medium/dark/
+   * darker/darkest scale. The secondary `medium` step is the only place
+   * where teal's existing scale was extended — we add it because Avatar
+   * and ChatThinkingIndicator use `--color-teal-medium` directly.
+   *
+   * Naming note: we deliberately use `--color-secondary-*` (not
+   * `--color-accent-*`) because `--color-accent`, `--color-accent-light`,
+   * `--color-accent-dark` are pre-existing theme-preset slots set at
+   * runtime by ThemeProvider. Re-using that namespace would collide with
+   * the preset contract.
+   *
+   * RGB-channel aliases mirror the rgb() composition pattern documented
+   * in reference/design-tokens-implementation.md, so existing
+   * `rgb(var(--token) / α)` usages have a one-to-one alias replacement.
+   *
+   * Stage 2b sweep replaces every direct ocean/teal reference in
+   * src/components/ with the alias equivalent. Direct refs are
+   * subsequently CI-blocked.
+   * ------------------------------------------------------------------------- */
+
+  /* Primary brand ramp — shade rungs are DERIVED from --color-primary via
+     color-mix() in the GENERATED:COLOR-RAMPS block above (#285), so overriding
+     the base re-skins the whole ramp. The -rgb mirrors below stay pinned to ocean
+     (color-mix cannot emit space-separated channels); the rgb(var(--…-rgb) / α)
+     alpha sites that use them do NOT re-skin — documented exception, follow-up to
+     migrate them to color-mix(…, transparent). */
+  --color-primary-lightest-rgb: var(--color-ocean-lightest-rgb);
+  --color-primary-lighter-rgb: var(--color-ocean-lighter-rgb);
+  --color-primary-light-rgb: var(--color-ocean-light-rgb);
+  --color-primary-base-rgb: var(--color-ocean-base-rgb);
+  --color-primary-medium-rgb: var(--color-ocean-medium-rgb);
+  --color-primary-dark-rgb: var(--color-ocean-dark-rgb);
+  --color-primary-darker-rgb: var(--color-ocean-darker-rgb);
+  --color-primary-darkest-rgb: var(--color-ocean-darkest-rgb);
+
+  /* Secondary brand ramp — shade rungs are DERIVED from --color-secondary via
+     color-mix() in the GENERATED:COLOR-RAMPS block above (#285). */
+
+  /* Danger alias to error (closes Sprint 19 StatusDot gap; #101 acceptance) */
+  --color-danger: var(--color-error);
+  --color-danger-lightest: var(--color-error-lightest);
+  --color-danger-light: var(--color-error-light);
+  --color-danger-base: var(--color-error-base);
+  --color-danger-dark: var(--color-error-dark);
+  --color-danger-darkest: var(--color-error-darkest);
+
+  /* Legacy radius/font-size/font-weight names */
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --font-size-md: var(--font-size-base);
+  --font-weight-regular: var(--font-weight-normal);
+
+  /* Legacy easing / duration aliases */
+  --easing-out: var(--easing-ease-out);
+  --easing-ease: var(--easing-ease-in-out);
+  --transition-ease: var(--easing-ease-out);
+  --duration-medium: var(--duration-normal);
+
+  /* Missing spacing scale entry — bridges the 8 → 12 gap */
+  --spacing-10: 0.625rem;
+
+  /* ===== TYPOGRAPHY ===== */
+
+  /* Font Families */
+  --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: "JetBrains Mono", "Fira Code", "Roboto Mono", "Courier New", monospace;
+  --font-family-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Font Sizes */
+  --font-size-2xs: 0.64rem;
+  --font-size-xs: 0.8rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.563rem;
+  --font-size-3xl: 1.953rem;
+  --font-size-4xl: 2.441rem;
+  --font-size-5xl: 3.052rem;
+  --font-size-6xl: 3.815rem;
+  --font-size-7xl: 4.768rem;
+
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* ===== EDITORIAL TYPOGRAPHY (Sprint 15, #94) =====
+   *
+   * A *deliberate* serif divergence from the DS sans-serif baseline.
+   * Used by ArticleCard / Byline / Lede / PullQuote for newspaper-style
+   * editorial surfaces (newsroom-style consumers etc.). Keep the sans baseline
+   * everywhere else — these tokens are scoped to opted-in editorial
+   * components, not globally cascaded onto prose.
+   *
+   * Ink colors alias the standard text tokens so dark mode + consumer
+   * theme overrides propagate automatically without forking.
+   */
+
+  /* Editorial typography — deliberate serif divergence for newsroom surfaces */
+  --font-family-editorial: Georgia, "Times New Roman", "PT Serif", serif;
+  --font-size-editorial-headline: 2rem;
+  --font-size-editorial-headline-lead: 2.5rem;       /* lead-story scale */
+  --font-size-editorial-headline-supporting: 1.5rem; /* supporting-story scale */
+  --font-size-editorial-headline-brief: 1.125rem;    /* sidebar-brief scale */
+  --font-size-editorial-lede: 1.125rem;
+  --font-size-editorial-pullquote: 1.5rem;
+  --font-size-editorial-byline: 0.875rem;
+  --font-size-editorial-body: 1rem;
+  --line-height-editorial-headline: 1.15;
+  --line-height-editorial-body: 1.7;
+
+  /* Editorial ink colors — token-driven so dark mode and consumer themes propagate */
+  --color-editorial-ink-primary: var(--color-text-primary);
+  --color-editorial-ink-secondary: var(--color-text-secondary);
+  --color-editorial-ink-muted: var(--color-text-tertiary);
+  --color-editorial-rule: var(--color-border-subtle);
+
+  /* ===== SPACING ===== */
+
+  --spacing-0: 0;
+  --spacing-1: 0.0625rem;
+  --spacing-2: 0.125rem;
+  --spacing-3: 0.75rem;    /* 12px — Tailwind-compat alias of --spacing-12 (Refs: #53) */
+  --spacing-4: 0.25rem;
+  --spacing-5: 1.25rem;    /* 20px — Tailwind-compat alias of --spacing-20 (Refs: #53) */
+  --spacing-6: 1.5rem;     /* 24px — Tailwind-compat alias of --spacing-24 (Refs: #53) */
+  --spacing-8: 0.5rem;
+  --spacing-12: 0.75rem;
+  --spacing-16: 1rem;
+  --spacing-20: 1.25rem;
+  --spacing-24: 1.5rem;
+  --spacing-32: 2rem;
+  --spacing-40: 2.5rem;
+  --spacing-48: 3rem;
+  --spacing-56: 3.5rem;
+  --spacing-64: 4rem;
+  --spacing-80: 5rem;
+  --spacing-96: 6rem;
+  --spacing-128: 8rem;
+  --spacing-160: 10rem;
+  --spacing-192: 12rem;
+  --spacing-224: 14rem;
+  --spacing-256: 16rem;
+
+  /* Named Spacing */
+  --spacing-none: 0;
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  --spacing-4xl: 6rem;
+  --spacing-5xl: 8rem;
+  --spacing-6xl: 12rem;
+  --spacing-7xl: 16rem;
+
+  /* ===== BORDER RADIUS ===== */
+
+  --radius-none: 0;
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+  --radius-full: 9999px;
+
+  /* ===== SHADOWS (Light Mode) =====
+   *
+   * v0.36.0 OSS-prep (#421): shadow tints shift from ocean-tinted RGB triples
+   * (27,127,168 = ocean-medium, 43,163,212 = ocean-base) to neutral cool-gray
+   * (15, 23, 42 ≈ slate-900). Brand-neutral shadows that don't read as a
+   * specific identity. The `lando` preset doesn't re-skin these by design —
+   * shadows aren't a hue-bearing surface and stay neutral across presets. */
+
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px -1px rgba(15, 23, 42, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.05);
+  --shadow-outline: 0 0 0 3px rgba(100, 116, 139, 0.5);
+
+  /* Colored Shadows — re-skin with the brand/semantic tokens (#289). color-mix
+     with transparent supplies the 0.39 alpha (transparent 61%); the matching
+     ramp rung preserves the prior look (--color-primary-base resolves to the
+     old #2BA3D4, --color-success to #2DBFBF, etc.) while now following a theme. */
+  --shadow-primary: 0 4px 14px 0 color-mix(in oklab, var(--color-primary-base), transparent 61%);
+  --shadow-success: 0 4px 14px 0 color-mix(in oklab, var(--color-success), transparent 61%);
+  --shadow-warning: 0 4px 14px 0 color-mix(in oklab, var(--color-warning), transparent 61%);
+  --shadow-error: 0 4px 14px 0 color-mix(in oklab, var(--color-error), transparent 61%);
+
+  /* ===== ANIMATION ===== */
+
+  /* Duration */
+  --duration-instant: 0ms;
+  --duration-fastest: 50ms;
+  --duration-faster: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --duration-slowest: 700ms;
+
+  /* Easing */
+  --easing-linear: linear;
+  --easing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  /*
+   * #65 correction: brand-foundation.md specifies ease-out ("calm waves" —
+   * waves decelerate, they don't hurry in). The previous value
+   * cubic-bezier(0.4, 0, 0.2, 1) was ease-in-out (identical to the
+   * --easing-ease-in-out token above). 34 consuming sites across 17
+   * components now correctly curve ease-out, aligning the "wave" metaphor
+   * with the brand documentation. Consumers who explicitly want symmetric
+   * acceleration should reach for --easing-ease-in-out directly.
+   */
+  --easing-wave: cubic-bezier(0, 0, 0.2, 1);
+  --easing-surge: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-ripple: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --easing-tide: cubic-bezier(0.65, 0, 0.35, 1);
+  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --easing-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Transitions */
+  --transition-default: all var(--duration-fast) var(--easing-ease-out);
+  --transition-fast: all var(--duration-faster) var(--easing-ease-out);
+  --transition-slow: all var(--duration-slow) var(--easing-ease-out);
+  --transition-color: color var(--duration-fast) var(--easing-ease-out);
+  --transition-background: background-color var(--duration-fast) var(--easing-ease-out);
+  --transition-border: border-color var(--duration-fast) var(--easing-ease-out);
+  --transition-opacity: opacity var(--duration-normal) var(--easing-ease-out);
+  --transition-transform: transform var(--duration-normal) var(--easing-wave);
+  --transition-shadow: box-shadow var(--duration-normal) var(--easing-ease-out);
+
+  /* ===== LANE-B-MOTION-TOKENS:START (#274) =====
+   * Motion tokens for `@starting-style` + `transition-behavior: allow-discrete`
+   * platform-native enter/exit on top-layer elements (Modal/Drawer/Popover/
+   * Dropdown/Tooltip/Toast). Consumed by overlay component CSS to keep timing
+   * vocabulary in one place; reduced-motion automatically zeroes the durations
+   * via the existing media-query block at the bottom of this file.
+   *
+   * Naming: `--motion-overlay-*` keeps these distinct from the legacy
+   * `--transition-*` family so consumers don't accidentally retarget chrome.
+   *
+   * Lane C may APPEND new token sections (border-width, letter-spacing,
+   * dense padding, popover sizing) BELOW the matching END marker but ABOVE
+   * the `===== Z-INDEX =====` section.
+   */
+  --motion-overlay-enter-duration: var(--duration-normal);
+  --motion-overlay-exit-duration: var(--duration-fast);
+  --motion-overlay-enter-easing: var(--easing-ease-out);
+  --motion-overlay-exit-easing: var(--easing-ease-in);
+
+  /* Backdrop is slightly faster than the panel — feels responsive without
+   * making the panel feel rushed. */
+  --motion-backdrop-enter-duration: var(--duration-fast);
+  --motion-backdrop-exit-duration: var(--duration-fast);
+  /* ===== LANE-B-MOTION-TOKENS:END (#274) ===== */
+
+  /* ===== Z-INDEX ===== */
+
+  /*
+   * Z-INDEX LAYERING CONTRACT (see reference/components.md "Nested overlays")
+   *
+   * Unified scale with predictable stacking order. Values are spaced so
+   * consumers can insert custom layers between tiers without renumbering.
+   *
+   * base      → 0       default document flow
+   * below     → -1      behind-the-layer decorations
+   * content   → 1       above flow but below chrome
+   * sticky    → 100     sticky headers / pinned navigation
+   * fixed     → 200     fixed chrome (app bars, persistent toolbars)
+   * overlay   → 900     scrim / backdrop (below dialogs)
+   * modal     → 1000    Modal dialogs, Drawer
+   * dropdown  → 1100    menus, comboboxes (Dropdown, Select)
+   * popover   → 1200    Popover, non-transient floating content
+   * tooltip   → 1300    Tooltip (above popover, brief and transient)
+   * toast     → 1400    Toast, Notification (top of the world)
+   *
+   * ---
+   * Nested-overlay contract (#35, #46):
+   *
+   * dropdown / popover / tooltip / toast all sit ABOVE modal so that when an
+   * overlay is opened from INSIDE a Modal (e.g. a <Select> inside a form
+   * dialog), its portaled content paints above the Modal backdrop rather
+   * than being hidden behind it. This inverts the pre-v0.4.1 order
+   * (dropdown 1000 < modal 1100), which caused the Modal backdrop to
+   * visually obscure any nested overlay.
+   *
+   * Trade-off: a standalone Dropdown opened alongside a standalone Modal
+   * will render on top of the Modal. In practice this combination doesn't
+   * occur — Modals are focus-trapped and consume the active interaction
+   * surface. The nested-in-Modal case is the common one.
+   */
+  --z-index-base: 0;
+  --z-index-below: -1;
+  --z-index-content: 1;
+  --z-index-sticky: 100;
+  --z-index-fixed: 200;
+  --z-index-overlay: 900;
+  --z-index-modal: 1000;
+  --z-index-drawer: 1000;
+  --z-index-dropdown: 1100;
+  --z-index-popover: 1200;
+  --z-index-tooltip: 1300;
+  --z-index-toast: 1400;
+  --z-index-notification: 1400;
+
+  /* Component-specific z-index — aliases for backwards compatibility */
+  --z-header: var(--z-index-sticky);
+  --z-sidebar: var(--z-index-sticky);
+  /* @deprecated — use --z-index-dropdown instead. Removal scheduled for v0.3.0. */
+  --z-dropdown: var(--z-index-dropdown);
+  /* Short alias for ToastProvider (Sprint 16 / v0.10.0). Mirrors --z-index-toast. */
+  --z-toast: var(--z-index-toast);
+  /*
+   * Sprint 17 / v0.11.0 — fixed-element layering between body content
+   * and Modal. BottomNav sits at 900 (mobile tab bar) and Banner sits at
+   * 950 (above BottomNav so a "session expiring" banner remains visible
+   * above the tab bar, but below Modal/Drawer at 1000).
+   */
+  --z-bottomnav: 900;
+  --z-banner: 950;
+
+  /*
+   * Breakpoints intentionally have NO `--breakpoint-*` custom properties (#454).
+   * CSS custom properties are illegal inside `@media (min-width: …)` by spec,
+   * so a CSS mirror would be dead + misleading. The single source of truth is
+   * `breakpoints.px` in src/tokens/breakpoints.ts; authored `@media` rules in
+   * *.module.css hardcode the matching px/rem values.
+   */
+}
+
+/* ============================================================================
+   DARK MODE THEME
+   ============================================================================ */
+
+[data-theme="dark"] {
+  /* Override colors for dark mode */
+  /* NOTE: Primary colors are NOT overridden here - they can be controlled by theme presets */
+
+  /*
+   * v0.36.0 OSS-prep (#421): dark chrome is now a NEUTRAL near-black ramp
+   * (was the ocean-darkest/darker/dark rungs). The `lando` theme preset
+   * doesn't re-skin these — dark chrome stays neutral by design, with the
+   * brand identity expressed through accents, links, buttons, and the
+   * brand-tinted-chrome opt-in. Slightly cool to read as "dark UI" rather
+   * than "dim photograph".
+   */
+  --color-background: oklch(0.18 0.005 250); /* ~#0E1216 — near-black neutral */
+  --color-surface: oklch(0.21 0.005 250);    /* ~#13181D */
+  --color-surface-elevated: oklch(0.26 0.005 250); /* ~#1B2127 */
+  --color-surface-hover: oklch(0.31 0.005 250);    /* ~#232B33 */
+
+  /* Text colors — #12 contrast tiers, now AA-verified across the tint matrix by
+   * src/tokens/chrome-contrast.test.ts (light text on dark surface stays ≫ AA).
+   * v0.36.0 OSS-prep (#421): routes through neutral-200/300 instead of
+   * ocean-lighter/light so a dark UI looks neutral by default. */
+  --color-text-primary: var(--color-neutral-50);       /* #F8FAFB */
+  --color-text-secondary: var(--color-neutral-200);    /* light cool gray */
+  --color-text-tertiary: var(--color-neutral-300);     /* medium cool gray */
+  --color-text-disabled: var(--color-neutral-700);     /* #455A64 — inactive UI only (SC 1.4.3) */
+  --color-text-inverse: var(--color-neutral-900);      /* #263238 */
+
+  /* Borders — neutral cool-gray ramp in dark mode (v0.36.0 OSS-prep #421) */
+  --color-border-subtle: oklch(0.31 0.005 250);   /* matches surface-hover */
+  --color-border-default: oklch(0.38 0.008 250);
+  --color-border-strong: oklch(0.5 0.012 250);
+
+  /* Disabled control tokens (#39) — dark-mode analogs.
+   * v0.36.0 OSS-prep (#421): re-anchored to neutral so the disabled state
+   * matches the new neutral dark chrome (ΔE preserved within JND). */
+  --color-surface-disabled: oklch(0.16 0.005 250);
+  --color-text-on-disabled: oklch(0.45 0.008 250);
+  --color-border-disabled: oklch(0.24 0.005 250);
+
+  /* #38 — Focus-ring in dark mode. Lighter halo for visibility on dark bg.
+   * v0.36.0 OSS-prep (#421): routes through --color-primary via color-mix(). */
+  --focus-ring-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary), transparent 55%);
+
+  /* Dark mode shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  --shadow-outline: 0 0 0 3px rgba(100, 116, 139, 0.4);
+}
+
+/* ============================================================================
+   BRAND-TINTED CHROME (#288) — opt-in via `data-tint-chrome`
+   ----------------------------------------------------------------------------
+   By default the chrome layer (background/surface/border/text) is neutral in
+   light mode and static-ocean in dark mode, so overriding --color-primary alone
+   leaves most of the app surface un-re-skinned. Setting `data-tint-chrome` on a
+   root (e.g. <html data-tint-chrome>) tints chrome toward the live primary so a
+   one-token re-skin reaches the whole surface.
+
+   The lab `deriveChrome` prototype builds fixed-L/C OKLCH ladders at the
+   primary's hue (fixed L → contrast holds). CSS can't read a hue at runtime, so
+   we express the same idea natively with LANE-SEPARATED color-mix: a surface
+   mixes its neutral anchor toward a LIGHT ramp rung (`--color-primary-light`),
+   text mixes its neutral anchor toward a DARK rung (`--color-primary-darkest`).
+   Because each token only ever mixes toward a rung in its OWN lightness lane,
+   surfaces stay light and text stays dark for ANY brand hue — so contrast can't
+   collapse the way it would mixing toward the raw mid-tone primary (a navy brand
+   would darken surfaces; a yellow brand can't make a dark-enough one).
+
+   PROVEN, not asserted by eye: src/tokens/chrome-contrast.test.ts parses these
+   very declarations, resolves every text/surface pairing for the Ocean default
+   AND a matrix of hostile primaries (every hue, plus near-white and near-black
+   brands), and fails CI if any drops below WCAG AA. Worst observed margin ~4.75
+   (light) / ~5.57 (dark). No JS; re-skins live off --color-primary.
+
+   Opt-in by design: absent the attribute, appearance is the current default. */
+[data-tint-chrome] {
+  /* Surfaces → primary-light (stays light): subtle, brand-scaled tint. */
+  --color-background: color-mix(in oklab, var(--color-neutral-50), var(--color-primary-light) 14%);
+  --color-surface: color-mix(in oklab, var(--color-neutral-white), var(--color-primary-light) 10%);
+  --color-surface-elevated: color-mix(in oklab, var(--color-neutral-100), var(--color-primary-light) 16%);
+  --color-surface-hover: color-mix(in oklab, var(--color-neutral-200), var(--color-primary-light) 22%);
+
+  /* Text → primary-darkest (stays dark): tinting toward the dark lane only ever
+     RAISES contrast on a light surface, so this is the safe direction to push. */
+  --color-text-primary: color-mix(in oklab, var(--color-neutral-800), var(--color-primary-darkest) 22%);
+  --color-text-secondary: color-mix(in oklab, var(--color-neutral-600), var(--color-primary-darkest) 26%);
+  --color-text-tertiary: color-mix(in oklab, var(--color-neutral-550), var(--color-primary-darkest) 22%);
+
+  /* Borders → primary-light/base (decorative, not contrast-gated). */
+  --color-border-subtle: color-mix(in oklab, var(--color-neutral-200), var(--color-primary-light) 30%);
+  --color-border-default: color-mix(in oklab, var(--color-neutral-300), var(--color-primary-base) 28%);
+  --color-border-strong: color-mix(in oklab, var(--color-neutral-400), var(--color-primary-base) 32%);
+}
+
+/* Dark: surfaces ride the DERIVED --color-primary-* dark rungs so the whole
+   surface re-skins (for Ocean these ≈ today's dark theme, ΔE < 0.01); elevated/
+   hover are capped just above the darkest rung with a SMALL neutral-50 lift (4% /
+   9%) so a near-white brand — whose darkest rung is only mid-tone — can't lift
+   them into the light text. Text anchors to light neutrals tinted toward
+   primary-lighter/light — light-on-dark holds AA for any hue. The caps + text
+   mixes are tuned so chrome-contrast.test.ts holds AA across the hostile-primary
+   matrix incl. near-white/near-black (worst dark pairing ~4.75:1). Compound
+   selector (specificity 0,2,0) wins over the light block for a dark+tinted root
+   and defines the full chrome set so nothing leaks. */
+[data-theme="dark"][data-tint-chrome] {
+  --color-background: color-mix(in oklab, var(--color-primary-darkest), black 21.5%);
+  --color-surface: var(--color-primary-darkest);
+  --color-surface-elevated: color-mix(in oklab, var(--color-primary-darkest), var(--color-neutral-50) 4%);
+  --color-surface-hover: color-mix(in oklab, var(--color-primary-darkest), var(--color-neutral-50) 9%);
+
+  --color-text-primary: color-mix(in oklab, var(--color-neutral-50), var(--color-primary-lighter) 12%);
+  --color-text-secondary: color-mix(in oklab, var(--color-neutral-200), var(--color-primary-lighter) 30%);
+  --color-text-tertiary: color-mix(in oklab, var(--color-neutral-300), var(--color-primary-light) 34%);
+
+  --color-border-subtle: var(--color-primary-dark);
+  --color-border-default: var(--color-primary-medium);
+  --color-border-strong: var(--color-primary-base);
+}
+
+/* ============================================================================
+   PRODUCT THEME OVERRIDES (Multi-brand Architecture)
+   ============================================================================ */
+
+/* Example: Product-specific theme overrides
+[data-product="example-product"] {
+  --color-primary: #custom-color;
+  --color-primary-hover: #custom-hover;
+  --color-on-primary: #custom-text;
+}
+*/
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fastest: 0ms;
+    --duration-faster: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+    --duration-slowest: 0ms;
+
+    --transition-default: none;
+    --transition-fast: none;
+    --transition-slow: none;
+    --transition-color: none;
+    --transition-background: none;
+    --transition-border: none;
+    --transition-opacity: none;
+    --transition-transform: none;
+    --transition-shadow: none;
+  }
+}
+
+/* ============================================================================
+   CHART TOKENS — removed in v0.25.0 (#287)
+   The legacy --chart-ocean-N / --chart-teal-N scheme had zero consumers and
+   chained the raw ocean/teal rungs, so it never re-skinned. Charts now read the
+   re-skinnable brand tokens directly through getChartColors()
+   (src/components/Chart/utils.ts); grid, axis and tooltip read the neutral
+   chrome tokens (border / text / surface) in getChartTheme(). No chart-specific
+   token layer remains by design.
+   ============================================================================ */
+
+/* ============================================================================
+   HIGH CONTRAST MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-subtle: var(--color-border-default);
+    --color-border-default: var(--color-border-strong);
+  }
+
+  [data-theme="dark"] {
+    --color-text-secondary: var(--color-text-primary);
+  }
+}
+
+/* ============================================================================
+   --- Sprint 49 / #375 token additions ---
+   APPENDIX-ONLY. Append-only region inside `@layer ll.tokens`. Do not
+   reorganize without coordinating with Lane B (motion tokens) and the
+   tokens.ts ↔ tokens.css parity guarantee.
+
+   What lives here:
+     - --border-width-{0,1,2,4}        (src/tokens/border.ts)
+     - --letter-spacing-* extras       (already emitted in :root above; this
+                                        block exists to document that the
+                                        tight/normal/wide/wider set in #375
+                                        is the named-subset published as
+                                        public tokens)
+     - --text-transform-{none,uppercase,capitalize}
+                                       (src/tokens/typography.ts › textTransform)
+     - --spacing-2xs-dense             (src/tokens/spacing.ts › '2xs-dense')
+     - --size-popover-{min-width,max-width,max-height}
+                                       (src/tokens/sizing.ts › popoverSize)
+   ============================================================================ */
+
+:root {
+  /* Border widths (#375) — primitive stroke scale. Pairs with --color-border-*.
+     0 / 1 / 2 / 4 px. */
+  --border-width-0: 0;
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+
+  /* Text transform keyword tokens (#375). Use as `text-transform: var(--text-transform-uppercase)`. */
+  --text-transform-none: none;
+  --text-transform-uppercase: uppercase;
+  --text-transform-capitalize: capitalize;
+
+  /* Dense spacing step (#375) — 0.375rem (6px). Sits between --spacing-2xs (4px)
+     and --spacing-xs (8px) so compact UI rows (IconButton inner padding,
+     dense table cells) don't have to pick between 4 and 8. */
+  --spacing-2xs-dense: 0.375rem;
+
+  /* Popover/panel sizing (#375). Used by Popover, Dropdown menu surfaces,
+     Tooltip detail panels — anything in the floating-overlay family. */
+  --size-popover-min-width: 280px;
+  --size-popover-max-width: 420px;
+  --size-popover-max-height: 320px;
+
+  /* ==========================================================================
+   * Component padding rhythm (#448) — Phase A, ADDITIVE only.
+   * --------------------------------------------------------------------------
+   * A single shared padding-rhythm surface so component stylesheets stop
+   * mixing two spacing vocabularies (the numeric `--spacing-N` scale vs. the
+   * semantic `--spacing-{xs..}` scale) when expressing internal padding.
+   *
+   * These reference the SEMANTIC spacing scale (no literal px), so they inherit
+   * any future retune of the semantic rungs. Resolved values today:
+   *   xs → 8px · sm → 12px · md → 16px · lg → 24px · xl → 32px
+   *
+   * Phase A added xs/sm/md/lg/xl; Phase B (#448) extends the group to the full
+   * padding range (2xs/2xl/3xl) and migrates component padding onto it.
+   *
+   * TS source of truth: `componentPadding` in src/tokens/spacing.ts.
+   * ========================================================================== */
+  --component-padding-none: var(--spacing-none); /* 0 */
+  --component-padding-2xs: var(--spacing-2xs); /* 4px */
+  --component-padding-xs: var(--spacing-xs); /* 8px */
+  --component-padding-sm: var(--spacing-sm); /* 12px */
+  --component-padding-md: var(--spacing-md); /* 16px */
+  --component-padding-lg: var(--spacing-lg); /* 24px */
+  --component-padding-xl: var(--spacing-xl); /* 32px */
+  --component-padding-2xl: var(--spacing-2xl); /* 48px */
+  --component-padding-3xl: var(--spacing-3xl); /* 64px */
+}
+
+} /* @layer ll.tokens */

@@ -1,0 +1,394 @@
+/**
+ * Markdown Component Styles
+ * Ocean-inspired typography for rendered markdown
+ */
+
+/* #281 — container-query host (inner-wrapper pattern).
+ *
+ * Long-form markdown should tighten its type scale by the width of the column it
+ * is dropped into (a narrow card/sidebar), not the viewport. The responsive rule
+ * below sets `.markdown`'s OWN `font-size` (plus its heading/list/blockquote
+ * descendants). Because `.markdown` is the component root, a container placed on
+ * it AND queried from it would be a self-rule no-op for that `font-size` line.
+ * `.sizer` is a zero-styling wrapper (plain block, fills the available inline
+ * size, no box of its own) that carries the container; `.markdown` is its DOM
+ * child, so every `@container markdown` rule below matches. The `markdown`
+ * container-name is GLOBAL (CSS Modules does not hash it). Threshold preserved:
+ * 40rem (640px). Token: tokens/containerQueries. */
+.sizer {
+  display: block;
+  container: markdown / inline-size;
+}
+
+.markdown {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+/* ===== HEADINGS ===== */
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin-top: var(--spacing-32);
+  margin-bottom: var(--spacing-16);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.markdown h1:first-child,
+.markdown h2:first-child,
+.markdown h3:first-child,
+.markdown h4:first-child,
+.markdown h5:first-child,
+.markdown h6:first-child {
+  margin-top: 0;
+}
+
+.markdown h1 {
+  font-size: var(--font-size-4xl);
+  color: var(--color-primary-dark);
+  border-bottom: 2px solid var(--color-border-subtle);
+  padding-bottom: var(--component-padding-sm);
+}
+
+[data-theme='dark'] .markdown h1 {
+  color: var(--color-primary-light);
+}
+
+.markdown h2 {
+  font-size: var(--font-size-3xl);
+  color: var(--color-primary-medium);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--component-padding-xs);
+}
+
+[data-theme='dark'] .markdown h2 {
+  color: var(--color-primary-base);
+}
+
+.markdown h3 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-primary-medium);
+}
+
+.markdown h4 {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+}
+
+.markdown h5 {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.markdown h6 {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* ===== PARAGRAPHS ===== */
+
+.markdown p {
+  margin-top: 0;
+  margin-bottom: var(--spacing-16);
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== LISTS ===== */
+
+.markdown ul,
+.markdown ol {
+  margin-top: 0;
+  margin-bottom: var(--spacing-16);
+  padding-inline-start: var(--component-padding-xl);
+}
+
+.markdown li {
+  margin-bottom: var(--spacing-8);
+}
+
+.markdown li:last-child {
+  margin-bottom: 0;
+}
+
+.markdown ul {
+  list-style-type: disc;
+}
+
+.markdown ul ul {
+  list-style-type: circle;
+}
+
+.markdown ul ul ul {
+  list-style-type: square;
+}
+
+.markdown ol {
+  list-style-type: decimal;
+}
+
+/* ===== INLINE CODE ===== */
+
+.markdown code {
+  padding: var(--spacing-2) var(--component-padding-xs);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-primary-dark);
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+[data-theme='dark'] .markdown code {
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary-base);
+  border-color: var(--color-border-default);
+}
+
+/* ===== CODE BLOCKS ===== */
+
+.markdown pre {
+  margin-top: 0;
+  margin-bottom: var(--spacing-24);
+}
+
+.markdown pre:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== LINKS ===== */
+
+.markdown a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: var(--transition-color);
+}
+
+.markdown a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+.markdown a:active {
+  color: var(--color-primary-active);
+}
+
+.markdown a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== BLOCKQUOTE ===== */
+
+.markdown blockquote {
+  margin: var(--spacing-24) 0;
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  background-color: var(--color-primary-lightest);
+  border-inline-start: 4px solid var(--color-primary-medium);
+  border-radius: var(--radius-md);
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] .markdown blockquote {
+  background-color: var(--color-surface-elevated);
+  border-inline-start-color: var(--color-primary-base);
+  color: var(--color-text-secondary);
+}
+
+.markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== HORIZONTAL RULE ===== */
+
+.markdown hr {
+  margin: var(--spacing-32) 0;
+  border: none;
+  border-top: 2px solid var(--color-border-subtle);
+}
+
+/* ===== EMPHASIS ===== */
+
+.markdown strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.markdown em {
+  font-style: italic;
+}
+
+/* ===== STRIKETHROUGH (GFM) ===== */
+
+.markdown del {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+  text-decoration-thickness: 1px;
+}
+
+/* ===== TABLES (GFM) ===== */
+
+.markdown table {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: var(--spacing-24);
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.markdown thead {
+  background-color: var(--color-surface-elevated);
+}
+
+.markdown th {
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  text-align: start;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+.markdown td {
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown tbody tr:hover {
+  background-color: var(--color-surface-hover);
+}
+
+[data-theme='dark'] .markdown thead {
+  background-color: var(--color-surface-hover);
+}
+
+/* ===== TASK LISTS (GFM) ===== */
+
+/*
+ * Task-list items get the `task-list-item` class from remark-gfm. The
+ * containing <ul>/<ol> gets `contains-task-list`. CSS Modules would
+ * otherwise scope these names, so we wrap them in :global to match the
+ * literal class names emitted by react-markdown.
+ */
+.markdown ul:global(.contains-task-list),
+.markdown ol:global(.contains-task-list) {
+  list-style-type: none;
+  padding-inline-start: var(--component-padding-xs);
+}
+
+.markdown li:global(.task-list-item) {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+
+.markdown li:global(.task-list-item) > input[type='checkbox'] {
+  margin-top: 0.3em;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  cursor: default;
+}
+
+/* ===== IMAGES ===== */
+
+.markdown img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: var(--spacing-16) 0;
+  border-radius: var(--radius-md);
+}
+
+/* ===== FOOTNOTES (GFM) ===== */
+
+/*
+ * GFM footnotes render as <section data-footnotes class="footnotes">
+ * containing an <h2 class="sr-only"> + <ol>. We give the section a top
+ * border so it visually separates from body content.
+ */
+.markdown :global(.footnotes) {
+  margin-top: var(--spacing-32);
+  padding-top: var(--component-padding-md);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.markdown :global(.sr-only) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* #281 — reflows on the markdown column's own width (was viewport @media).
+ * Threshold preserved: 40rem (640px). `.markdown` and all its `.markdown *`
+ * descendants are inside the `.sizer` container host (see the note on `.sizer`),
+ * which is why these rules match — including the `.markdown` font-size override
+ * that would NOT have applied as a container self-rule. */
+@container markdown (max-width: 40rem) {
+  .markdown {
+    font-size: var(--font-size-sm);
+  }
+
+  .markdown h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .markdown h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .markdown h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  .markdown h4 {
+    font-size: var(--font-size-lg);
+  }
+
+  .markdown h5,
+  .markdown h6 {
+    font-size: var(--font-size-base);
+  }
+
+  .markdown ul,
+  .markdown ol {
+    padding-inline-start: var(--component-padding-lg);
+  }
+
+  .markdown blockquote {
+    padding: var(--component-padding-sm) var(--component-padding-md);
+  }
+}

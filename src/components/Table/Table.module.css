@@ -1,0 +1,288 @@
+/**
+ * Table Component Styles
+ * Ocean-inspired data table with smooth interactions
+ */
+
+.tableWrapper {
+  width: 100%;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+
+  /* #270 — container-query host (move-container-up pattern).
+   *
+   * The `table` container lives on `.tableWrapper` (the outer 100%-width box),
+   * NOT on `.tableContainer` (the inner scroll viewport). This is deliberate and
+   * is the fix for a real bug: an element's own `@container` query is evaluated
+   * against its nearest ANCESTOR container, never itself, so a rule that styles
+   * the container element from its OWN `@container` query silently does nothing.
+   * The `@container table (max-width: 40rem)` block below sets `overflow-x` on
+   * `.tableContainer`, which is a DESCENDANT of this host — so it now actually
+   * matches. `.tableWrapper` is `width: 100%` (inline size parent-driven, not
+   * content-driven), so it is a valid, non-circular inline-size container.
+   * The `table` container-name is GLOBAL (CSS Modules does not hash it).
+   * Thresholds preserved: 48rem (768px) cell padding, 40rem (640px) scroll.
+   * Token: tokens/containerQueries. */
+  container: table / inline-size;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+}
+
+/* ===== TABLE HEAD ===== */
+
+.thead {
+  background-color: var(--color-neutral-100);
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+[data-theme='dark'] .thead {
+  background-color: var(--color-surface-elevated);
+}
+
+.th {
+  padding: var(--component-padding-md);
+  text-align: start;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  border-bottom: none;
+  user-select: none;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* ===== SORTABLE COLUMNS ===== */
+
+.sortable {
+  cursor: pointer;
+  transition: var(--transition-background);
+}
+
+.sortable:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.sortable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.sortIcon {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  transition: var(--transition-color);
+}
+
+.sortable:hover .sortIcon {
+  color: var(--color-text-secondary);
+}
+
+/* ===== TABLE BODY ===== */
+
+.tbody {
+  background-color: var(--color-surface);
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: var(--transition-background);
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+/*
+ * #62 Defect 2 — row hover was fired for every row, not just clickable
+ * ones. Read-only data tables lit up on hover and falsely promised
+ * interactivity. Scoped to .tr.clickable:hover so non-interactive tables
+ * stay visually quiet.
+ */
+.tr.clickable:hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* ===== CLICKABLE ROWS (#30) ===== */
+
+/*
+ * Applied when `onRowClick` is set. Rows become focusable, receive a
+ * pointer cursor, and render a visible focus ring via :focus-visible.
+ * Hover is also gated here (see #62 Defect 2 above).
+ */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+  /*
+   * Keep the focused row above its neighbors so the outline isn't
+   * clipped by the next row's top border.
+   */
+  position: relative;
+  z-index: 1;
+}
+
+.td {
+  padding: var(--component-padding-md);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+/* ===== STRIPED VARIANT ===== */
+
+.striped .tbody .tr:nth-child(even) {
+  background-color: var(--color-neutral-50);
+}
+
+[data-theme='dark'] .striped .tbody .tr:nth-child(even) {
+  background-color: color-mix(in srgb, white 2%, transparent);
+}
+
+.striped .tbody .tr.clickable:hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* ===== CHECKBOX STYLING ===== */
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.checkbox:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== EMPTY STATE ===== */
+
+.emptyState {
+  padding: var(--component-padding-3xl) var(--component-padding-xl);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* ===== LOADING SKELETON ===== */
+
+.skeletonCheckbox,
+.skeletonHeader,
+.skeletonCell {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-300) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+[data-theme='dark'] .skeletonCheckbox,
+[data-theme='dark'] .skeletonHeader,
+[data-theme='dark'] .skeletonCell {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-800) 25%,
+    var(--color-neutral-700) 50%,
+    var(--color-neutral-800) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.skeletonCheckbox {
+  width: 18px;
+  height: 18px;
+}
+
+.skeletonHeader {
+  width: 80%;
+  height: 1rem;
+}
+
+.skeletonCell {
+  width: 90%;
+  height: 0.875rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== RESPONSIVE BEHAVIOR ===== */
+
+/* #270 — was a nested viewport `@media (max-width:768px){ … @media 640 }`.
+ * Flattened into two sibling `@container table` blocks (container queries do not
+ * nest the same way and reading them side-by-side is clearer). Every selector
+ * below is a DESCENDANT of the `table` host (`.tableWrapper`) — `.tableContainer`,
+ * `.th`, `.td`, `.table` are all inside it — which is exactly why these rules
+ * match. Thresholds and declarations are IDENTICAL to the old nested rules:
+ *   - 48rem (768px): tighten cell padding/size  (`.th`, `.td`)
+ *   - 40rem (640px): force horizontal scroll on the inner scroll viewport +
+ *     min-width the table so columns don't crush  (`.tableContainer`, `.table`)
+ * The 640 block is a strict subset of the 768 range, exactly as before. */
+@container table (max-width: 48rem) {
+  .th,
+  .td {
+    padding: var(--component-padding-sm);
+    font-size: var(--font-size-xs);
+  }
+}
+
+@container table (max-width: 40rem) {
+  /* `.tableContainer` is a DESCENDANT of the `.tableWrapper` host, so this
+   * overflow override resolves correctly. (When the container lived on
+   * `.tableContainer` itself this self-rule never applied — a container does
+   * not match its own `@container` query.) */
+  .tableContainer {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .tr,
+  .sortable,
+  .sortIcon {
+    transition: none;
+  }
+
+  .skeletonCheckbox,
+  .skeletonHeader,
+  .skeletonCell {
+    animation: none;
+  }
+}

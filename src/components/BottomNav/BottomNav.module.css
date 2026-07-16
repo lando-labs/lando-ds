@@ -1,0 +1,167 @@
+/**
+ * BottomNav styles
+ *
+ * Mobile-only fixed-bottom tab bar (Sprint 17 #82).
+ *
+ * Layout contract:
+ *  - position: fixed; bottom: 0; left: 0; right: 0
+ *  - flex row, evenly distributed children
+ *  - height ~60px (configurable via --bottomnav-height)
+ *  - 44px min touch target per item (WCAG 2.5.8)
+ *  - z-index: var(--z-bottomnav, 900) — Lane 3 (Banner) owns the canonical
+ *    token; we reference it with a 900 fallback in case our component lands
+ *    first.
+ *  - Hidden at >= 768px (breakpoints.px.md). CSS custom properties cannot be
+ *    used inside @media queries, so the value is hardcoded to match the
+ *    md tier in src/tokens/breakpoints.ts (the breakpoint source of truth).
+ *  - padding-bottom: env(safe-area-inset-bottom) so the bar respects iOS
+ *    home-indicator safe areas.
+ */
+
+/* ── Container ────────────────────────────────────────────────────────────── */
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  inset-inline: 0;
+  z-index: var(--z-bottomnav, 900);
+
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+
+  width: 100%;
+  height: var(--bottomnav-height, 60px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  background-color: var(--color-surface, #ffffff);
+  border-top: 1px solid var(--color-border-subtle, #e5e7eb);
+
+  /* Subtle elevation off the content beneath. */
+  box-shadow: 0 -1px 2px rgb(0 0 0 / 0.04);
+}
+
+/* Hide at >= 768px (breakpoints.px.md). The bar is mobile-only. */
+@media (min-width: 768px) {
+  .nav {
+    display: none;
+  }
+}
+
+/* ── Item ─────────────────────────────────────────────────────────────────── */
+
+.item {
+  /* 1 1 0 → all tabs share the row evenly regardless of label length */
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;            /* WCAG 2.5.8 touch target */
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  padding: var(--component-padding-xs, 0.5rem) var(--component-padding-2xs, 0.25rem);
+
+  /* Reset <a> / <button> chrome */
+  background: transparent;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+
+  color: var(--color-text-secondary, #4b5563);
+  transition:
+    color var(--duration-fast, 150ms) var(--easing-ease-out, ease-out),
+    background-color var(--duration-fast, 150ms) var(--easing-ease-out, ease-out);
+}
+
+.item:hover {
+  color: var(--color-text-primary, #111827);
+  background-color: var(--color-surface-hover, transparent);
+}
+
+.item:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, var(--color-primary));
+  outline-offset: calc(-1 * var(--focus-ring-width, 2px));
+}
+
+/* ── Active state ─────────────────────────────────────────────────────────── */
+
+.itemActive {
+  color: var(--color-primary);
+}
+
+.itemActive:hover {
+  color: var(--color-primary);
+}
+
+/* ── Icon ─────────────────────────────────────────────────────────────────── */
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+}
+
+.iconWrap > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Label ────────────────────────────────────────────────────────────────── */
+
+.label {
+  display: block;
+  max-width: 100%;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: var(--font-weight-medium, 500);
+  letter-spacing: 0.01em;
+
+  /* Truncate long labels rather than wrapping or overflowing. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: currentColor;
+}
+
+.itemActive .label {
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+/* ── Badge ────────────────────────────────────────────────────────────────── */
+
+.badge {
+  position: absolute;
+  /* Offset the badge into the upper-right of the icon area. */
+  top: 4px;
+  right: calc(50% - 22px);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+
+  font-size: 10px;
+  line-height: 1;
+  font-weight: var(--font-weight-semibold, 600);
+
+  color: var(--color-text-inverse, #ffffff);
+  background-color: var(--color-error);
+  border: 1.5px solid var(--color-surface, #ffffff);
+  border-radius: 999px;
+
+  /* Above the icon */
+  z-index: 1;
+  pointer-events: none;
+}

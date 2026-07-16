@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+# dist/ is NOT committed (commit-none policy, #468). It is a rebuilt-on-demand
+# artifact: `prepare` (npm ci) and publish.yml both run `npm run build`, and
+# git/`file:` consumers rebuild via `prepare` too. Committing a partial subset
+# previously shipped a stale 179/1306-file tree that broke types for git/`file:`
+# consumers. The packed/published tarball (`files: ["dist"]`) ships the full
+# fresh build. The #365 tarball smoke test is the CI guarantee that a published
+# consumer's types resolve.
+dist/
+*.tsbuildinfo
+
+# Assembled meta-artifact packages (build outputs, published from CI — never committed)
+dist-meta/
+dist-meta-schema/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Claude Code machine-local settings — never commit
+.claude/settings.local.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Testing
+coverage/
+
+# Playwright MCP screenshot scratch output — never commit
+.playwright-mcp/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# NPM pack artifacts — never commit
+*.tgz
+lando-labs-lando-ds-*.tgz
+
+# scratch symlink used for local gating — never ship
+node_modules

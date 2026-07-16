@@ -1,0 +1,41 @@
+/**
+ * AvatarGroup Component Styles
+ *
+ * Negative inline-start margin produces the overlap; a contrasting ring
+ * keeps adjacent avatars visually separated. The overflow chip mirrors
+ * the Avatar size scale so it slots in seamlessly.
+ */
+
+.group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.slot {
+  display: inline-flex;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.slot + .slot {
+  margin-inline-start: calc(var(--spacing-xs) * -1);
+}
+
+.overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
+}
+
+/* Size scale mirrors Avatar's xs–2xl. The overflow chip alone needs an
+ * intrinsic width/height; the wrapped avatar already sizes itself. */
+.size-xs .overflow { width: 1.5rem; height: 1.5rem; font-size: var(--font-size-2xs); }
+.size-sm .overflow { width: 2rem; height: 2rem; font-size: var(--font-size-xs); }
+.size-md .overflow { width: 2.5rem; height: 2.5rem; font-size: var(--font-size-sm); }
+.size-lg .overflow { width: 3rem; height: 3rem; font-size: var(--font-size-base); }
+.size-xl .overflow { width: 4rem; height: 4rem; font-size: var(--font-size-lg); }
+.size-2xl .overflow { width: 5rem; height: 5rem; font-size: var(--font-size-xl); }

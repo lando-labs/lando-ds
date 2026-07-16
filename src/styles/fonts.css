@@ -1,0 +1,34 @@
+/**
+ * Lando Labs Design System — Optional font loader
+ *
+ * This stylesheet pulls Inter (400/500/600/700/800) and JetBrains Mono
+ * (400/500) from Google Fonts so that the `--font-family-base` and
+ * `--font-family-mono` design tokens resolve to their canonical brand
+ * faces without any additional setup on the consumer's part.
+ *
+ * WHEN TO USE THIS FILE
+ *   - Non-Next.js apps (plain Vite, CRA, Remix without a fonts helper,
+ *     static HTML) that cannot use `next/font/google`.
+ *   - Prototyping, demos, Storybook hosts.
+ *
+ * WHEN NOT TO USE THIS FILE
+ *   - Next.js apps: use `next/font/google` instead. It self-hosts the
+ *     font binaries, preloads them, and eliminates the Cumulative Layout
+ *     Shift (CLS) this @import introduces. See README for the snippet.
+ *
+ * CLS TRADE-OFF
+ *   @import from a CDN blocks render and hits the network before the
+ *   browser can paint body text. In a Next.js app, `next/font` is always
+ *   strictly better. Ship this file only when `next/font` isn't an
+ *   option.
+ *
+ * USAGE
+ *   // Anywhere in your app's entry CSS, or imported once at the root:
+ *   import '@lando-labs/lando-ds/fonts.css'
+ *   import '@lando-labs/lando-ds/styles'
+ *
+ *   Order doesn't matter — both files declare `@import` / `:root` rules
+ *   that compose via the CSS cascade.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');

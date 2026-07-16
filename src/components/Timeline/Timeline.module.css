@@ -1,0 +1,382 @@
+/**
+ * Timeline Component
+ *
+ * Vertical distributed-tracing style timeline with connector lines,
+ * dots, status colors, nested groups, and expandable items.
+ *
+ * Pattern ported from a consumer app's session-trace view and
+ * generalized into a DS primitive. Uses only existing design tokens
+ * (--color-ocean-base, --color-border-subtle, --color-*-base status,
+ * --color-surface-elevated, --spacing-*, --radius-full, etc.).
+ */
+
+/* ============================================================================
+   CONTAINER
+   ============================================================================ */
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+   ITEM
+   ============================================================================ */
+
+.item {
+  position: relative;
+  padding-inline-start: 28px; /* room for connector column (left:8px + 16px width + gap) */
+  padding-bottom: var(--component-padding-md);
+  list-style: none;
+}
+
+.item:last-child {
+  padding-bottom: 0;
+}
+
+/* Hide trailing line on the last top-level item so the rail doesn't
+ * extend past the final dot. */
+.item:last-child > .connector > .line {
+  display: none;
+}
+
+/* Connector column — absolutely positioned to the left of .body. */
+.connector {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  bottom: 0;
+  width: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-base);
+  box-shadow: 0 0 0 2px var(--color-surface-elevated);
+  flex-shrink: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.line {
+  position: absolute;
+  left: 7px; /* center under a 10px dot */
+  top: 14px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--color-border-subtle);
+  border-radius: var(--radius-full);
+}
+
+/* ----------------------------------------------------------------------------
+   Bezel — enlarged dot containing an icon (activity-feed mode)
+   ---------------------------------------------------------------------------- */
+
+.bezel {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-ocean, #ffffff);
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  line-height: 0;
+}
+
+/* Expand connector column + reposition rail when bezel is in use. */
+.item.hasIcon {
+  padding-inline-start: 36px;
+}
+
+.item.hasIcon > .connector {
+  left: 0;
+  width: 24px;
+  top: 2px;
+}
+
+.item.hasIcon > .connector > .line {
+  left: 11px; /* center under a 24px bezel */
+  top: 28px;
+}
+
+/* The icon should inherit the bezel's color so consumers can pass a
+ * plain Lucide <svg> without manually styling stroke. */
+.bezel svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* ============================================================================
+   STATUS COLORS — dot fill variants
+   ============================================================================ */
+
+.status-default .dot {
+  background: var(--color-primary-base);
+}
+
+.status-info .dot {
+  background: var(--color-info-base);
+}
+
+.status-success .dot {
+  background: var(--color-success-base);
+}
+
+.status-warning .dot {
+  background: var(--color-warning-base);
+}
+
+.status-error .dot {
+  background: var(--color-error-base);
+}
+
+/* ============================================================================
+   BODY (content column)
+   ============================================================================ */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.timestamp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  min-width: 0;
+}
+
+.actor {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-tight);
+  min-width: 0;
+}
+
+.content {
+  min-width: 0;
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   EXPANDABLE TOGGLE
+   ============================================================================ */
+
+.toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-xs);
+  width: 100%;
+  text-align: start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-background);
+}
+
+.toggle:hover {
+  background: var(--color-surface-elevated);
+}
+
+.toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.toggleHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.toggleHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: start;
+}
+
+.chevron {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-fast) var(--easing-ease-out);
+}
+
+.toggle[aria-expanded='true'] .chevron {
+  transform: rotate(90deg);
+}
+
+/* ============================================================================
+   NESTED GROUP (second-tier visuals)
+   ============================================================================ */
+
+.group {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 16px;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+
+.group .item {
+  padding-inline-start: 20px;
+  padding-bottom: var(--component-padding-sm);
+}
+
+.group .item:last-child {
+  padding-bottom: 0;
+}
+
+.group .connector {
+  left: 0;
+  width: 12px;
+  top: 3px;
+}
+
+.group .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-neutral-400);
+  box-shadow: none;
+}
+
+.group .status-default .dot {
+  background: var(--color-neutral-400);
+}
+.group .status-info .dot {
+  background: var(--color-info-base);
+}
+.group .status-success .dot {
+  background: var(--color-success-base);
+}
+.group .status-warning .dot {
+  background: var(--color-warning-base);
+}
+.group .status-error .dot {
+  background: var(--color-error-base);
+}
+
+.group .line {
+  left: 2px;
+  top: 9px;
+  width: 1px;
+}
+
+/* ============================================================================
+   LOADING STATE
+   ============================================================================ */
+
+.skeletonItem {
+  position: relative;
+  padding-inline-start: 28px;
+  padding-bottom: var(--component-padding-md);
+  list-style: none;
+}
+
+.skeletonItem:last-child {
+  padding-bottom: 0;
+}
+
+.skeletonItem:last-child > .connector > .line {
+  display: none;
+}
+
+.skeletonDot {
+  background: var(--color-surface-elevated) !important;
+  box-shadow: 0 0 0 2px var(--color-surface-elevated);
+}
+
+.skeletonLine {
+  background: var(--color-border-subtle);
+}
+
+.skeletonContent {
+  height: 14px;
+  width: 60%;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  animation: timeline-pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonTimestamp {
+  height: 10px;
+  width: 30%;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
+  animation: timeline-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes timeline-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: var(--component-padding-lg);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .toggle {
+    transition: none;
+  }
+  .skeletonContent,
+  .skeletonTimestamp {
+    animation: none;
+  }
+}

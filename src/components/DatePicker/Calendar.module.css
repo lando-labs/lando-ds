@@ -1,0 +1,199 @@
+/**
+ * Calendar styles (#312).
+ *
+ * Visual contract
+ * ---------------
+ *   - Compact month grid with a single-row header: prev-button | month label | next-button.
+ *   - Cells are square-ish — width derived from the grid auto-layout, height
+ *     clamped so 6 rows always fit cleanly. Day numbers center inside.
+ *   - Selected day: primary tint, white text. Today (when not selected):
+ *     subtle ring via box-shadow inset. Out-of-month days: muted but still
+ *     legible. Out-of-range (per min/max): muted + reduced opacity, cursor
+ *     not-allowed.
+ *   - Hover / focus / active states use the same surface-hover token as the
+ *     rest of the DS so dark mode + theme overrides re-skin automatically.
+ *
+ * No width-@media — the calendar is a fixed-size widget by design. It
+ * doesn't reflow internally; the consumer chooses where to embed it (popover,
+ * inline in a form, drawer). The container-query sweep guard intentionally
+ * doesn't require a container host here because there are zero width-@media
+ * rules to convert.
+ */
+
+/* ===== Root ============================================================ */
+.root {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--component-padding-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  /* Cap the calendar's outer width so day-cell sizing stays predictable —
+   * roughly 7 * 36px cells + padding + gaps. The grid handles its own
+   * auto-layout below this cap. */
+  min-width: 17rem;
+  user-select: none;
+}
+
+.root[aria-disabled='true'] {
+  opacity: 0.6;
+}
+
+.disabled {
+  cursor: not-allowed;
+}
+
+/* ===== Header — prev | month label | next ============================== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: 0 var(--component-padding-xs);
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  /* No transitions on the active-state tint — keyboard nav should feel
+   * snappy. */
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.navButton:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, var(--color-focus));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.navButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.monthLabel {
+  flex: 1;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+/* ===== Grid ============================================================ */
+.grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  table-layout: fixed;
+}
+
+.weekdayHeader {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--component-padding-xs) 0;
+  text-align: center;
+}
+
+.cell {
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* ===== Day buttons ===================================================== */
+.day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  margin: 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: 1;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.day:hover:not(:disabled):not(.daySelected) {
+  background-color: var(--color-surface-hover);
+}
+
+.day:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, var(--color-focus));
+  outline-offset: var(--focus-ring-offset, 2px);
+  /* Lift z so the outline isn't clipped by adjacent cells' background. */
+  position: relative;
+  z-index: 1;
+}
+
+/* Days that belong to the prev/next month grid-fill — visually muted but
+ * still clickable (clicking jumps to that month). */
+.dayOutside {
+  color: var(--color-text-tertiary);
+  opacity: 0.65;
+}
+
+/* Today indicator — subtle inner ring (the conventional "you are here" mark)
+ * via box-shadow so it never affects layout. Selected state below
+ * overrides this. */
+.dayToday:not(.daySelected) {
+  box-shadow: inset 0 0 0 1px var(--color-border-default);
+}
+
+/* Selected — primary tint, inverted text. */
+.daySelected,
+.daySelected:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Out-of-range (min/max) — non-interactive, muted. */
+.dayDisabled,
+.dayDisabled:hover {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  background-color: transparent;
+  opacity: 0.5;
+  /* Suppress the today ring so disabled "today" doesn't look interactive. */
+  box-shadow: none;
+}
+
+/* ===== Live region ===================================================== */
+/* Visually-hidden but screen-reader announced. Standard sr-only recipe. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

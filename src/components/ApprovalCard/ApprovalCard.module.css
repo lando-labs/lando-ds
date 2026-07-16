@@ -1,0 +1,214 @@
+/**
+ * ApprovalCard Component Styles
+ * Ocean-inspired styling for approval workflows
+ */
+
+.card {
+  width: 100%;
+
+  /* #269 — container-query responsive. ApprovalCard reflows by its OWN width
+   * (not the viewport): the header stacks, the metadata grid collapses to one
+   * column, and the action row reverses on a narrow card even inside a wide
+   * page. Container name `approval-card` is GLOBAL (CSS Modules does not hash
+   * container-name); a card nested inside this one queries the right ancestor
+   * by name. Every former <640px rule styles a DESCENDANT, so none needed a
+   * `cqi` self-rule. Threshold token: tokens/containerQueries. */
+  container: approval-card / inline-size;
+}
+
+/* ===== HEADER ===== */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-12);
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+}
+
+/* ===== DESCRIPTION ===== */
+
+.description {
+  margin: 0 0 var(--spacing-16) 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+/* ===== METADATA GRID ===== */
+
+.metadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-16);
+  padding: var(--component-padding-md);
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-16);
+}
+
+[data-theme='dark'] .metadata {
+  background-color: var(--color-surface);
+}
+
+.metadataItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+
+.metadataIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: var(--spacing-2);
+  color: var(--color-text-tertiary);
+}
+
+.metadataContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.metadataLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-tertiary);
+}
+
+.metadataValue {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+/* ===== ACTIONS ===== */
+
+.actions {
+  display: flex;
+  gap: var(--spacing-12);
+  padding-top: var(--component-padding-md);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ===== WORKFLOW MODE — DROPDOWN TRIGGER + ITEMS ===== */
+
+/*
+ * The workflow dropdown trigger sits where the binary approve/reject buttons
+ * would. We don't override much — Button(variant=primary, size=sm, fullWidth)
+ * already gives us the right baseline. The hook here is for any future
+ * trigger-specific tweaks (e.g. flipping the chevron when the menu is open).
+ */
+.workflowTrigger {
+  /* Reserved hook for future trigger-specific styling. */
+}
+
+/*
+ * Workflow menu items render two lines (label + optional description), so
+ * we need to override DropdownItem's default single-line `nowrap + ellipsis`
+ * content layout. We can't import the hashed Dropdown.module.css class names,
+ * so we target the inner content span via an attribute selector matching the
+ * scoped class — DropdownItem renders `<span class="…itemContent…">`.
+ */
+.workflowItem {
+  /* Allow the item to grow vertically when description renders. */
+  align-items: flex-start;
+  padding-top: var(--component-padding-sm);
+  padding-bottom: var(--component-padding-sm);
+}
+
+.workflowItem > [class*='itemContent'] {
+  /* Override Dropdown.module.css single-line truncation so we can stack
+   * label + description vertically. Each child span below applies its
+   * own truncation/wrap rules. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.workflowItemLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: inherit;
+}
+
+.workflowItemDescription {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  /*
+   * Muted secondary line. `currentColor` is inherited from the parent button
+   * (which goes ocean-dark on hover/focus and error-base on `destructive`),
+   * so we *intentionally* break the cascade and pin to the secondary text
+   * token for a calmer hierarchy. The destructive override below restores
+   * red on the description for `variant: 'danger'` items.
+   */
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Dropdown.module.css already paints the ENTIRE item red when `destructive`
+ * is set (via `.item.destructive { color: var(--color-error-base) }`). That
+ * cascades into our label since we set `color: inherit`. The description,
+ * however, is pinned to `--color-text-secondary` above — restore the
+ * destructive tone for it so the whole item reads as a single danger affordance.
+ *
+ * The DropdownItem button has BOTH `.workflowItem` and the hashed
+ * `…destructive…` class on it, so we match via attribute selector
+ * (we can't import the hashed name across modules).
+ */
+.workflowItem[class*='destructive'] .workflowItemDescription {
+  color: var(--color-error-base);
+  opacity: 0.85;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* #269 — descendants reflow on the card's own width (was viewport @media). All
+ * rules here style descendants of the `.card` root, so the whole block converts
+ * cleanly to `@container approval-card` with no `cqi` self-rule needed. */
+@container approval-card (max-width: 40rem) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-12);
+  }
+
+  .badges {
+    align-self: flex-start;
+  }
+
+  .metadata {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+}

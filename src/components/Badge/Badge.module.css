@@ -1,0 +1,323 @@
+/**
+ * Badge Component Styles
+ * Ocean-inspired with clean, modern styling
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  transition: var(--transition-default);
+}
+
+/*
+ * ===== SIZES =====
+ *
+ * #73 — Aligned with the Button size scale so Badge size="X" renders the
+ * same min-height as Button size="X" in adjacent composition (header
+ * action rows, filter chip rows, table row-action cells). Previous Badge
+ * values (20/24/32) mismatched Button (32/40/48) by up to 12px and forced
+ * consumers to either know an undocumented cross-component size table or
+ * wrap Badges in fixed-height shims.
+ *
+ *   size="sm"  → 2rem   (32px) — matches Button sm
+ *   size="md"  → 2.5rem (40px) — matches Button md (was the Badge default)
+ *   size="lg"  → 3rem   (48px) — matches Button lg
+ *
+ * Padding bumped proportionally (mirrors Button's sm/md/lg padding
+ * exactly). Font sizes preserved — the Badge stays visually lighter
+ * than a Button, just occupies the same row-height.
+ *
+ * Note: this IS a visible behavior change. Pre-v0.8.1 Badge sizes were
+ * ~60% of Button sizes; post-v0.8.1 they occupy the same flex-row slot.
+ * Consumers who depended on the undersized chip feel can compose
+ * `<Badge pill>` inside a smaller container or reach for `dot` variant.
+ */
+
+.sm {
+  min-height: 2rem;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  font-size: var(--font-size-xs);
+  gap: var(--spacing-4);
+}
+
+.md {
+  min-height: 2.5rem;
+  padding: var(--component-padding-sm) var(--component-padding-lg);
+  font-size: var(--font-size-sm);
+}
+
+.lg {
+  min-height: 3rem;
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  font-size: var(--font-size-base);
+}
+
+/* ===== VARIANTS ===== */
+
+.default {
+  background-color: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+[data-theme='dark'] .default {
+  background-color: var(--color-neutral-700);
+  color: var(--color-neutral-200);
+}
+
+.primary {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+}
+
+[data-theme='dark'] .primary {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-lighter);
+}
+
+.success {
+  background-color: var(--color-success-lightest);
+  color: var(--color-success-darkest);
+}
+
+/*
+ * Dark mode previously used success-lightest text on success-dark bg
+ * (pale teal #E6F7F7 on #1A9999 ≈ 3.3:1), failing WCAG AA for normal
+ * text. Mirror the warning-badge fix pattern (Sprint 7): light-chip-
+ * on-dark-surface reads better and gives 8:1+ contrast.
+ */
+[data-theme='dark'] .success {
+  background-color: var(--color-success-light);
+  color: var(--color-success-darkest);
+}
+
+.warning {
+  background-color: var(--color-warning-lightest);
+  color: var(--color-warning-darkest);
+}
+
+/*
+ * #43 DS-POLISH-Warning-Badge — dark mode previously used cream text
+ * (#FEF3E2) on warning-dark (#D97706) at ~3.4:1, failing WCAG AA for
+ * normal text. Mirror the light-mode dark-amber-on-cream relationship
+ * instead: warning-darkest (#92400E) on warning-light (#FCD980) ≈ 7:1.
+ * Reads as a muted warning chip on dark surfaces without glaring.
+ */
+[data-theme='dark'] .warning {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-darkest);
+}
+
+.danger {
+  background-color: var(--color-error-lightest);
+  color: var(--color-error-darkest);
+}
+
+/* Same fix pattern as .success — light-chip-on-dark surface. */
+[data-theme='dark'] .danger {
+  background-color: var(--color-error-light);
+  color: var(--color-error-darkest);
+}
+
+.info {
+  background-color: var(--color-info-lightest);
+  color: var(--color-info-darkest);
+}
+
+/* Same fix pattern as .success — light-chip-on-dark surface. */
+[data-theme='dark'] .info {
+  background-color: var(--color-info-light);
+  color: var(--color-info-darkest);
+}
+
+/*
+ * ===== COLOR SCHEMES (#87, Sprint 16) =====
+ *
+ * Identity palettes — orthogonal to `variant`. These are NOT states
+ * (success/warning/danger/info) and should not be used as such.
+ *
+ * Tier mapping mirrors the semantic Badge variants for consistency:
+ *   light mode  → bg `--color-{key}-lightest` / text `--color-{key}-darkest`
+ *   dark mode   → bg `--color-{key}-light`    / text `--color-{key}-darkest`
+ *                 (the contrast-lift pattern from #43)
+ *
+ * These rules sit AFTER the `variant` rules in source order so when both
+ * `variant` and `colorScheme` are passed, the colorScheme wins for color.
+ * `variant` is still emitted on the element so consumers can override via
+ * className or so future non-color variant behaviors can layer in.
+ *
+ * Class names are prefixed `cs-` to keep the palette namespace cleanly
+ * separated from the variant namespace.
+ */
+
+.cs-sky {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary-darkest);
+}
+[data-theme='dark'] .cs-sky {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-darkest);
+}
+
+.cs-teal {
+  background-color: var(--color-secondary-lightest);
+  color: var(--color-secondary-darkest);
+}
+[data-theme='dark'] .cs-teal {
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary-darkest);
+}
+
+.cs-orange {
+  background-color: var(--color-orange-lightest);
+  color: var(--color-orange-darkest);
+}
+[data-theme='dark'] .cs-orange {
+  background-color: var(--color-orange-light);
+  color: var(--color-orange-darkest);
+}
+
+.cs-blue {
+  background-color: var(--color-blue-lightest);
+  color: var(--color-blue-darkest);
+}
+[data-theme='dark'] .cs-blue {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-darkest);
+}
+
+.cs-purple {
+  background-color: var(--color-purple-lightest);
+  color: var(--color-purple-darkest);
+}
+[data-theme='dark'] .cs-purple {
+  background-color: var(--color-purple-light);
+  color: var(--color-purple-darkest);
+}
+
+.cs-green {
+  background-color: var(--color-green-lightest);
+  color: var(--color-green-darkest);
+}
+[data-theme='dark'] .cs-green {
+  background-color: var(--color-green-light);
+  color: var(--color-green-darkest);
+}
+
+.cs-rose {
+  background-color: var(--color-rose-lightest);
+  color: var(--color-rose-darkest);
+}
+[data-theme='dark'] .cs-rose {
+  background-color: var(--color-rose-light);
+  color: var(--color-rose-darkest);
+}
+
+/* ===== PILL SHAPE ===== */
+
+.pill {
+  border-radius: var(--radius-full);
+}
+
+/* ===== DOT VARIANT ===== */
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  min-height: 0.5rem;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+.dot.sm {
+  width: 0.375rem;
+  height: 0.375rem;
+  min-height: 0.375rem;
+}
+
+.dot.lg {
+  width: 0.625rem;
+  height: 0.625rem;
+  min-height: 0.625rem;
+}
+
+/* ===== REMOVABLE BADGE ===== */
+
+.removable {
+  padding-inline-end: var(--component-padding-2xs);
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2);
+  margin: calc(var(--spacing-2) * -1);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition-default);
+}
+
+.removeButton:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, black 10%, transparent);
+}
+
+[data-theme='dark'] .removeButton:hover {
+  background-color: color-mix(in srgb, white 10%, transparent);
+}
+
+.removeButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.hasIcon .content {
+  gap: var(--spacing-2);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/*
+ * #62 Defect 5 — `.badge { animation: fadeIn 0.2s ... }` fired on every
+ * mount of a Badge element. In lists / tables the rows re-render on every
+ * data update, flash-pulsing every badge in the table — the "flash on
+ * re-paint" symptom the designer audit flagged. No opt-in control meant
+ * consumers couldn't suppress it either.
+ *
+ * Removed. @keyframes retained (commented) for future opt-in reinstatement
+ * via a `<Badge animateIn>` prop applied only on genuine first insertion.
+ */
+/*
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+*/

@@ -1,0 +1,190 @@
+/**
+ * List Component Styles
+ * Ocean-inspired with smooth interactions
+ */
+
+/* ===== LIST CONTAINER ===== */
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+
+  /* #270 — container-query responsive. A List dropped into a narrow sidebar
+   * (or any narrow slot) tightens its row gap/padding by ITS OWN width, not the
+   * viewport, so a list-in-sidebar reflows correctly on a wide page. The
+   * `list` container-name is GLOBAL (CSS Modules does not hash it). Threshold
+   * token: tokens/containerQueries (sm = 40rem = 640px, unchanged). */
+  container: list / inline-size;
+}
+
+/* ===== VARIANTS ===== */
+
+.ordered {
+  list-style: decimal;
+  padding-inline-start: var(--component-padding-lg);
+}
+
+.unordered {
+  list-style: disc;
+  padding-inline-start: var(--component-padding-lg);
+}
+
+.plain {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+/* ===== SPACING ===== */
+
+.spacing-sm .listItem {
+  padding-top: var(--component-padding-xs);
+  padding-bottom: var(--component-padding-xs);
+}
+
+.spacing-md .listItem {
+  padding-top: var(--component-padding-sm);
+  padding-bottom: var(--component-padding-sm);
+}
+
+.spacing-lg .listItem {
+  padding-top: var(--component-padding-md);
+  padding-bottom: var(--component-padding-md);
+}
+
+/* ===== DIVIDER ===== */
+
+.divider .listItem {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.divider .listItem:last-child {
+  border-bottom: none;
+}
+
+/* ===== LIST ITEM ===== */
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  color: var(--color-text-primary);
+  transition: var(--transition-default);
+  position: relative;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* ===== ICON & ACTIONS ===== */
+
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: var(--transition-color);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+/* ===== CLICKABLE STATE ===== */
+
+.clickable {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding-inline-start: var(--component-padding-sm);
+  padding-inline-end: var(--component-padding-sm);
+  margin-inline-start: calc(-1 * var(--spacing-12));
+  margin-inline-end: calc(-1 * var(--spacing-12));
+}
+
+.clickable:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.clickable:hover .icon {
+  color: var(--color-text-primary);
+}
+
+.clickable:active {
+  background-color: var(--color-neutral-200);
+}
+
+[data-theme='dark'] .clickable:active {
+  background-color: var(--color-surface-elevated);
+}
+
+.clickable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== ACTIVE STATE ===== */
+
+.active {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary-dark);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  padding-inline-start: var(--component-padding-sm);
+  padding-inline-end: var(--component-padding-sm);
+  margin-inline-start: calc(-1 * var(--spacing-12));
+  margin-inline-end: calc(-1 * var(--spacing-12));
+}
+
+[data-theme='dark'] .active {
+  background-color: var(--color-primary-darker);
+  color: var(--color-primary-light);
+}
+
+.active .icon {
+  color: var(--color-primary-base);
+}
+
+[data-theme='dark'] .active .icon {
+  color: var(--color-primary-light);
+}
+
+/* ===== DISABLED STATE ===== */
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* #270 — descendants reflow on the list's own width (was viewport @media).
+ * Threshold preserved: 40rem (640px). All rules here target descendants of
+ * `.list`, so no root self-rule / cqi is needed. */
+@container list (max-width: 40rem) {
+  .listItem {
+    gap: var(--spacing-8);
+  }
+
+  .spacing-lg .listItem {
+    padding-top: var(--component-padding-sm);
+    padding-bottom: var(--component-padding-sm);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .listItem,
+  .icon {
+    transition: none;
+  }
+}

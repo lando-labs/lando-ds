@@ -1,0 +1,266 @@
+/**
+ * Drawer Component Styles
+ *
+ * Slide-from-edge panel that shares Modal's overlay infrastructure
+ * but pins to a viewport edge instead of centering. Uses
+ * `--drawer-size` (a CSS custom property) to drive width/height — set
+ * by the named-size classes (.sm, .md, .lg) and overridable inline
+ * for numeric sizes.
+ *
+ * Placement variants:
+ *   .right   — translates from +100% on X
+ *   .left    — translates from -100% on X
+ *   .bottom  — translates from +100% on Y; size controls HEIGHT not WIDTH
+ */
+
+/* ===== Backdrop ===== */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-index-drawer);
+  background-color: rgb(var(--color-primary-darkest-rgb) / 0.6);
+  backdrop-filter: blur(4px);
+  animation: drawerBackdropFadeIn var(--duration-normal) var(--easing-ease-out);
+}
+
+@keyframes drawerBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== Drawer panel ===== */
+.drawer {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-2xl);
+  /* `--drawer-size` is set by .sm/.md/.lg or inline via the style prop for
+   * numeric sizes. Default to .md so a missing size class doesn't collapse
+   * the panel. */
+  --drawer-size: 480px;
+  outline: none;
+  overflow: hidden;
+}
+
+/* Drop the focus ring on the panel itself — the panel is `tabIndex={-1}`
+ * for screen-reader orientation, real focus moves to the first focusable
+ * child via useFocusTrap. */
+.drawer:focus {
+  outline: none;
+}
+
+/* ===== Placement: right (default) ===== */
+.right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--drawer-size);
+  max-width: 100vw;
+  border-left: 1px solid var(--color-border-subtle);
+  animation: drawerSlideInRight var(--duration-slow) var(--easing-wave);
+}
+
+@keyframes drawerSlideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ===== Placement: left ===== */
+.left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--drawer-size);
+  max-width: 100vw;
+  border-right: 1px solid var(--color-border-subtle);
+  animation: drawerSlideInLeft var(--duration-slow) var(--easing-wave);
+}
+
+@keyframes drawerSlideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ===== Placement: bottom ===== */
+.bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--drawer-size);
+  max-height: 100vh;
+  border-top: 1px solid var(--color-border-subtle);
+  /* Bottom drawers commonly look like sheets — soften the top corners. */
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  animation: drawerSlideInBottom var(--duration-slow) var(--easing-wave);
+}
+
+@keyframes drawerSlideInBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ===== Named sizes =====
+ * `--drawer-size` is the single dimension token the placements consume.
+ * For right/left it is the WIDTH; for bottom it is the HEIGHT. The mobile
+ * breakpoint clamps each tier to a viewport-relative max so a 640px `lg`
+ * drawer doesn't push past a 360px phone. */
+.sm {
+  --drawer-size: 320px;
+}
+
+.md {
+  --drawer-size: 480px;
+}
+
+.lg {
+  --drawer-size: 640px;
+}
+
+/* ===== Header ===== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--component-padding-lg) var(--component-padding-xl);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface);
+  /* Sticky header so content scrolls under the title while the dismiss
+   * affordance stays reachable. The drawer body owns the scroll, not the
+   * page, so `position: sticky` would be a no-op against the page. The
+   * header sits at the top of a flex column with a fixed body below it
+   * — same effect, no sticky needed. */
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-default);
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.closeButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== Body ===== */
+.body {
+  flex: 1;
+  padding: var(--component-padding-xl);
+  overflow-y: auto;
+  color: var(--color-text-primary);
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* ===== Responsive — clamp panel size on narrow viewports =====
+ * Small screens shouldn't let an `lg` drawer eat the entire viewport with
+ * no breathing room. Mobile users still need a thin strip of backdrop to
+ * tap on for dismissal, hence the per-tier clamps.
+ *
+ * #281 — intentionally kept as a viewport `@media` (category B). The Drawer is
+ * off-canvas chrome pinned to a viewport EDGE (same class as AppShell's
+ * sidebar→drawer): the `%` clamps and the "leave a strip of backdrop to tap"
+ * behaviour are about the SCREEN, not an embedding container. Converting to
+ * `@container` would only ever track the viewport-spanning backdrop anyway, so
+ * it buys no composability — it stays `@media`. */
+@media (max-width: 640px) {
+  .right.sm,
+  .left.sm {
+    width: min(var(--drawer-size), 80%);
+  }
+
+  .right.md,
+  .left.md {
+    width: min(var(--drawer-size), 90%);
+  }
+
+  .right.lg,
+  .left.lg {
+    width: min(var(--drawer-size), 95%);
+  }
+
+  .header,
+  .body {
+    padding-inline-start: var(--component-padding-md);
+    padding-inline-end: var(--component-padding-md);
+  }
+}
+
+/* ===== Reduced motion =====
+ * Slide animations imply directional movement that can trigger vestibular
+ * discomfort. Replace the slide with a fade-in for users who opt out.
+ * Backdrop fade is unchanged — opacity-only is already vestibular-safe. */
+@media (prefers-reduced-motion: reduce) {
+  .right,
+  .left,
+  .bottom {
+    animation: drawerFadeIn var(--duration-normal) var(--easing-ease-out);
+  }
+}
+
+@keyframes drawerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

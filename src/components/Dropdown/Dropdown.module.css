@@ -1,0 +1,153 @@
+/**
+ * Dropdown Component Styles
+ * Ocean-inspired dropdown menu with smooth animations
+ */
+
+.trigger {
+  display: inline-block;
+}
+
+.dropdown {
+  position: fixed;
+  z-index: var(--z-index-dropdown);
+  min-width: 12rem;
+  max-width: 20rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--component-padding-xs) 0;
+  overflow: hidden;
+}
+
+/* Only animate after positioned to prevent flash */
+.dropdown.animated {
+  animation: dropdownSlideIn 0.2s var(--easing-wave);
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== DROPDOWN ITEM ===== */
+
+.item {
+  /* Reset button styles */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  width: 100%;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: start;
+  cursor: pointer;
+  transition: var(--transition-default);
+  user-select: none;
+}
+
+/*
+ * Sprint 10 (#59) — dropdown hover/focus is ocean-tinted rather than
+ * neutral grey. Hovering an item should feel like "ocean calling back"
+ * rather than a generic SaaS highlight. The text color also deepens so
+ * the contrast ratio against the light ocean-foam bg remains AA-clean.
+ */
+.item:hover:not(:disabled) {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary-dark);
+}
+
+[data-theme='dark'] .item:hover:not(:disabled) {
+  /* In dark mode the ocean-lightest token inverts to a deep blue surface
+   * (#0A3D54 — see `--color-ocean-foam` alias in tokens.css). The
+   * hover tint matches surface-hover from the dark palette so it reads
+   * as "lifted" against the modal/dropdown body. */
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary-medium);
+}
+
+/*
+ * #38 — Unified focus ring, inset offset (-width) so the ring paints
+ * inside the item's bounds (items sit flush against the menu edges).
+ */
+.item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary-dark);
+}
+
+[data-theme='dark'] .item:focus-visible {
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary-medium);
+}
+
+.item:active:not(:disabled) {
+  /* Active (pressed) sits one step deeper than hover for tactile feedback. */
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+}
+
+[data-theme='dark'] .item:active:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-light);
+}
+
+.item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item.destructive {
+  color: var(--color-error-base);
+}
+
+.item.destructive:hover:not(:disabled) {
+  background-color: var(--color-error-lightest);
+  color: var(--color-error-dark);
+}
+
+[data-theme='dark'] .item.destructive:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-error-base) 10%, transparent);
+}
+
+.itemIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-secondary);
+}
+
+.item.destructive .itemIcon {
+  color: currentColor;
+}
+
+.itemContent {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== DIVIDER ===== */
+
+.divider {
+  height: 1px;
+  margin: var(--spacing-8) 0;
+  background-color: var(--color-border-default);
+}

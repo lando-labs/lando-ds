@@ -1,0 +1,54 @@
+/*
+ * Golden-path global CSS for consuming @lando-labs/lando-ds alongside a
+ * CSS reset (issue #462).
+ *
+ * THE PROBLEM this demonstrates
+ * -----------------------------
+ * The DS ships all component CSS inside cascade layers (ll.reset … ll.utilities).
+ * Per the cascade, an UNLAYERED rule beats every layer — which is what lets your
+ * overrides win with no `!important`, but ALSO means an unlayered reset like the
+ * create-next-app default `* { margin: 0; padding: 0 }` would zero out the
+ * padding/margins of every DS component.
+ *
+ * THE FIX
+ * -------
+ * `app/layout.tsx` imports `@lando-labs/lando-ds/layer-order.css` (the
+ * order primer) BEFORE this file and before the DS stylesheet. The primer
+ * declares:
+ *
+ *   @layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
+ *
+ * so `app-reset` is the LOWEST-priority layer. We put our reset there, and it no
+ * longer clobbers DS component spacing — the components on `/` keep their
+ * padding even though the aggressive reset below is active. Deliberate overrides
+ * go in the `app` layer (declared last, so it beats the DS layers).
+ *
+ * The precedence that results (low → high):
+ *   app-reset < ll.reset < ll.tokens < ll.base < ll.components < ll.utilities
+ *             < app < your unlayered CSS
+ *
+ * (Alternative, if you don't want to manage layer order at all: import
+ *  `@lando-labs/lando-ds/styles.unlayered.css` instead of `…/styles` — the
+ *  same rules with no @layer wrappers, so a stray unlayered reset can't win.)
+ */
+
+/* An aggressive, create-next-app-style reset. UNLAYERED, this would break every
+   DS component. In `app-reset` (below the DS layers) it's harmless. */
+@layer app-reset {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* Deliberate app-level overrides that should beat DS components but remain
+   overridable by page-level unlayered CSS. */
+@layer app {
+  /* Example (uncomment to try): a plain class still wins because unlayered CSS
+     beats even the `app` layer — but rules you want to keep BELOW page overrides
+     live here.
+     .promo-banner { background: rebeccapurple; color: white; } */
+}

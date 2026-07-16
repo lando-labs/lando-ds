@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LandoDsMeta",
+  "description": "Lando Labs Design System self-describing meta — emitted to dist/meta.json and dist/meta.verbose.json on every build.",
+  "type": "object",
+  "required": [
+    "$schemaVersion",
+    "package",
+    "components",
+    "hooks",
+    "tokens",
+    "icons",
+    "exports",
+    "capabilities",
+    "themePresets"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schemaVersion": {
+      "type": "string",
+      "const": "1.3"
+    },
+    "package": {
+      "type": "object",
+      "required": ["name", "version", "homepage"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+" },
+        "homepage": { "type": "string" }
+      }
+    },
+    "components": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9]*$": {
+          "$ref": "#/definitions/ComponentMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hooks": {
+      "type": "object",
+      "patternProperties": {
+        "^use[A-Z][A-Za-z0-9]*$": {
+          "$ref": "#/definitions/HookMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tokens": {
+      "type": "object",
+      "required": ["colors", "spacing", "typography", "radius", "shadows", "motion"],
+      "additionalProperties": false,
+      "properties": {
+        "colors": {
+          "type": "object",
+          "required": ["semantic", "brand"],
+          "properties": {
+            "semantic": { "type": "object" },
+            "brand": { "type": "object" }
+          },
+          "additionalProperties": false
+        },
+        "spacing": { "type": "object" },
+        "typography": { "type": "object" },
+        "radius": { "type": "object" },
+        "shadows": { "type": "object" },
+        "motion": { "type": "object" },
+        "zIndex": { "type": "object" }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "required": ["totalCount", "registry"],
+      "additionalProperties": false,
+      "properties": {
+        "totalCount": { "type": "integer", "minimum": 0 },
+        "registry": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["name", "lucideName", "category"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "lucideName": { "type": "string" },
+              "category": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "exports": {
+      "type": "object",
+      "required": ["main", "subpaths"],
+      "additionalProperties": false,
+      "properties": {
+        "main": { "type": "string" },
+        "subpaths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["rscSafe", "clientOnly", "polymorphic", "withRef"],
+      "additionalProperties": false,
+      "properties": {
+        "rscSafe": { "type": "array", "items": { "type": "string" } },
+        "clientOnly": { "type": "array", "items": { "type": "string" } },
+        "polymorphic": { "type": "array", "items": { "type": "string" } },
+        "withRef": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "themePresets": {
+      "type": "object",
+      "required": ["default", "presets"],
+      "additionalProperties": false,
+      "properties": {
+        "default": { "type": "string", "minLength": 1 },
+        "presets": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/ThemePresetMeta" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "HookMeta": {
+      "type": "object",
+      "required": ["kind", "category", "serverSafe", "useClient", "subpath", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "enum": ["hook"] },
+        "category": { "type": "string" },
+        "serverSafe": {
+          "type": "boolean",
+          "description": "Always false — a React hook requires client runtime state."
+        },
+        "useClient": {
+          "type": "boolean",
+          "description": "Whether the hook's module carries the 'use client' directive."
+        },
+        "subpath": { "type": "string" },
+        "description": { "type": "string" },
+        "signature": {
+          "type": "string",
+          "description": "Canonical TypeScript call signature, e.g. `useKeyPress(targetKeys: string | string[], callback: (key: string, event: KeyboardEvent) => void, isActive?: boolean): void`. Omitted only when the emitted declaration is unavailable."
+        },
+        "returns": { "type": ["string", "null"] }
+      }
+    },
+    "PropMeta": {
+      "type": "object",
+      "required": ["type", "required", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string" },
+        "required": { "type": "boolean" },
+        "default": { "type": ["string", "null"] },
+        "description": { "type": "string" }
+      }
+    },
+    "DeprecationMeta": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["since", "replacedBy", "removeAt"],
+          "additionalProperties": false,
+          "properties": {
+            "since": { "type": "string" },
+            "replacedBy": { "type": "string" },
+            "removeAt": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "ComposesMeta": {
+      "type": "object",
+      "required": ["accepts", "as"],
+      "additionalProperties": false,
+      "properties": {
+        "accepts": { "type": "string" },
+        "as": { "type": "string" }
+      }
+    },
+    "ThemePresetMeta": {
+      "type": "object",
+      "required": ["id", "isDefault"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "isDefault": { "type": "boolean" },
+        "description": { "type": "string" },
+        "tokenOverrides": { "type": "object" }
+      }
+    },
+    "ComponentMeta": {
+      "type": "object",
+      "required": [
+        "kind",
+        "category",
+        "platforms",
+        "serverSafe",
+        "useClient",
+        "polymorphic",
+        "ref",
+        "subpath",
+        "props",
+        "extends",
+        "deprecated"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "enum": ["component"] },
+        "category": { "type": "string" },
+        "platforms": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["web", "rn"] }
+        },
+        "serverSafe": { "type": "boolean" },
+        "useClient": { "type": "boolean" },
+        "polymorphic": { "type": "boolean" },
+        "ref": { "type": ["string", "null"] },
+        "subpath": { "type": "string" },
+        "props": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/PropMeta" }
+        },
+        "extends": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": { "type": "string" },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          ]
+        },
+        "deprecated": { "$ref": "#/definitions/DeprecationMeta" },
+        "description": { "type": "string" },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "code"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "code": { "type": "string" }
+            }
+          }
+        },
+        "composes": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/ComposesMeta" }
+            }
+          ]
+        },
+        "appliesClassNames": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

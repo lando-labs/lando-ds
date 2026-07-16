@@ -1,0 +1,398 @@
+/**
+ * Lando Labs Design System - Global Styles
+ * Base styles and CSS reset for consistent rendering
+ *
+ * CASCADE LAYERS (#267): rules in this file are mapped to three DS layers:
+ *   - `ll.reset`     — the box-sizing/margin/padding reset, element resets that
+ *                      strip browser defaults (lists, images, button chrome).
+ *   - `ll.base`      — opinionated base element styling that USES design tokens
+ *                      (body type, link colors, headings, code, tables,
+ *                      selection, scrollbars) + the @media print overrides.
+ *   - `ll.utilities` — DS-provided utility classes (.container, .sr-only,
+ *                      .skip-to-content, .visually-hidden).
+ *
+ * The single layer-order statement lives in src/styles/index.css and is emitted
+ * FIRST in the bundle, so layer precedence is deterministic regardless of where
+ * these blocks land. Consumer unlayered CSS always outranks all of these. See
+ * reference/css-layers.md.
+ */
+
+/* ============================================================================
+   ll.reset — strip browser defaults
+   ============================================================================ */
+
+@layer ll.reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    /* Base font size for rem calculations */
+    font-size: 16px;
+
+    /* Enable smooth scrolling (respects prefers-reduced-motion) */
+    scroll-behavior: smooth;
+
+    /* Improve text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+
+    /* Prevent font size inflation on mobile */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Typography reset — zero out default margins */
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  /* Form elements reset */
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    margin: 0;
+  }
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  /* Remove default focus styles, we'll add custom ones */
+  :focus {
+    outline: none;
+  }
+
+  /* Remove number input spinners */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Lists */
+  ul,
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Media elements */
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  img {
+    border-style: none;
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+   ll.base — opinionated, token-driven base element styling
+   ============================================================================ */
+
+@layer ll.base {
+  body {
+    /* Apply design tokens */
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+
+    /* Prevent layout shifts */
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+
+    /* Enable better font rendering on retina displays */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings — token-driven weight/color (reset of margins lives in ll.reset) */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: var(--transition-color);
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+  }
+
+  a:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: var(--radius-xs);
+  }
+
+  /* Token-driven form field surface */
+  input,
+  select,
+  textarea {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-default);
+  }
+
+  /*
+   * Custom focus-visible fallback for any element we don't explicitly
+   * style. Component stylesheets that override this MUST use
+   * :focus-visible (not :focus) so pointer interactions don't paint the
+   * ring alongside the component's own :focus-visible treatment — that
+   * was the root cause of #38's triple-stacking on Input.
+   */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* Code elements */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-family-mono);
+    font-size: 0.875em;
+  }
+
+  code {
+    padding: 0.125rem 0.25rem;
+    background-color: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: var(--spacing-md);
+    background-color: var(--color-surface-elevated);
+    border-radius: var(--radius-lg);
+  }
+
+  pre code {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-ocean-lighter);
+    color: var(--color-neutral-900);
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-ocean-lighter);
+    color: var(--color-neutral-900);
+  }
+
+  /* Scrollbar styling (Webkit browsers) */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--color-surface);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-strong);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-surface);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-tertiary);
+  }
+
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) var(--color-surface);
+  }
+
+  /* Print styles — base-level element overrides for printed output */
+  @media print {
+    *,
+    *::before,
+    *::after {
+      background: transparent !important;
+      color: #000 !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+      text-decoration: underline;
+    }
+
+    a[href]::after {
+      content: " (" attr(href) ")";
+    }
+
+    abbr[title]::after {
+      content: " (" attr(title) ")";
+    }
+
+    pre {
+      white-space: pre-wrap !important;
+    }
+
+    pre,
+    blockquote {
+      border: 1px solid #999;
+      page-break-inside: avoid;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tr,
+    img {
+      page-break-inside: avoid;
+    }
+
+    p,
+    h2,
+    h3 {
+      orphans: 3;
+      widows: 3;
+    }
+
+    h2,
+    h3 {
+      page-break-after: avoid;
+    }
+  }
+}
+
+/* ============================================================================
+   ll.utilities — DS-provided utility classes
+   ============================================================================ */
+
+@layer ll.utilities {
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Skip to content link (for keyboard navigation) */
+  .skip-to-content {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: var(--z-index-tooltip);
+    padding: var(--spacing-md);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    border-radius: var(--radius-md);
+    transition: var(--transition-default);
+  }
+
+  .skip-to-content:focus {
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+  }
+
+  /* Container */
+  .container {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+
+  @media (min-width: 48rem) {
+    .container {
+      padding-left: var(--spacing-lg);
+      padding-right: var(--spacing-lg);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .container {
+      padding-left: var(--spacing-xl);
+      padding-right: var(--spacing-xl);
+    }
+  }
+
+  /*
+   * Visually hidden — retains `!important` deliberately. This is the one place
+   * in the DS where forcing the values is correct: `.visually-hidden` must win
+   * even when stacked on an element that already has layout styles, so the
+   * content stays accessible-but-invisible. (Pre-existing; not a layering
+   * artifact.)
+   */
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border-width: 0 !important;
+  }
+}

@@ -1,0 +1,29 @@
+name: Check self-dependency
+
+# Mirrors the .husky/pre-commit guard at the CI layer so the protection holds
+# even if a contributor's local hooks aren't installed. See issue #104 — this
+# corruption pattern (a "@lando-labs/lando-ds": "file:..." entry in our
+# own package.json) has surfaced three times across Sprints 16-18 due to
+# cwd-confused npm-install workflows.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-self-dep:
+    name: Block DS self-dependency in package.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Grep for self-referential @lando-labs/lando-ds entry
+        run: |
+          if grep -q '"@lando-labs/lando-ds": "file:' package.json; then
+            echo "::error file=package.json::package.json contains a self-referential @lando-labs/lando-ds dependency (issue #104)"
+            exit 1
+          fi
+          echo "No self-referential dependency found."

@@ -1,0 +1,345 @@
+/**
+ * Avatar Component Styles
+ * Ocean-inspired with gradient options
+ */
+
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--color-neutral-300);
+  color: var(--color-neutral-700);
+  overflow: hidden;
+  user-select: none;
+}
+
+[data-theme='dark'] .avatar {
+  background-color: var(--color-neutral-700);
+  color: var(--color-neutral-300);
+}
+
+/* ===== SIZES ===== */
+
+.xs {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.md {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.xl {
+  width: 4rem;
+  height: 4rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.\32xl {
+  width: 5rem;
+  height: 5rem;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ===== IMAGE ===== */
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* ===== INITIALS ===== */
+
+.initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* ===== FALLBACK ICON ===== */
+
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60%;
+  height: 60%;
+  color: currentColor;
+}
+
+/* ===== GRADIENT VARIANT =====
+ *
+ * Sprint 10 (#59) — when `initials` is provided and no explicit
+ * `gradient={false}` opt-out, Avatars now default to a gradient drawn
+ * from an ocean-adjacent palette. The specific gradient is picked by a
+ * deterministic hash of the initials string so `"JD"` always gets the
+ * same colors, but a contact list of 20 people renders as a varied,
+ * richly-colored set instead of 20 identical blue circles.
+ *
+ * The hash selects one of 7 gradient slots (`.gradient-0` … `.gradient-6`).
+ * Slots stay within the Lando Labs primary/secondary (ocean/teal) family so
+ * the result reads as "on-brand" rather than chaotic.
+ *
+ * Legacy `.gradient` class (no slot index) remains for backwards
+ * compatibility — it maps to the original ocean-light → teal gradient.
+ */
+
+.gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-secondary-base) 100%
+  );
+  color: white;
+}
+
+[data-theme='dark'] .gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-medium) 0%,
+    var(--color-secondary-dark) 100%
+  );
+}
+
+/* --- Hash-indexed gradient slots --- */
+
+.gradient-0 {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-primary-medium) 100%
+  );
+  color: white;
+}
+
+.gradient-1 {
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-light) 0%,
+    var(--color-secondary-medium) 100%
+  );
+  color: white;
+}
+
+.gradient-2 {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-base) 0%,
+    var(--color-secondary-base) 100%
+  );
+  color: white;
+}
+
+.gradient-3 {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-medium) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: white;
+}
+
+.gradient-4 {
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-medium) 0%,
+    var(--color-primary-medium) 100%
+  );
+  color: white;
+}
+
+.gradient-5 {
+  /*
+   * #271 — was a coral (warm) accent via the stray --color-coral-* test ramp.
+   * Coral was removed from the palette; this slot now draws the deepest
+   * secondary (teal) span so it stays on-brand and visually distinct from the
+   * other secondary-based slots (slot-1 uses light→medium). Routed through the
+   * --color-secondary-* alias (not --color-teal-* directly) to satisfy the
+   * brand-token CI guard.
+   */
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-base) 0%,
+    var(--color-secondary-dark) 100%
+  );
+  color: white;
+}
+
+.gradient-6 {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-light) 0%,
+    var(--color-secondary-base) 100%
+  );
+  color: white;
+}
+
+/* Dark-mode variants — drop a step darker so white initials retain contrast
+ * against the richer surrounding page surface. */
+[data-theme='dark'] .gradient-0 {
+  background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);
+}
+[data-theme='dark'] .gradient-1 {
+  background: linear-gradient(135deg, var(--color-secondary-medium) 0%, var(--color-secondary-dark) 100%);
+}
+[data-theme='dark'] .gradient-2 {
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-secondary-dark) 100%);
+}
+[data-theme='dark'] .gradient-3 {
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-darker) 100%);
+}
+[data-theme='dark'] .gradient-4 {
+  background: linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-primary-dark) 100%);
+}
+[data-theme='dark'] .gradient-5 {
+  background: linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary-darker) 100%);
+}
+[data-theme='dark'] .gradient-6 {
+  background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-secondary-dark) 100%);
+}
+
+/* ===== STATUS INDICATOR =====
+ *
+ * Each status has both a distinct color AND a distinct inner glyph
+ * (see StatusGlyph in Avatar.tsx) to satisfy WCAG 1.4.1 — information
+ * must not be conveyed by color alone. The SVG glyph inherits ~60% of
+ * the indicator's box so it's legible at all avatar sizes.
+ */
+
+.status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  /* Slightly larger than pre-1.4.1 fix so inner glyphs are legible */
+  width: 30%;
+  height: 30%;
+  min-width: 0.65rem;
+  min-height: 0.65rem;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.status svg {
+  width: 80%;
+  height: 80%;
+  pointer-events: none;
+}
+
+.status-online {
+  background-color: var(--color-success-base);
+}
+
+.status-offline {
+  background-color: var(--color-neutral-500);
+}
+
+.status-busy {
+  background-color: var(--color-error-base);
+}
+
+.status-away {
+  background-color: var(--color-warning-base);
+}
+
+/* Adjust status indicator size for different avatar sizes */
+.xs .status,
+.sm .status {
+  border-width: 1.5px;
+}
+
+.xl .status,
+.\32xl .status {
+  border-width: 3px;
+}
+
+/* ===== LOADING SKELETON ===== */
+
+.loading {
+  background-color: var(--color-neutral-200);
+}
+
+[data-theme='dark'] .loading {
+  background-color: var(--color-neutral-800);
+}
+
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-300) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+[data-theme='dark'] .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-800) 25%,
+    var(--color-neutral-700) 50%,
+    var(--color-neutral-800) 75%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.image {
+  animation: fadeIn 0.3s var(--easing-ease-out);
+}

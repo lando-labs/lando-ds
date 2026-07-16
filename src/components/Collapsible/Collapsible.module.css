@@ -1,0 +1,28 @@
+/**
+ * Collapsible Component Styles
+ *
+ * Height animation matches AccordionItem's pattern (measured scrollHeight
+ * + CSS transition). `prefers-reduced-motion` collapses the transition
+ * to an instant change so vestibular-sensitive users aren't forced into
+ * sustained motion when toggling.
+ */
+
+.collapsible {
+  display: block;
+}
+
+.content {
+  overflow: hidden;
+  transition: height var(--duration-normal) var(--easing-wave);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    transition: none;
+  }
+}
+
+.contentInner {
+  /* No padding here — consumers compose padding via their own wrapper
+   * so the collapsible stays unopinionated about surrounding chrome. */
+}

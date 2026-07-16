@@ -1,0 +1,292 @@
+/**
+ * ArticleCard Component Styles
+ *
+ * Editorial / newspaper-style surface. Deliberate serif divergence from
+ * the DS sans-serif baseline using the editorial token set
+ * (--font-family-editorial, --color-editorial-ink-*, --font-size-editorial-*).
+ *
+ * All colors alias the standard text/border tokens, so dark mode and
+ * consumer theme overrides propagate automatically — no theme-specific
+ * blocks needed in this stylesheet.
+ */
+
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  font-family: var(--font-family-editorial);
+  color: var(--color-editorial-ink-primary);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-editorial-rule);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-default);
+
+  /* #269 — container-query responsive. ArticleCard reflows by its OWN width
+   * (not the viewport). Container name `article-card` is GLOBAL (CSS Modules
+   * does not hash container-name); a card nested inside this one queries the
+   * right ancestor by name. Threshold token: tokens/containerQueries.
+   *
+   * ROOT SELF-RULE (padding): the root can't query its own container, so its
+   * padding is a fluid `cqi` clamp (1cqi = 1% of the card's inline size) instead
+   * of a viewport @media step. Endpoints preserved: 24px (--spacing-lg) at a
+   * 640px-wide card, collapsing to a 16px (--spacing-md) floor below — exactly
+   * the old <640px @media value. It is published as the local `--article-pad`
+   * custom property so the hero/anchor edge-bleed (negative margins equal to the
+   * padding) stay in PERFECT lockstep with the padding across the whole
+   * transition zone — referencing one shared value instead of duplicating the
+   * step in three places. */
+  --article-pad: clamp(var(--spacing-md), 1rem + 1.25cqi, var(--spacing-lg));
+  padding: var(--article-pad);
+
+  container: article-card / inline-size;
+}
+
+/* Hero image — stable aspect ratio so layout doesn't jump on load. Negative
+ * margin tracks --article-pad so the image always bleeds exactly to the card
+ * edge (see #269 note on .article). */
+.hero {
+  margin: calc(var(--article-pad) * -1) calc(var(--article-pad) * -1) 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--color-surface-elevated);
+}
+
+.hero :global(img),
+.hero :global(picture),
+.hero > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Body wrapper — vertical stack with editorial rhythm. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* ===== HEADLINE ===== */
+
+.headline {
+  font-family: var(--font-family-editorial);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-editorial-headline);
+  color: var(--color-editorial-ink-primary);
+  margin: 0;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* Scale variants — control headline size. */
+.headline-lead {
+  font-size: var(--font-size-editorial-headline-lead);
+}
+
+.headline-supporting {
+  font-size: var(--font-size-editorial-headline-supporting);
+}
+
+.headline-brief {
+  font-size: var(--font-size-editorial-headline-brief);
+}
+
+/* Scale-level article tweaks. The `lead` and `supporting` selectors are
+ * declared (even when empty) so CSS Modules emits them as locals — this
+ * keeps the JS lookup `styles[`scale-${scale}`]` resolving to a real
+ * class for all three scales, not just `brief`. */
+
+.scale-lead {
+  /* Lead stories use the standard padding/gap defined on .article. */
+}
+
+.scale-supporting {
+  /* Supporting stories use the standard padding/gap defined on .article. */
+}
+
+.scale-brief {
+  /* Brief stories use a FIXED compact padding regardless of width. Redefining
+   * the shared `--article-pad` (rather than overriding `padding` directly)
+   * keeps the hero/anchor edge-bleed in lockstep — so the explicit
+   * `.scale-brief .hero` / `.scale-brief .anchor` margin overrides that used to
+   * restate `--spacing-md` are no longer needed (#269). */
+  --article-pad: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.scale-brief .body {
+  gap: var(--spacing-sm);
+}
+
+/* (#269) `.scale-brief .hero` margin override removed — the base `.hero` rule
+ * already tracks `--article-pad`, which `.scale-brief` pins to `--spacing-md`,
+ * so the bleed is identical without restating it. */
+
+/* ===== BYLINE ===== */
+
+.byline {
+  font-family: var(--font-family-editorial);
+  font-size: var(--font-size-editorial-byline);
+  color: var(--color-editorial-ink-muted);
+  margin: 0;
+  font-style: italic;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.bylinePrefix {
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  font-size: 0.75em;
+  font-style: normal;
+  font-variant: small-caps;
+}
+
+.bylineName {
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-editorial-ink-secondary);
+}
+
+.bylineSeparator {
+  color: var(--color-editorial-ink-muted);
+}
+
+.bylineDate {
+  font-style: italic;
+}
+
+/* ===== LEDE ===== */
+
+.lede {
+  font-family: var(--font-family-editorial);
+  font-size: var(--font-size-editorial-lede);
+  line-height: var(--line-height-snug);
+  color: var(--color-editorial-ink-primary);
+  margin: 0;
+  /*
+   * Lede gets a touch tighter line-height than body copy — it's meant to
+   * read with momentum into the article. First-letter drop-cap not
+   * included by default (consumer territory).
+   */
+}
+
+/* ===== PULL QUOTE ===== */
+
+.pullQuote {
+  margin: var(--spacing-sm) 0;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  border-inline-start: 3px solid var(--color-editorial-rule);
+  font-family: var(--font-family-editorial);
+  color: var(--color-editorial-ink-secondary);
+}
+
+.pullQuoteText {
+  font-size: var(--font-size-editorial-pullquote);
+  line-height: var(--line-height-snug);
+  font-style: italic;
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+  color: var(--color-editorial-ink-primary);
+}
+
+.pullQuoteAttribution {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-editorial-byline);
+  font-style: italic;
+  color: var(--color-editorial-ink-muted);
+}
+
+/* ===== BODY CONTENT ===== */
+
+.content {
+  font-family: var(--font-family-editorial);
+  font-size: var(--font-size-editorial-body);
+  line-height: var(--line-height-editorial-body);
+  color: var(--color-editorial-ink-primary);
+}
+
+.content :global(p) {
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.content :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+/* ===== CLICKABLE / LINKED VARIANT =====
+ *
+ * When `href` is set, the article wraps a single <a> covering the entire
+ * surface. We strip the anchor's default styling so the editorial typography
+ * shows through, and lift the article on hover (consistent with Card's
+ * clickable pattern — translateY(-1px), shadow bump). Focus ring uses the
+ * unified --focus-ring-* tokens.
+ */
+
+.linked {
+  cursor: pointer;
+}
+
+.linked:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.linked:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+.anchor {
+  /* Anchor fills the entire card surface so the whole thing is clickable. */
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  /* Negative margin / matching padding pulls the click target back out to the
+   * article edge so the user can click anywhere on the card. Both track
+   * --article-pad (#269) so the click target stays flush with the card edge at
+   * every width and scale — the `.scale-brief .anchor` override that restated
+   * --spacing-md is therefore no longer needed. */
+  margin: calc(var(--article-pad) * -1);
+  padding: var(--article-pad);
+  border-radius: inherit;
+}
+
+.anchor:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.anchorInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.scale-brief .anchorInner {
+  gap: var(--spacing-sm);
+}
+
+/* When the anchor wraps the hero, restore the negative-margin trick so the
+ * image still bleeds to the card edge. Tracks --article-pad (#269) so the
+ * `.scale-brief .anchor .hero` override that restated --spacing-md is no longer
+ * needed. */
+.anchor .hero {
+  margin: calc(var(--article-pad) * -1) calc(var(--article-pad) * -1) 0;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* #269 — descendants reflow on the card's own width (was viewport @media).
+ * The former `.article` / `.hero` / `.anchor` padding+margin step-downs that
+ * lived here are gone: padding is now a fluid `--article-pad` (`cqi` clamp) on
+ * the root, and the hero/anchor bleeds track that same var — so only the
+ * genuine descendant reflow (`.headline-lead` font-size) remains, now keyed to
+ * the card's own width. */
+@container article-card (max-width: 40rem) {
+  .headline-lead {
+    /* Lead headlines shrink on narrow cards to avoid mid-word breaks. */
+    font-size: var(--font-size-editorial-headline);
+  }
+}

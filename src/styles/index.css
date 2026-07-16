@@ -1,0 +1,31 @@
+/**
+ * Lando Labs Design System - Main Styles Entry Point
+ * Import this file to get all base styles and tokens
+ */
+
+/*
+ * CASCADE LAYER ORDER (#267) — declare ONCE, FIRST, before any @import.
+ *
+ * This single statement fixes the precedence of every DS layer up front, so
+ * ordering is deterministic no matter what order the underlying rules land in
+ * the bundle:
+ *
+ *   ll.reset    → browser-default resets (lowest priority)
+ *   ll.tokens   → design-token custom properties (:root / [data-theme])
+ *   ll.base     → opinionated, token-driven base element styling
+ *   ll.components → every *.module.css (auto-wrapped at build time)
+ *   ll.utilities → DS utility classes (.container, .sr-only, …) (highest DS layer)
+ *
+ * CRITICAL: a consumer's UNLAYERED CSS outranks ALL named layers above. That is
+ * the whole point — consumers override DS components with a plain class and no
+ * `!important`. See README "Customizing & overriding styles" and
+ * reference/css-layers.md.
+ *
+ * A bare `@layer name, name;` statement is permitted before `@import` per spec;
+ * keeping it here (and first) guarantees the order statement is emitted ahead of
+ * the imported token/global/component CSS in the bundled output.
+ */
+@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+
+@import './tokens.css';
+@import './global.css';

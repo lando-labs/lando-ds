@@ -1,0 +1,202 @@
+/**
+ * ScrollArea Component Styles
+ *
+ * Token-driven scrollbar styling for a wrapping `overflow: auto` div. We rely
+ * on the browser's native scroll machinery (momentum, keyboard, AT) and only
+ * restyle the chrome:
+ *
+ *   - WebKit / Blink: `::-webkit-scrollbar-*` pseudo-elements
+ *   - Firefox: `scrollbar-width` + `scrollbar-color`
+ *
+ * The two engines give us slightly different geometry — that's deliberate. A
+ * pixel-identical scrollbar across browsers requires a JS overlay, and JS
+ * overlays break momentum scrolling on touch devices (the failure mode
+ * shadcn's Radix-backed ScrollArea is best known for). Brand consistency
+ * comes through *color* (always our tokens) rather than *pixels*.
+ *
+ * Colors resolve through the DS tokens, which are dark-mode aware via the
+ * `[data-theme='dark']` block in tokens.css — no per-component dark override.
+ */
+
+.scrollArea {
+  /* Make the scroller focusable + give the focus ring breathing room. The
+   * outline is intentionally *outside* the box so it does not visually clip
+   * content right at the scroll edge. */
+  position: relative;
+  outline: none;
+  /* Carry consumer color expectations through unchanged. */
+  color: var(--color-text-primary);
+}
+
+.scrollArea:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  /* Round the focus ring to match the rest of the DS shape language. */
+  border-radius: var(--radius-sm);
+}
+
+/* =====================================================================
+ * Orientation — which axis gets overflow:auto.
+ * `overflow: hidden` on the OTHER axis prevents stray horizontal scroll
+ * from wrapping-related layout drift, the way most consumers expect.
+ * ===================================================================== */
+
+.orientation-vertical {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.orientation-horizontal {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.orientation-both {
+  overflow: auto;
+}
+
+/* =====================================================================
+ * Scrollbar geometry + color — WebKit / Blink (Chrome, Safari, Edge)
+ * Brand-tinted thumb on a subtle track, matching the body/global
+ * scrollbar aesthetic but slimmer to suit a localized scroll surface.
+ * ===================================================================== */
+
+.scrollArea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollArea::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.scrollArea::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-strong);
+}
+
+/* The square where vertical + horizontal bars meet. Keep it transparent so
+ * we don't paint a small mismatched square in the corner. */
+.scrollArea::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+/* =====================================================================
+ * Scrollbar — Firefox
+ * Firefox doesn't expose pseudo-elements; the most we can do is pick
+ * width + thumb/track colors via `scrollbar-color`.
+ * ===================================================================== */
+
+.scrollArea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+/* =====================================================================
+ * scrollbarMode — overlay vs inset vs auto
+ *
+ * `overlay` floats the bar over content (no gutter, possible overlap).
+ * `inset` reserves a fixed gutter (no overlap, content shifts inward).
+ *
+ * `scrollbar-gutter: stable` is the modern, supported way to do this and
+ * works in all evergreen browsers. Older Safari falls back to "no gutter
+ * reserved", which is the overlay behaviour anyway — acceptable degradation.
+ * ===================================================================== */
+
+.mode-overlay {
+  scrollbar-gutter: auto;
+}
+
+.mode-inset {
+  scrollbar-gutter: stable;
+}
+
+/* `auto` uses inset by default and switches to overlay on coarse pointers
+ * (touch screens), where overlay scrollbars are the OS-native idiom. */
+.mode-auto {
+  scrollbar-gutter: stable;
+}
+
+@media (pointer: coarse) {
+  .mode-auto {
+    scrollbar-gutter: auto;
+  }
+}
+
+/* =====================================================================
+ * scrollbarVisibility — when the scrollbar shows.
+ *
+ * `hover` fades the thumb in on container hover/focus-within. Track stays
+ * transparent so nothing visual happens until the user reaches for it.
+ * Implementation: thumb is transparent at rest, takes the brand color
+ * on hover/focus. The fade is a color transition (already on the thumb
+ * rule above), not opacity, so the bar still reserves layout in `inset`
+ * mode regardless of visibility setting.
+ *
+ * `always` overrides the rest-state and shows the thumb at all times.
+ *
+ * `scroll` defers to the browser — we set the thumb to the brand color
+ * and let `scrollbar-color`'s native auto-hide (on macOS overlay
+ * scrollbars) do its thing. There is no cross-browser CSS hook for "show
+ * only while scrolling"; documenting that limitation honestly is better
+ * than faking it with JS.
+ * ===================================================================== */
+
+.visibility-hover::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+.visibility-hover:hover::-webkit-scrollbar-thumb,
+.visibility-hover:focus-within::-webkit-scrollbar-thumb,
+.visibility-hover:focus-visible::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+}
+
+.visibility-hover:hover::-webkit-scrollbar-thumb:hover,
+.visibility-hover:focus-within::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-strong);
+}
+
+/* Firefox `hover` fallback: no pseudo-element targeting available, so we
+ * tone the scrollbar-color down to transparent at rest, and pop it on
+ * hover/focus. */
+.visibility-hover {
+  scrollbar-color: transparent transparent;
+}
+
+.visibility-hover:hover,
+.visibility-hover:focus-within,
+.visibility-hover:focus-visible {
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+/* `always` and `scroll` keep the at-rest WebKit thumb color from the base
+ * rule above (`--color-border-default`). The custom-property declarations
+ * below are harmless but ensure CSS Modules emits these scoped class names
+ * — they're stable hooks for consumer overrides and snapshot tests. */
+.visibility-always {
+  /* No-op visual change; thumb already uses the brand-token color. */
+  --ll-scroll-visibility: always;
+}
+
+.visibility-scroll {
+  /* Native auto-hide on macOS overlay scrollbars handles this; there is no
+   * cross-browser CSS hook for "show only while scrolling". */
+  --ll-scroll-visibility: scroll;
+}
+
+/* =====================================================================
+ * Reduced motion — kill the thumb color transition for users who opt out
+ * of non-essential motion (WCAG 2.3.3).
+ * ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollArea::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}

@@ -1,0 +1,99 @@
+/**
+ * Grid Component Styles
+ * CSS Grid wrapper with responsive support
+ */
+
+.grid {
+  display: grid;
+  width: 100%;
+}
+
+/* Default gap if not specified */
+.grid:not([style*='gap']) {
+  gap: var(--spacing-16);
+}
+
+/* ===== RESPONSIVE COLUMN CLASSES ===== */
+
+/* Small (mobile) - default 1 column */
+.responsive {
+  grid-template-columns: 1fr;
+}
+
+.cols-sm-1 {
+  grid-template-columns: 1fr;
+}
+
+.cols-sm-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.cols-sm-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.cols-sm-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.cols-sm-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.cols-sm-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* Medium (tablet) */
+@media (min-width: 768px) {
+  .cols-md-1 {
+    grid-template-columns: 1fr;
+  }
+
+  .cols-md-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cols-md-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cols-md-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cols-md-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .cols-md-6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Large (desktop) */
+@media (min-width: 1024px) {
+  .cols-lg-1 {
+    grid-template-columns: 1fr;
+  }
+
+  .cols-lg-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cols-lg-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cols-lg-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cols-lg-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .cols-lg-6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}

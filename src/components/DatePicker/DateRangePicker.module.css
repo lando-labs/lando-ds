@@ -1,0 +1,141 @@
+/**
+ * DateRangePicker styles (#312).
+ *
+ * The component itself is mostly Input + Portal + Calendar — no novel chrome
+ * outside the trigger row + dialog positioning. The styles here cover ONLY
+ * the trigger affordance, the Portal-rendered dialog frame, and the
+ * range-highlight visual that we paint OVER Calendar's cells via a wrapper.
+ *
+ * Why a wrapper rule (and not extending Calendar's CSS module): we said in
+ * the lane brief we wouldn't reimplement Calendar OR touch its files. To
+ * paint the "between provisional-start and the hovered cell" tint we
+ * deep-select Calendar's day buttons (`.calendarHost button[role]`-ish) from
+ * a parent that owns the data ("which cells are in range") and toggles a
+ * single `data-in-range` attribute per button via an effect.
+ *
+ * - The "in-range" tint is a calm primary tint that reads as connection
+ *   without competing with the provisional-start cell (which still wears
+ *   Calendar's `daySelected` style).
+ * - The "range-end-preview" highlight on the hovered cell uses an outline
+ *   ring so it's distinguishable from the saved start.
+ *
+ * No width-@media — the range-highlight is purely cell-local. Calendar
+ * already opts out of the container-query sweep guard for the same reason.
+ */
+
+/* ===== Trigger row ===================================================== */
+.triggerRow {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* When the picker is wrapped around an Input the trigger anchor needs to
+ * span the full row width — without that the Input lays at the
+ * inline-block button width and looks wrong. */
+.triggerRow > :first-child {
+  flex: 1;
+}
+
+/* ===== Clear button (right-side icon) ================================== */
+.clearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.clearButton:hover {
+  color: var(--color-text-primary);
+}
+
+.clearButton:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, var(--color-focus));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+/* ===== Dialog (Portal-rendered) ======================================== */
+/*
+ * Calendar already wears a card chrome; we don't add a border / shadow on
+ * the dialog so the Calendar's own border owns the boundary. We just
+ * position absolutely (via `position: fixed`) and provide a stacking
+ * context.
+ *
+ * Two-pass positioning mirrors DatePicker / Combobox: opacity 0 during
+ * measurement, fade in at the computed position. Using opacity (not
+ * visibility) keeps the dialog discoverable for testing-library queries.
+ */
+.panel {
+  position: fixed;
+  z-index: var(--z-index-popover, 1200);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.positioning {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.positioned {
+  opacity: 1;
+  animation: dateRangePickerFadeIn var(--duration-fast) var(--easing-ease-out);
+}
+
+@keyframes dateRangePickerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .positioned {
+    animation: none;
+  }
+}
+
+/* ===== Range highlight (painted on Calendar's day buttons) ============== */
+/* The host wraps Calendar; we toggle data-in-range / data-range-boundary
+ * attributes on individual day buttons via a useEffect. CSS only needs to
+ * paint the tint — no measurement, no layout impact. */
+.calendarHost button[data-in-range='true']:not([data-range-boundary='true']) {
+  background-color: color-mix(in oklch, var(--color-primary) 18%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* Both ends of the range get the full primary tint via Calendar's own
+ * `daySelected` style (we pass the provisional start as Calendar's
+ * `value`) — so we don't need to re-style boundaries here. */
+
+/* The hovered cell during range selection (no end picked yet) gets a
+ * subtle outline so the user has a preview of "click to set this as end". */
+.calendarHost button[data-range-preview-end='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+/* ===== Live region (visually hidden) =================================== */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

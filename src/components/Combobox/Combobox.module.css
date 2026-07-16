@@ -1,0 +1,410 @@
+/**
+ * Combobox + MultiSelect styles (#310).
+ *
+ * Both components share this module:
+ *  - `.container` is the single-Combobox wrapper (input + chevron).
+ *  - `.container.multi` upgrades layout to the MultiSelect chip-row mode.
+ *  - `.listbox` / `.option` / etc. are reused between both surfaces.
+ *
+ * Visual contract: matches Input height/padding (size = 'md') so consumers
+ * can drop Combobox next to <Input> in forms without alignment drift.
+ */
+
+/* ====================================================================== */
+/* WRAPPER + LABEL                                                        */
+/* ====================================================================== */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+/* ====================================================================== */
+/* CONTAINER (input affordance)                                           */
+/* ====================================================================== */
+
+/*
+ * The container hosts the visible border / focus ring; the inner <input>
+ * is borderless. This matches TagInput's pattern, which keeps the chip-row
+ * layout consistent in the multi variant.
+ */
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: text;
+  transition: var(--transition-default);
+}
+
+.container:hover:not(.disabled) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * Focus ring lives on the container (input is borderless) — uses both
+ * :focus-within (covers everything tabbable inside, including chip remove
+ * buttons in MultiSelect) and our explicit .open state so the visual
+ * affordance is consistent regardless of which inner element is focused.
+ */
+.container:focus-within,
+.container.open {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.container.disabled {
+  background-color: var(--color-surface-hover);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ----- Size variants ----- */
+
+.size_sm {
+  min-height: 2rem;
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  font-size: var(--font-size-xs);
+}
+
+.size_md {
+  min-height: 2.5rem;
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+}
+
+.size_lg {
+  min-height: 3rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-size: var(--font-size-base);
+}
+
+/* ----- Multi variant (chip wrap) ----- */
+
+/*
+ * MultiSelect's container wraps chips inline with the input. flex-wrap
+ * lets chips push the editor onto subsequent rows when full.
+ */
+.container.multi {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Tighten the multi padding so chips don't get a double-padding feel. */
+.container.multi.size_md {
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+}
+
+.container.multi.size_sm {
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+}
+
+.container.multi.size_lg {
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+}
+
+/* ====================================================================== */
+/* INPUT                                                                  */
+/* ====================================================================== */
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-disabled);
+}
+
+/* MultiSelect's input — flex-grow with a floor so it doesn't disappear. */
+.multiInput {
+  flex: 1 1 6rem;
+  min-width: 6rem;
+  padding: var(--component-padding-2xs) var(--component-padding-2xs);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.multiInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.multiInput:disabled {
+  cursor: not-allowed;
+}
+
+/* ====================================================================== */
+/* CHEVRON                                                                */
+/* ====================================================================== */
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-normal) var(--easing-ease-out);
+}
+
+.container.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* ====================================================================== */
+/* CHIPS (MultiSelect)                                                    */
+/* ====================================================================== */
+
+/*
+ * Chip styling mirrors TagInput's chip for visual parity — consumers using
+ * both components in the same form get a consistent chip language.
+ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-darker);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  line-height: 1.2;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+[data-theme='dark'] .chip {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-lighter);
+}
+
+.chipText {
+  /* Allow long labels to ellipsize without breaking layout. */
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition-default);
+}
+
+.chipRemove:hover {
+  opacity: 1;
+}
+
+.chipRemove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  opacity: 1;
+}
+
+.chipRemove:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* ====================================================================== */
+/* LISTBOX (Portal-rendered)                                              */
+/* ====================================================================== */
+
+/*
+ * The listbox is portal-rendered as `position: fixed`, so it escapes any
+ * overflow:hidden / overflow:clip ancestor (Card, Modal, table rows, scroll
+ * containers). The positioning hook updates `top`/`left` inline so we just
+ * render the visual chrome here.
+ */
+.listbox {
+  position: fixed;
+  z-index: var(--z-index-dropdown, 1000);
+  margin: 0;
+  padding: var(--component-padding-2xs);
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/*
+ * Two-pass positioning: first render is invisible (opacity 0) so the
+ * usePortalPosition hook can measure the overlay's size, then we fade in
+ * at the computed top/left. Using opacity (not visibility) keeps the
+ * element discoverable for testing-library's role queries — same trick
+ * TagInput uses.
+ */
+.positioning {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.positioned {
+  opacity: 1;
+  animation: comboboxFadeIn var(--duration-fast) var(--easing-ease-out);
+}
+
+@keyframes comboboxFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar to match the Select dropdown. */
+.listbox::-webkit-scrollbar {
+  width: 8px;
+}
+
+.listbox::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.listbox::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+/* ====================================================================== */
+/* OPTIONS                                                                */
+/* ====================================================================== */
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+/*
+ * Mouse-hover affordance — neutral surface tint.
+ * (Adjacent to .optionActive which uses the ocean tint to keep "where am I
+ * with the keyboard" and "what am I hovering" visually distinguishable.
+ * Same rationale as Select.module.css.)
+ */
+.option:hover:not(.optionDisabled) {
+  background-color: var(--color-surface-hover);
+}
+
+/* Keyboard-active option (activedescendant target). */
+.option.optionActive:not(.optionDisabled) {
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .option.optionActive:not(.optionDisabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.optionSelected {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.optionDisabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.optionLabel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionCheck {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+/* ====================================================================== */
+/* EMPTY + LOADING states                                                 */
+/* ====================================================================== */
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-padding-md) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  list-style: none;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-padding-md) var(--component-padding-sm);
+  list-style: none;
+}
+
+/* ====================================================================== */
+/* MOTION                                                                 */
+/* ====================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .positioned {
+    animation: none;
+  }
+  .chevron {
+    transition: none;
+  }
+}

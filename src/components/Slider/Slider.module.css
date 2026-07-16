@@ -1,0 +1,204 @@
+/**
+ * Slider Component Styles
+ *
+ * Token-driven layout for a horizontal range input with optional dual-thumb
+ * (range) mode. The track is the geometry source of truth — thumbs are
+ * absolutely positioned with `left: N%` set inline by the component. The
+ * filled portion between thumbs (or from start to thumb in single mode) is
+ * a separately positioned `.fill` element so it can be tinted via the
+ * brand-derived primary ramp.
+ *
+ * Sizing strategy:
+ *   - track height is the only size-variant axis (sm/md/lg)
+ *   - thumb scales proportionally so larger sliders have larger hit targets
+ *   - the `--slider-thumb-size` custom property keeps the geometry self-
+ *     describing without resorting to size-suffixed selectors on every rule
+ */
+
+.wrapper {
+  /* Local geometry variables — overridden per-size below. Default = md. */
+  --slider-thumb-size: 1.25rem;
+  --slider-track-height: 0.375rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+  font-family: var(--font-family-base);
+}
+
+/* ===== SIZES ===== */
+
+.sm {
+  --slider-thumb-size: 1rem;
+  --slider-track-height: 0.25rem;
+  font-size: var(--font-size-sm);
+}
+
+.md {
+  --slider-thumb-size: 1.25rem;
+  --slider-track-height: 0.375rem;
+  font-size: var(--font-size-base);
+}
+
+.lg {
+  --slider-thumb-size: 1.5rem;
+  --slider-track-height: 0.5rem;
+  font-size: var(--font-size-lg);
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  cursor: default;
+  user-select: none;
+}
+
+/* ===== TRACK ===== */
+
+.track {
+  position: relative;
+  height: var(--slider-track-height);
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  /*
+   * Add vertical breathing room so the thumb (which is taller than the
+   * track) has unambiguous hit-area above + below the line. The visual
+   * track keeps its height — this just pads the pointer target.
+   */
+  margin: calc((var(--slider-thumb-size) - var(--slider-track-height)) / 2) 0;
+  touch-action: none; /* allow horizontal drag without page scroll */
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.wrapper:not(.disabled) .track:hover {
+  background-color: var(--color-border-strong);
+}
+
+/* ===== FILL (active portion of the track) ===== */
+
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+/* ===== THUMB ===== */
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  /*
+   * `left` is set inline as a 0–100% string. Translate up + left by half a
+   * thumb each axis so the percentage truly centers the thumb on its value.
+   */
+  transform: translate(-50%, -50%);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  touch-action: none;
+  /* Reset native button-ish defaults if any */
+  padding: 0;
+  outline: none;
+  transition:
+    transform var(--duration-fast) var(--easing-wave),
+    border-color var(--duration-fast) var(--easing-ease-out),
+    box-shadow var(--duration-fast) var(--easing-ease-out);
+  z-index: var(--z-index-content);
+}
+
+.thumb:hover {
+  border-color: var(--color-primary-hover);
+}
+
+.thumb:active,
+.thumbActive {
+  cursor: grabbing;
+}
+
+.thumb:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  /*
+   * Stack focused thumb above its sibling in range mode so the focus ring
+   * never gets clipped behind the other thumb when both share a position.
+   */
+  z-index: calc(var(--z-index-content) + 1);
+}
+
+/* ===== TOOLTIP (showValue) ===== */
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--spacing-8));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--component-padding-2xs) var(--component-padding-xs);
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  /*
+   * Hidden by default; appears on hover/focus/active. We use opacity +
+   * transition rather than display:none so it's still in the layout for
+   * positioning math (and so it animates in).
+   */
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-ease-out);
+}
+
+.thumb:hover .tooltip,
+.thumb:focus .tooltip,
+.thumb:focus-visible .tooltip,
+.thumbActive .tooltip {
+  opacity: 1;
+}
+
+/* Little arrow under the tooltip pointing at the thumb. */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--color-text-primary);
+}
+
+/* ===== DISABLED ===== */
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabled .track,
+.disabled .thumb {
+  cursor: not-allowed;
+}
+
+.disabled .thumb {
+  border-color: var(--color-border-strong);
+}
+
+.disabled .fill {
+  background-color: var(--color-border-strong);
+}

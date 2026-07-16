@@ -1,0 +1,335 @@
+/**
+ * Modal Component Styles
+ *
+ * Native `<dialog>` shell (#273). Most overlay infrastructure is gone:
+ *   - top-layer promotion comes from `showModal()`
+ *   - the backdrop is the `::backdrop` pseudo-element (no `.backdrop` element)
+ *   - background `inert` is browser-applied
+ *
+ * DOM shape:
+ *   <dialog class="dialog">     ← container host, transparent shell
+ *     <div class="modal">        ← visible box (descendant — queryable)
+ *       header / body / footer
+ *     </div>
+ *   </dialog>
+ *
+ * The inner `.modal` exists so the compact `@container modal (max-width: 40rem)`
+ * rule can target a descendant of the container host (the #270 self-rule
+ * no-op guard requires it). Without this wrapper, the only natural element to
+ * query would be the dialog itself — which IS the host, and a host never
+ * matches its own `@container` query.
+ *
+ * Enter/exit animations use `@starting-style` + `transition-behavior:
+ * allow-discrete` (#274) on the dialog + its `::backdrop`, so visibility
+ * animates without any JS bookkeeping. Reduced motion is honoured
+ * automatically because the durations resolve through `--motion-overlay-*`
+ * tokens whose values collapse to 0ms inside the `prefers-reduced-motion`
+ * media block in tokens.css.
+ */
+
+/* ===== Dialog shell (container host, animated outer box) =====
+ * Transparent until the inner `.modal` paints; the dialog only provides
+ * top-layer + ::backdrop + container query host. Animates as the visible
+ * element though — opacity/transform are on the dialog so the ::backdrop
+ * fade and the modal entrance happen together. */
+.dialog {
+  position: fixed;
+  display: block;
+  inset: 0;
+  margin: auto;
+  max-width: none;
+  max-height: 100vh;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  overflow: visible;
+
+  /* P0 fix (#387 / v0.30.1): an unconditional author `display: block` overrides
+   * the UA `dialog:not([open]) { display: none }` rule regardless of specificity
+   * (CSS cascade), so a CLOSED dialog renders as a position:fixed; inset:0;
+   * width:100% block — visually invisible (opacity:0) but intercepts every
+   * click across the viewport, breaking every consumer app that mounts a
+   * closed <Modal>. We keep `display: block` (it's required so the discrete-
+   * display transition has a from-value to animate to), but make the closed
+   * state inert: pointer-events:none + visibility:hidden remove it from
+   * hit-testing AND the a11y tree. The `[open]` rule below restores both. */
+  pointer-events: none;
+  visibility: hidden;
+
+  /* Closed state — required for top-layer enter/exit animation pairing with
+   * @starting-style. When `dialog[open]` is absent, the element is
+   * `display: none` (UA default) and unanimatable; `transition-behavior:
+   * allow-discrete` on display + overlay lets the rest of the transitions
+   * still drive the visibility change. */
+  opacity: 0;
+  transform: scale(0.95) translateY(-20px);
+
+  transition:
+    opacity var(--motion-overlay-exit-duration) var(--motion-overlay-exit-easing),
+    transform var(--motion-overlay-exit-duration) var(--motion-overlay-exit-easing),
+    overlay var(--motion-overlay-exit-duration) allow-discrete,
+    display var(--motion-overlay-exit-duration) allow-discrete;
+
+  /* #270 — container-query host. Inner `.modal` and `.header`/`.body`/
+   * `.footer` are descendants and ARE queried by the rule below. The
+   * dialog itself is the host and is intentionally NOT queried (the
+   * self-rule no-op guard in src/test/container-query-sweep.test.ts).
+   * Container-name `modal` is GLOBAL (CSS Modules does not hash it).
+   * Threshold preserved: 40rem (640px). Token: tokens/containerQueries. */
+  container: modal / inline-size;
+}
+
+/* Visible state — when the dialog is open (`dialog[open]` reflects the JS
+ * showModal() call), animate to the rest position. */
+.dialog[open] {
+  /* #387 fix — restore interactivity + a11y exposure when open. Paired with
+   * the pointer-events:none + visibility:hidden on the closed state above. */
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+
+  transition:
+    opacity var(--motion-overlay-enter-duration) var(--motion-overlay-enter-easing),
+    transform var(--motion-overlay-enter-duration) var(--motion-overlay-enter-easing),
+    overlay var(--motion-overlay-enter-duration) allow-discrete,
+    display var(--motion-overlay-enter-duration) allow-discrete;
+}
+
+/* @starting-style — the FROM state for the enter animation. Without this, the
+ * browser has no prior value to interpolate from when display flips from
+ * none → block, so the transition snaps. The values must match the closed
+ * state of `.dialog`. */
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+}
+
+/* ===== Backdrop (::backdrop pseudo-element) =====
+ * Replaces the legacy `.backdrop` div. Pseudo-element styles are scoped to
+ * the dialog they belong to, so no class hashing concern. */
+.dialog::backdrop {
+  background-color: rgb(var(--color-primary-darkest-rgb) / 0.6);
+  backdrop-filter: blur(4px);
+
+  opacity: 0;
+  transition:
+    opacity var(--motion-backdrop-exit-duration) var(--motion-overlay-exit-easing),
+    overlay var(--motion-backdrop-exit-duration) allow-discrete,
+    display var(--motion-backdrop-exit-duration) allow-discrete;
+}
+
+.dialog[open]::backdrop {
+  opacity: 1;
+  transition:
+    opacity var(--motion-backdrop-enter-duration) var(--motion-overlay-enter-easing),
+    overlay var(--motion-backdrop-enter-duration) allow-discrete,
+    display var(--motion-backdrop-enter-duration) allow-discrete;
+}
+
+@starting-style {
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* ===== Inner modal box (visible frame) ===== */
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: var(--spacing-md) auto;
+  max-height: calc(100vh - var(--spacing-32));
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+}
+
+/* ===== TOP ACCENT LINE (Sprint 10 #59) =====
+ *
+ * 3px ocean-medium bar capping the rounded top of the modal. Visible-
+ * but-not-dominant brand signature. Uses ::before pinned to the top so
+ * the bar follows the modal's radius-xl corners cleanly.
+ *
+ * 3px is the designer-vetted height — 2px disappears at reading distance
+ * against the heavy modal shadow, 4–5px becomes a colored banner that
+ * fights for focus with the modal title. Opt out via `accent={false}`.
+ */
+.modal.accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 3px;
+  background-color: var(--color-primary-medium);
+  /* Purely decorative — don't intercept pointer events near the top
+   * edge where a close button might live. */
+  pointer-events: none;
+  /* Anchor above body content for clean paint on rounded corners. */
+  z-index: 1;
+}
+
+[data-theme='dark'] .modal.accent::before {
+  /* Brighter ocean in dark mode so the accent still reads against
+   * the darker modal surface. */
+  background-color: var(--color-primary-base);
+}
+
+/* Fullscreen mode has no rounded corners and usually spans an entire
+ * app; the accent line would visually dominate. Suppress it there. */
+.modal.accent.fullscreen::before {
+  display: none;
+}
+
+/* ===== Modal sizes =====
+ * `<dialog>` sizes itself to its content + UA defaults; we constrain via
+ * max-width on each named-size class on the inner `.modal`. The fullscreen
+ * variant overrides width directly so it covers the whole viewport. */
+.modal.sm {
+  max-width: 400px;
+}
+
+.modal.md {
+  max-width: 600px;
+}
+
+.modal.lg {
+  max-width: 800px;
+}
+
+.modal.xl {
+  max-width: 1000px;
+}
+
+.modal.fullscreen {
+  max-width: 100%;
+  max-height: 100vh;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--component-padding-lg) var(--component-padding-xl);
+  border-bottom: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-default);
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.closeButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Body */
+.body {
+  flex: 1;
+  padding: var(--component-padding-xl);
+  overflow-y: auto;
+  color: var(--color-text-primary);
+  /* The body receives programmatic focus on open (see Modal.tsx) so that the
+     close "X" button isn't accidentally activated by an Enter/Space press
+     right after the modal opens. Suppress the focus ring on the body itself
+     because it is only focused for screen-reader orientation, not keyboard
+     interaction — real focus moves into the body's focusable children on
+     the first Tab. See issue #13. */
+  outline: none;
+}
+
+.dialog:focus,
+.modal:focus {
+  outline: none;
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding: var(--component-padding-lg) var(--component-padding-xl);
+  border-top: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+/* #270 — modal goes full-bleed when its available space is narrow. The dialog
+ * IS the container host; `.modal` and `.header`/`.body`/`.footer` are all
+ * descendants. Threshold preserved: 40rem (640px). */
+@container modal (max-width: 40rem) {
+  .modal:not(.fullscreen) {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .header,
+  .body,
+  .footer {
+    padding-inline-start: var(--component-padding-md);
+    padding-inline-end: var(--component-padding-md);
+  }
+}
+
+/* Reduced motion (#274) — central tokens.css block zeros all duration tokens,
+ * so the `--motion-overlay-*` cascade automatically yields 0ms transitions for
+ * the dialog and its backdrop. No per-component `animation: none` override
+ * needed; the legacy `@keyframes`-backed approach has been retired here. */

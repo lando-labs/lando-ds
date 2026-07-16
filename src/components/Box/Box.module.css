@@ -1,0 +1,225 @@
+/**
+ * Box Component Styles
+ * Generic styling wrapper using design tokens
+ */
+
+.box {
+  box-sizing: border-box;
+}
+
+/* ===== Padding Variants (using design tokens) ===== */
+
+.padding-none {
+  padding: var(--component-padding-none);
+}
+
+.padding-xs {
+  padding: var(--component-padding-xs);
+}
+
+.padding-sm {
+  padding: var(--component-padding-sm);
+}
+
+.padding-md {
+  padding: var(--component-padding-md);
+}
+
+.padding-lg {
+  padding: var(--component-padding-lg);
+}
+
+.padding-xl {
+  padding: var(--component-padding-xl);
+}
+
+.padding-2xl {
+  padding: var(--component-padding-2xl);
+}
+
+/* ===== Directional Padding Variants ===== */
+
+.padding-top-none { padding-top: var(--component-padding-none); }
+.padding-top-xs { padding-top: var(--component-padding-xs); }
+.padding-top-sm { padding-top: var(--component-padding-sm); }
+.padding-top-md { padding-top: var(--component-padding-md); }
+.padding-top-lg { padding-top: var(--component-padding-lg); }
+.padding-top-xl { padding-top: var(--component-padding-xl); }
+.padding-top-2xl { padding-top: var(--component-padding-2xl); }
+
+.padding-right-none { padding-inline-end: var(--component-padding-none); }
+.padding-right-xs { padding-inline-end: var(--component-padding-xs); }
+.padding-right-sm { padding-inline-end: var(--component-padding-sm); }
+.padding-right-md { padding-inline-end: var(--component-padding-md); }
+.padding-right-lg { padding-inline-end: var(--component-padding-lg); }
+.padding-right-xl { padding-inline-end: var(--component-padding-xl); }
+.padding-right-2xl { padding-inline-end: var(--component-padding-2xl); }
+
+.padding-bottom-none { padding-bottom: var(--component-padding-none); }
+.padding-bottom-xs { padding-bottom: var(--component-padding-xs); }
+.padding-bottom-sm { padding-bottom: var(--component-padding-sm); }
+.padding-bottom-md { padding-bottom: var(--component-padding-md); }
+.padding-bottom-lg { padding-bottom: var(--component-padding-lg); }
+.padding-bottom-xl { padding-bottom: var(--component-padding-xl); }
+.padding-bottom-2xl { padding-bottom: var(--component-padding-2xl); }
+
+.padding-left-none { padding-inline-start: var(--component-padding-none); }
+.padding-left-xs { padding-inline-start: var(--component-padding-xs); }
+.padding-left-sm { padding-inline-start: var(--component-padding-sm); }
+.padding-left-md { padding-inline-start: var(--component-padding-md); }
+.padding-left-lg { padding-inline-start: var(--component-padding-lg); }
+.padding-left-xl { padding-inline-start: var(--component-padding-xl); }
+.padding-left-2xl { padding-inline-start: var(--component-padding-2xl); }
+
+/* ===== Margin Variants (using design tokens) ===== */
+
+.margin-none {
+  margin: var(--spacing-none);
+}
+
+.margin-xs {
+  margin: var(--spacing-xs);
+}
+
+.margin-sm {
+  margin: var(--spacing-sm);
+}
+
+.margin-md {
+  margin: var(--spacing-md);
+}
+
+.margin-lg {
+  margin: var(--spacing-lg);
+}
+
+.margin-xl {
+  margin: var(--spacing-xl);
+}
+
+.margin-2xl {
+  margin: var(--spacing-2xl);
+}
+
+/* ===== Directional Margin Variants ===== */
+
+.margin-top-none { margin-top: var(--spacing-none); }
+.margin-top-xs { margin-top: var(--spacing-xs); }
+.margin-top-sm { margin-top: var(--spacing-sm); }
+.margin-top-md { margin-top: var(--spacing-md); }
+.margin-top-lg { margin-top: var(--spacing-lg); }
+.margin-top-xl { margin-top: var(--spacing-xl); }
+.margin-top-2xl { margin-top: var(--spacing-2xl); }
+
+.margin-right-none { margin-inline-end: var(--spacing-none); }
+.margin-right-xs { margin-inline-end: var(--spacing-xs); }
+.margin-right-sm { margin-inline-end: var(--spacing-sm); }
+.margin-right-md { margin-inline-end: var(--spacing-md); }
+.margin-right-lg { margin-inline-end: var(--spacing-lg); }
+.margin-right-xl { margin-inline-end: var(--spacing-xl); }
+.margin-right-2xl { margin-inline-end: var(--spacing-2xl); }
+
+.margin-bottom-none { margin-bottom: var(--spacing-none); }
+.margin-bottom-xs { margin-bottom: var(--spacing-xs); }
+.margin-bottom-sm { margin-bottom: var(--spacing-sm); }
+.margin-bottom-md { margin-bottom: var(--spacing-md); }
+.margin-bottom-lg { margin-bottom: var(--spacing-lg); }
+.margin-bottom-xl { margin-bottom: var(--spacing-xl); }
+.margin-bottom-2xl { margin-bottom: var(--spacing-2xl); }
+
+.margin-left-none { margin-inline-start: var(--spacing-none); }
+.margin-left-xs { margin-inline-start: var(--spacing-xs); }
+.margin-left-sm { margin-inline-start: var(--spacing-sm); }
+.margin-left-md { margin-inline-start: var(--spacing-md); }
+.margin-left-lg { margin-inline-start: var(--spacing-lg); }
+.margin-left-xl { margin-inline-start: var(--spacing-xl); }
+.margin-left-2xl { margin-inline-start: var(--spacing-2xl); }
+
+/* ===== Border Radius Variants (using design tokens) ===== */
+
+.radius-none {
+  border-radius: var(--radius-none);
+}
+
+.radius-sm {
+  border-radius: var(--radius-sm);
+}
+
+.radius-md {
+  border-radius: var(--radius-md);
+}
+
+.radius-lg {
+  border-radius: var(--radius-lg);
+}
+
+.radius-full {
+  border-radius: var(--radius-full);
+}
+
+/* ===== Border Modifier ===== */
+
+.border {
+  border: 1px solid var(--color-border-default);
+}
+
+/* ===== Display Variants ===== */
+
+.display-block {
+  display: block;
+}
+
+.display-inline {
+  display: inline;
+}
+
+.display-inline-block {
+  display: inline-block;
+}
+
+.display-flex {
+  display: flex;
+}
+
+.display-grid {
+  display: grid;
+}
+
+.display-none {
+  display: none;
+}
+
+/* ===== Flex / Grid Layout Shortcuts ===== */
+/* These only take effect when the element's display is flex or grid;
+   they are still emitted as classes so consumers can inspect them,
+   but CSS naturally no-ops the rules for non-flex/grid layouts. */
+
+/* Gap (flex + grid) */
+.gap-none { gap: var(--spacing-none); }
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+
+/* Flex direction (flex only) */
+.direction-row { flex-direction: row; }
+.direction-column { flex-direction: column; }
+.direction-row-reverse { flex-direction: row-reverse; }
+.direction-column-reverse { flex-direction: column-reverse; }
+
+/* Cross-axis alignment (flex + grid) */
+.align-start { align-items: flex-start; }
+.align-center { align-items: center; }
+.align-end { align-items: flex-end; }
+.align-stretch { align-items: stretch; }
+.align-baseline { align-items: baseline; }
+
+/* Main-axis alignment (flex + grid) */
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-evenly { justify-content: space-evenly; }

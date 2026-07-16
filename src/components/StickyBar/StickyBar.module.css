@@ -1,0 +1,108 @@
+/**
+ * StickyBar Component Styles
+ *
+ * A sticky horizontal strip that pins to the top or bottom of its
+ * nearest scroll container. Uses `position: sticky` (not fixed) so
+ * the bar respects the scroll context — perfect for pinning inside
+ * AppShell's main content region, modal bodies, or any overflow-auto
+ * wrapper.
+ *
+ * Issue: #23
+ */
+
+.stickybar {
+  /* Sticky positioning — the bar pins once its edge reaches the
+     computed top/bottom offset within its scroll container. */
+  position: sticky;
+
+  /* Sensible default z-index so the bar sits above body content but
+     below modals/drawers/dropdowns. Consumers can override via the
+     `zIndex` prop. */
+  z-index: var(--z-index-sticky, 100);
+
+  /* Take the full horizontal space of the parent. */
+  width: 100%;
+
+  /* Subtle transition so the elevated shadow fades in when pinned. */
+  transition: box-shadow var(--transition-base, 200ms ease-out);
+}
+
+/* ===== POSITION ===== */
+
+.position-top {
+  /* Default — pins to the top edge of the scroll container. */
+  top: 0;
+}
+
+.position-bottom {
+  /* Pins to the bottom edge — form action bars, publish rails. */
+  bottom: 0;
+}
+
+/* ===== VARIANT (background treatment) ===== */
+
+.variant-surface {
+  background-color: var(--color-surface);
+}
+
+.variant-blur {
+  /* Translucent surface with a backdrop blur — lets content scroll
+     beneath while remaining legible. Mirrors a consumer app's filter bar. */
+  background-color: color-mix(
+    in srgb,
+    var(--color-surface) 80%,
+    transparent
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.variant-transparent {
+  background-color: transparent;
+}
+
+/* ===== ELEVATION ===== */
+
+/* Static shadow — always visible, regardless of scroll state. */
+.elevation-shadow {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Shadow-on-scroll — applied only once `data-pinned="true"` is set
+   by the IntersectionObserver sentinel. Gives that "bar just became
+   pinned" visual affordance without a scroll listener. */
+.elevation-shadow-on-scroll[data-pinned='true'] {
+  box-shadow: var(--shadow-md);
+}
+
+/* When the top-pinned bar gets a shadow, the shadow reads downward. */
+.position-top.elevation-shadow-on-scroll[data-pinned='true'] {
+  box-shadow: 0 2px 8px color-mix(in srgb, black 8%, transparent);
+}
+
+/* When the bottom-pinned bar gets a shadow, the shadow reads upward. */
+.position-bottom.elevation-shadow-on-scroll[data-pinned='true'] {
+  box-shadow: 0 -2px 8px color-mix(in srgb, black 8%, transparent);
+}
+
+/* ===== SENTINEL ===== */
+
+/* The sentinel is a zero-height detector element rendered just
+   outside the sticky bar's natural (unpinned) position. When the
+   sentinel leaves the viewport, the bar is pinned — we toggle
+   `data-pinned` on the bar from the IntersectionObserver callback. */
+.sentinel {
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.sentinel-top {
+  top: 0;
+}
+
+.sentinel-bottom {
+  bottom: 0;
+}

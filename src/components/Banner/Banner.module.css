@@ -1,0 +1,237 @@
+/**
+ * Banner Component Styles
+ *
+ * Viewport-fixed slim notification bar with edge-of-viewport positioning,
+ * variant colors aligned with Alert, slide-in animation, and safe-area-inset
+ * padding for notched devices.
+ */
+
+/* #270 — container-query host (inner-wrapper pattern).
+ *
+ * The lone responsive rule here tightens `.banner`'s OWN gap/padding/font-size,
+ * which is the bug-prone case: an element's `@container` query is evaluated
+ * against its nearest ANCESTOR container, never itself, so putting the container
+ * on `.banner` AND querying `.banner` from it would silently do nothing (and
+ * `gap`/`padding` are the flex container's own properties — they can't move to a
+ * child).
+ *
+ * `.sizer` is a zero-box wrapper carrying the container. The Banner is
+ * `position: fixed; left: 0; right: 0`, so `.banner`'s inline size == the
+ * viewport width regardless of the wrapper; the wrapper is a static block, so
+ * ITS inline size also tracks the viewport width — making the query the same
+ * effective threshold as the old viewport `@media`. `.banner` is the wrapper's
+ * DOM descendant, so `@container banner` now matches it (container matching
+ * walks the box-tree ancestry, which for a fixed element still includes its DOM
+ * ancestors). The `banner` container-name is GLOBAL (CSS Modules does not hash
+ * it). Threshold preserved: 40rem (640px). Token: tokens/containerQueries.
+ * (NOTE for maintainer: because the banner spans the viewport, this reflow is
+ * effectively still viewport-relative — kept as `@container` for grep-gate
+ * uniformity; it is NOT a composability win like the embeddable components.) */
+.sizer {
+  display: block;
+  container: banner / inline-size;
+}
+
+.banner {
+  position: fixed;
+  inset-inline: 0;
+  z-index: var(--z-banner);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  border: 1px solid transparent;
+  /* Subtle shadow lifts the banner off whatever's underneath. */
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== PLACEMENT ===== */
+
+.placement-top {
+  top: 0;
+  /* Notch / status-bar safe area on iOS. */
+  padding-top: calc(var(--component-padding-sm) + env(safe-area-inset-top, 0px));
+  border-bottom-color: currentColor;
+  animation: slideInTop var(--duration-normal) var(--easing-ease-out);
+}
+
+.placement-bottom {
+  bottom: 0;
+  /* Home-indicator safe area on iOS. */
+  padding-bottom: calc(var(--component-padding-sm) + env(safe-area-inset-bottom, 0px));
+  border-top-color: currentColor;
+  animation: slideInBottom var(--duration-normal) var(--easing-ease-out);
+}
+
+/* ===== VARIANTS (mirror Alert) ===== */
+
+.variant-info {
+  background-color: var(--color-info-lightest);
+  border-color: var(--color-info-light);
+  color: var(--color-info-darkest);
+}
+
+[data-theme='dark'] .variant-info {
+  background-color: rgb(var(--color-primary-base-rgb) / 0.12);
+  border-color: var(--color-info-dark);
+  color: var(--color-info-light);
+}
+
+.variant-success {
+  background-color: var(--color-success-lightest);
+  border-color: var(--color-success-light);
+  color: var(--color-success-darkest);
+}
+
+[data-theme='dark'] .variant-success {
+  background-color: color-mix(in srgb, var(--color-success-base) 12%, transparent);
+  border-color: var(--color-success-dark);
+  color: var(--color-success-light);
+}
+
+.variant-warning {
+  background-color: var(--color-warning-lightest);
+  border-color: var(--color-warning-light);
+  color: var(--color-warning-darkest);
+}
+
+[data-theme='dark'] .variant-warning {
+  background-color: color-mix(in srgb, var(--color-warning-base) 12%, transparent);
+  border-color: var(--color-warning-dark);
+  color: var(--color-warning-light);
+}
+
+.variant-error {
+  background-color: var(--color-error-lightest);
+  border-color: var(--color-error-light);
+  color: var(--color-error-darkest);
+}
+
+[data-theme='dark'] .variant-error {
+  background-color: color-mix(in srgb, var(--color-error-base) 12%, transparent);
+  border-color: var(--color-error-dark);
+  color: var(--color-error-light);
+}
+
+/* ===== LAYOUT ===== */
+
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+.message a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: var(--font-weight-medium);
+}
+
+.message a:hover {
+  text-decoration: none;
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* ===== CLOSE BUTTON ===== */
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition-default);
+}
+
+.closeButton:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, black 5%, transparent);
+}
+
+[data-theme='dark'] .closeButton:hover {
+  background-color: color-mix(in srgb, white 10%, transparent);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.closeButton:active {
+  transform: scale(0.95);
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes slideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Reduced motion — respect the user's preference, fade only. */
+@media (prefers-reduced-motion: reduce) {
+  .placement-top,
+  .placement-bottom {
+    animation: fadeIn var(--duration-normal) var(--easing-ease-out);
+  }
+}
+
+/* #270 — slightly tighter padding when narrow (was viewport @media). `.banner`
+ * is a DESCENDANT of the `.sizer` container host (see the note on `.sizer`
+ * above), so this override actually applies — it would NOT have, as a container
+ * self-rule. Threshold preserved: 40rem (640px). */
+@container banner (max-width: 40rem) {
+  .banner {
+    gap: var(--spacing-8);
+    padding: var(--component-padding-sm) var(--component-padding-sm);
+    font-size: var(--font-size-sm);
+  }
+}

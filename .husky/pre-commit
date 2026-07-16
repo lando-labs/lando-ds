@@ -1,0 +1,9 @@
+#!/bin/sh
+# Guard against the recurring DS self-dependency corruption pattern.
+# See issue #104 — this has been introduced and removed three times across
+# Sprints 16-18 by cwd-confused npm-install workflows.
+if grep -q '"@lando-labs/lando-ds": "file:' package.json; then
+  echo "ERROR: package.json contains a self-referential @lando-labs/lando-ds dependency"
+  echo "This is the third recurrence of #104 — see issue for context"
+  exit 1
+fi

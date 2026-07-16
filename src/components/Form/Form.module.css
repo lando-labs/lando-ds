@@ -1,0 +1,14 @@
+/**
+ * Form Component Styles
+ *
+ * Minimal — the form is a structural wrapper. Default vertical layout
+ * with token-based gap so consumers don't have to reach for Stack just
+ * to space Fields apart. Spacing tokens align with Stack's `gap="md"`.
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  width: 100%;
+}

@@ -1,0 +1,14 @@
+/**
+ * Mark Component Styles
+ *
+ * The default UA `<mark>` is fluorescent yellow. We replace it with the
+ * primary-lightest tint so highlights match the rest of the design system
+ * and re-skin automatically when `--color-primary` changes.
+ */
+
+.mark {
+  background: var(--color-primary-lightest);
+  color: var(--color-text-primary);
+  padding: 0.0625em 0.25em;
+  border-radius: var(--radius-sm);
+}

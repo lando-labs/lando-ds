@@ -1,0 +1,95 @@
+/**
+ * ToastProvider Container Styles
+ *
+ * Single global container layered above all overlays via --z-toast (1400).
+ * Six placement variants. Pointer-events scoped so the container itself
+ * never captures clicks behind it; only individual toasts do.
+ */
+
+.container {
+  position: fixed;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--component-padding-md);
+  pointer-events: none;
+  /* Constrain max width so toasts don't span the entire viewport on
+     desktops; individual toasts already cap themselves at 480px. */
+  max-width: min(100vw, 520px);
+}
+
+.container > * {
+  pointer-events: auto;
+}
+
+/* ===== Top placements ===== */
+
+.topLeft {
+  top: 0;
+  left: 0;
+  align-items: flex-start;
+}
+
+.topCenter {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.topRight {
+  top: 0;
+  right: 0;
+  align-items: flex-end;
+}
+
+/* ===== Bottom placements =====
+   `column-reverse` so the newest toast appears closest to the screen edge
+   and older toasts shift away — matches Mantine / shadcn-sonner behaviour. */
+
+.bottomLeft {
+  bottom: 0;
+  left: 0;
+  align-items: flex-start;
+  flex-direction: column-reverse;
+}
+
+.bottomCenter {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+  flex-direction: column-reverse;
+}
+
+.bottomRight {
+  bottom: 0;
+  right: 0;
+  align-items: flex-end;
+  flex-direction: column-reverse;
+}
+
+/* ===== Mobile fallback =====
+   On narrow screens the centered placements lose their `translateX(-50%)`
+   and stretch edge-to-edge.
+
+   #281 — intentionally kept as a viewport `@media` (category B). The provider's
+   toast stack is `position: fixed` page chrome with `max-width: min(100vw, …)`;
+   the reflow is about the SCREEN edge, not an embedding container. (Putting a
+   container on the width-capped `.container` would also make a 40rem query match
+   permanently — a behavior change.) Stays `@media`. */
+
+@media (max-width: 640px) {
+  .container {
+    inset-inline: 0;
+    max-width: 100vw;
+    transform: none;
+  }
+
+  .topCenter,
+  .bottomCenter {
+    inset-inline: 0;
+    transform: none;
+  }
+}

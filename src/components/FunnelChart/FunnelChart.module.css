@@ -1,0 +1,99 @@
+/**
+ * FunnelChart Component Styles
+ *
+ * Custom-rendered SVG funnel chart. Leverages the shared Chart container
+ * pattern (loading / empty / error / SSR fallback) by importing
+ * `Chart.module.css` directly in the TS file. The styles below are
+ * funnel-specific (svg sizing, polygon animation, label typography).
+ */
+
+/* Funnel SVG host — fills the available height/width of the chart shell */
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.svg[data-orientation='horizontal'] {
+  /* No special handling — the polygon math handles axis orientation */
+}
+
+/* Each stage trapezoid */
+.stage {
+  /* Mount animation. We pre-set the final state in the resting style and
+     animate `opacity` + `transform` from a small offset. Each stage gets a
+     staggered delay via inline `style.animationDelay`. */
+  opacity: 0;
+  transform: translateY(8px);
+  animation: funnelStageIn var(--duration-medium, 300ms)
+    var(--easing-out, cubic-bezier(0, 0, 0.2, 1)) forwards;
+  transform-origin: center;
+}
+
+.svg[data-orientation='horizontal'] .stage {
+  transform: translateX(-8px);
+}
+
+@keyframes funnelStageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stage label container — placed inside (vertical) or beside (horizontal). */
+.label {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  fill: var(--color-text-primary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.labelStage {
+  font-weight: var(--font-weight-semibold);
+  fill: var(--color-text-primary);
+}
+
+.labelMeta {
+  font-weight: var(--font-weight-regular);
+  fill: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* Inside-stage labels are painted on top of the colored polygon, so we
+   override fill to a contrasting color for vertical orientation. We use
+   currentColor + a CSS variable so themes can override. */
+.svg[data-orientation='vertical'] .labelInside {
+  fill: var(--color-funnel-label-on-fill, #ffffff);
+}
+
+.svg[data-orientation='vertical'] .labelInsideMeta {
+  fill: var(--color-funnel-label-on-fill, #ffffff);
+  opacity: 0.85;
+}
+
+/* Beside labels (horizontal orientation) sit outside the polygon so use the
+   regular text color. */
+.svg[data-orientation='horizontal'] .labelBeside {
+  fill: var(--color-text-primary);
+}
+
+.svg[data-orientation='horizontal'] .labelBesideMeta {
+  fill: var(--color-text-secondary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

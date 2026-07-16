@@ -1,0 +1,202 @@
+/**
+ * Radio Component Styles
+ * Ocean-inspired with smooth selection animation
+ */
+
+/* ===== RADIO GROUP ===== */
+
+.radioGroup {
+  display: flex;
+  gap: var(--spacing-16);
+}
+
+.radioGroup.vertical {
+  flex-direction: column;
+}
+
+.radioGroup.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* ===== RADIO CONTAINER ===== */
+
+.radioContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.radioWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  cursor: pointer;
+  position: relative;
+}
+
+.radioWrapper:has(.radio:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ===== HIDDEN RADIO INPUT ===== */
+
+.radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ===== CUSTOM RADIO CONTROL ===== */
+
+.radioControl {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem; /* Align with text */
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  transition: var(--transition-default);
+}
+
+.radio:hover:not(:disabled) ~ .radioControl {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .radio:hover:not(:disabled) ~ .radioControl {
+  background-color: var(--color-surface-elevated);
+}
+
+.radio:focus-visible ~ .radioControl {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== CHECKED STATE ===== */
+
+.radio:checked ~ .radioControl {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+}
+
+.radio:checked:hover:not(:disabled) ~ .radioControl {
+  border-color: var(--color-primary-hover);
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .radio:checked:hover:not(:disabled) ~ .radioControl {
+  background-color: var(--color-surface-elevated);
+}
+
+.radio:checked:active:not(:disabled) ~ .radioControl {
+  border-color: var(--color-primary-active);
+}
+
+/* ===== RADIO INDICATOR (DOT) ===== */
+
+.radioIndicator {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity var(--duration-fast) var(--easing-wave),
+              transform var(--duration-fast) var(--easing-wave);
+}
+
+.radio:checked ~ .radioControl .radioIndicator {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.radio:checked:hover:not(:disabled) ~ .radioControl .radioIndicator {
+  background-color: var(--color-primary-hover);
+}
+
+.radio:checked:active:not(:disabled) ~ .radioControl .radioIndicator {
+  background-color: var(--color-primary-active);
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio:disabled ~ .label {
+  cursor: not-allowed;
+}
+
+/* ===== ERROR STATE ===== */
+
+.groupError .radioControl {
+  border-color: var(--color-error-base);
+}
+
+.groupError .radio:hover:not(:disabled) ~ .radioControl {
+  border-color: var(--color-error-dark);
+}
+
+.groupError .radio:focus-visible ~ .radioControl {
+  outline-color: var(--color-error-base);
+}
+
+.errorText {
+  display: block;
+  margin-top: var(--spacing-8);
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== ANIMATIONS ===== */
+
+/*
+ * #62 Defect 3 — `.radio:checked ~ .radioControl { animation: radioRipple }`
+ * fired on every render while the radio was selected, because CSS re-applies
+ * keyframe animations whenever the matching element re-enters the composite.
+ * On pages with frequent re-renders (Settings form with multiple
+ * controlled inputs) the ripple pulsed unpredictably — the "mystery
+ * flashes" the designer audit flagged.
+ *
+ * The genuine selection affordance is already handled by the transitions
+ * on `.radioIndicator` (opacity + transform scale via --easing-wave). The
+ * decorative ripple is removed here rather than ported to a transient
+ * JS-driven class; the loss is negligible against the reduced-motion /
+ * unexpected-firing win.
+ *
+ * @keyframes radioRipple is retained below (commented) for future
+ * event-scoped reinstatement via a .just-selected class applied on
+ * user action.
+ */
+/*
+@keyframes radioRipple {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-primary-alpha-40);
+  }
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+*/

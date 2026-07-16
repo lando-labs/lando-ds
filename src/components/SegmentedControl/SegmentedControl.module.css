@@ -1,0 +1,216 @@
+/**
+ * SegmentedControl Component Styles
+ * Ocean-inspired with smooth sliding indicator
+ */
+
+/* #270 — container-query host (inner-wrapper pattern).
+ *
+ * The lone responsive rule here is a ROOT SELF-WIDTH rule:
+ *   `.container:not(.fullWidth) { width: 100% }` below 640px.
+ * `.container` is `inline-flex` (content-sized), so it CANNOT be its own query
+ * container for this: `container-type: inline-size` would force the element's
+ * inline size to come from its containing block (making it stretch to fill at
+ * ALL widths — a visible regression at >= 640px), and a self-query that sets
+ * its own width off its own width is circular.
+ *
+ * Instead this zero-box wrapper is the container. It is a plain block (fills the
+ * parent's inline size, adds no padding/border/background), and the
+ * `@container segmented-control` rule keys the inner control's `width: 100%` off
+ * the WRAPPER's width. Net effect, thresholds preserved (40rem = 640px):
+ *   - wrapper wider than 40rem  → control hugs its content (unchanged desktop)
+ *   - wrapper at/under 40rem    → control fills the wrapper (was the <640px rule)
+ * Now correctly PARENT-relative instead of viewport-relative. The wrapper does
+ * NOT affect the indicator's getBoundingClientRect math (measured against
+ * `.container`, which is unchanged). Container-name is GLOBAL. */
+.sizer {
+  /* #463 — `.sizer` is an inline-size container-query host (see the `container:`
+   * line below). But `container-type: inline-size` applies inline-axis SIZE
+   * CONTAINMENT: the element is sized as if it had no inline-axis contents. In
+   * normal block flow that is fine (a block fills its containing block's inline
+   * size regardless), but as a FLEX/GRID ITEM (e.g. a `Header` actions slot, or
+   * any `Inline`/flex row) there is no intrinsic width to fall back on, so the
+   * wrapper COLLAPSES to ~0 and the inner `.container` (`inline-flex`) lays out
+   * at its natural width and overflows it — pushing horizontal page scroll.
+   *
+   * `width: 100%` gives the wrapper an EXTRINSIC width in EVERY context (block,
+   * flex, grid) so containment can't collapse it, and it makes the `@container`
+   * threshold correctly PARENT-relative in a flex row too. There is no fix that
+   * keeps an inline-size query container here AND lets the wrapper shrink-wrap
+   * its content: a query container needs an extrinsic width, hugging is
+   * intrinsic — mutually exclusive (verified in-browser: `width: max-content` /
+   * `fit-content` still resolve to 0 under containment).
+   *
+   * Tradeoff: as a flex item the wrapper now FILLS its slot. The visible
+   * `.container` still hugs its content (left-aligned); the trailing space is
+   * the empty, unstyled wrapper. Consumers who need the wrapper itself to hug in
+   * a multi-item row can override via `wrapperClassName` / `wrapperStyle`. */
+  display: block;
+  width: 100%;
+  container: segmented-control / inline-size;
+}
+
+.container {
+  position: relative;
+  display: inline-flex;
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-lg);
+  padding: var(--component-padding-2xs);
+  gap: var(--spacing-4);
+}
+
+.container.fullWidth {
+  width: 100%;
+}
+
+.container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== INDICATOR (Sliding Background) ===== */
+
+.indicator {
+  position: absolute;
+  top: var(--spacing-4);
+  left: var(--spacing-4);
+  bottom: var(--spacing-4);
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-normal) var(--easing-wave),
+              width var(--duration-normal) var(--easing-wave);
+  pointer-events: none;
+  z-index: var(--z-index-base);
+}
+
+[data-theme='dark'] .indicator {
+  background-color: var(--color-primary-base);
+}
+
+/* ===== OPTIONS ===== */
+
+.option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--easing-ease-out);
+  white-space: nowrap;
+  z-index: var(--z-index-content);
+  flex: 1;
+}
+
+.fullWidth .option {
+  flex: 1;
+}
+
+.option:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.option:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.option.active {
+  color: var(--color-on-primary);
+}
+
+[data-theme='dark'] .option.active {
+  color: var(--color-neutral-900);
+}
+
+.option:disabled {
+  cursor: not-allowed;
+}
+
+/* ===== ICON ===== */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ===== SIZES ===== */
+
+.sm {
+  font-size: var(--font-size-sm);
+}
+
+.sm .option {
+  min-height: 1.75rem;
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  gap: var(--spacing-4);
+}
+
+.md {
+  font-size: var(--font-size-base);
+}
+
+.md .option {
+  min-height: 2.25rem;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+}
+
+.lg {
+  font-size: var(--font-size-lg);
+}
+
+.lg .option {
+  min-height: 2.75rem;
+  padding: var(--component-padding-sm) var(--component-padding-lg);
+  gap: var(--spacing-12);
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* #270 — control fills its slot when the wrapper is narrow (was a viewport
+ * @media self-width rule; now keyed off the `.sizer` wrapper — see the note on
+ * `.sizer` above). Threshold preserved: 40rem (640px). */
+/* #472 — KNOWN RESIDUAL, intentionally NOT fixed here (won't-fix without the
+ * coordinated #472 follow-up). When a slot is narrower than the summed
+ * min-content of the options (several long nowrap labels at < ~426px), this
+ * fill rule holds `.container` at the slot width while `flex: 1` options cannot
+ * shrink below their own min-content, so the options spill a few px past the
+ * pill (→ horizontal page-scroll on mobile). Every component-LOCAL CSS remedy
+ * regresses the currently-working state (verified in-browser at a 375px
+ * viewport):
+ *   - `min-width: 0` on `.option` alone lets the boxes shrink but the centered
+ *     nowrap labels then OVERLAP their neighbors (worse than the clean spill);
+ *   - `min-width: 0` + `overflow: hidden` (± `text-overflow: ellipsis`)
+ *     eliminates the spill only by TRUNCATING labels that are fully readable
+ *     today — a readability regression;
+ *   - `overflow-x: auto` on `.container` (internal scroll) clips the options'
+ *     `:focus-visible` outline and desyncs the absolutely-positioned
+ *     `.indicator` (its transform is measured via getBoundingClientRect, which
+ *     ignores scrollLeft).
+ * The proper fix relaxes the container-query HOST contract so the control can
+ * hug/scroll instead of fill — but `container-type` is locked here by the
+ * shared src/test/container-query-sweep.test.ts + src/tokens/containerQueries.ts
+ * (out of scope for a component-local change). Consumers who hit this can
+ * constrain the control via the `wrapperClassName` / `wrapperStyle` escape
+ * hatch. Keeping full label readability + the load-bearing #463 fill rule is
+ * the deliberate trade-off. */
+@container segmented-control (max-width: 40rem) {
+  .container:not(.fullWidth) {
+    width: 100%;
+  }
+}

@@ -1,0 +1,6 @@
+/**
+ * Progress Component Exports
+ */
+
+export { Progress } from './Progress'
+export type { ProgressProps } from './Progress'

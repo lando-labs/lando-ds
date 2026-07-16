@@ -1,0 +1,295 @@
+/**
+ * Sidebar Component Styles
+ *
+ * Default layout: participates in flow (flex/grid parent — e.g. AppShell).
+ * Mobile mode (<768px): upgrades to a fixed drawer with a scrim overlay.
+ *
+ * Width is driven by the element's inline style (`width` + `--sidebar-width`)
+ * so AppShell and other consumers can coordinate content reflow.
+ */
+
+.sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 0;
+  /*
+   * Sprint 10 (#59) — Sidebar now carries a very faint ocean-foam tint
+   * (2-4% effective saturation) instead of the page surface. This gives
+   * the sidebar visible presence even when sparsely populated and
+   * aligns every Lando Labs app with the "ocean as chrome" brand
+   * signature. The tint is the ocean-lightest RGB channel at ~40%
+   * alpha, composited over the page surface — strong enough to read
+   * as "a warmer column," quiet enough not to compete with nav content.
+   *
+   * Collapsed (rail) mode uses the same tint so the sidebar remains
+   * tonally consistent between states.
+   */
+  background-color: var(--color-surface);
+  background-image: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-lightest-rgb) / 0.45),
+    rgb(var(--color-primary-lightest-rgb) / 0.45)
+  );
+  border-right: 1px solid var(--color-border-default);
+  transition: width var(--duration-slow) var(--easing-wave);
+  overflow: hidden;
+  /* Default width for SSR / initial paint; overridden by inline style */
+  width: 16rem;
+}
+
+[data-theme='dark'] .sidebar {
+  /* Dark mode: slightly-lifted-than-page tint. Uses the elevated surface
+   * channel so we don't over-saturate the chrome. */
+  background-image: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-darkest-rgb) / 0.55),
+    rgb(var(--color-primary-darkest-rgb) / 0.55)
+  );
+}
+
+/* ===== FLAT VARIANT (#372 — API parity with Header `variant="flat"`) =====
+ *
+ * Clears the Sprint 10 ocean-foam gradient so consumers running a custom
+ * product theme don't get a mismatched ocean tint patch on the sidebar
+ * rail. The base `background-color: var(--color-surface)` remains, so the
+ * sidebar stays opaque against the page.
+ *
+ * Both light + dark gradients must clear — the dark rule above overrides
+ * `background-image`, so we need a `.flat` rule with equal specificity at
+ * both theme levels.
+ */
+.sidebar.flat,
+[data-theme='dark'] .sidebar.flat {
+  background-image: none;
+}
+
+.sidebar.right {
+  border-right: none;
+  border-left: 1px solid var(--color-border-default);
+}
+
+/* Collapsed (rail) state — applies on tablet/desktop only */
+.sidebar.collapsed {
+  /* Width comes from inline style; no transform needed here. */
+}
+
+.sidebar.collapsed .content {
+  overflow-x: hidden;
+}
+
+/* ===== CONTENT AREA ===== */
+
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--component-padding-md);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary);
+}
+
+/* ===== COLLAPSE BUTTON ===== */
+
+.collapseButton {
+  position: absolute;
+  bottom: var(--spacing-16);
+  right: var(--spacing-12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-default);
+  box-shadow: var(--shadow-sm);
+  z-index: var(--z-index-content);
+}
+
+/*
+ * #64 — Trimmed from 3 effects (bg + color + shadow) to 2. The shadow
+ * jump sm → md was doing extra work on top of the bg/color change and
+ * made a 2rem button feel like it was pushing out of the rail. Color
+ * shift alone is enough to read as "affordance" against the surface-
+ * hover tint.
+ */
+.collapseButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.collapseButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sidebar.right .collapseButton {
+  right: auto;
+  left: var(--spacing-12);
+}
+
+.sidebar.collapsed .collapseButton {
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.sidebar.right.collapsed .collapseButton {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+/* ===== MOBILE DRAWER ===== */
+
+.sidebar.mobile {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  /* Width already set inline; keep transform-based entry */
+  transform: translateX(-100%);
+  transition: transform var(--duration-slow) var(--easing-wave);
+  z-index: var(--z-index-drawer);
+  box-shadow: var(--shadow-lg);
+}
+
+.sidebar.mobile.right {
+  left: auto;
+  right: 0;
+  transform: translateX(100%);
+}
+
+.sidebar.mobile.mobileOpen {
+  transform: translateX(0);
+}
+
+/* Mobile drawer does not show collapse button */
+.sidebar.mobile .collapseButton {
+  display: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(in srgb, black 50%, transparent);
+  z-index: var(--z-index-overlay);
+  animation: sidebarFadeIn var(--duration-slow) var(--easing-wave);
+}
+
+@keyframes sidebarFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ===== OCEAN GRADIENT VARIANT (preserved from previous API) ===== */
+
+.sidebar.gradient {
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-light) 0%,
+    var(--color-primary-medium) 50%,
+    var(--color-primary-dark) 100%
+  );
+  border-right-color: transparent;
+  color: white;
+}
+
+.sidebar.gradient.right {
+  border-left-color: transparent;
+}
+
+.sidebar.gradient .collapseButton {
+  background-color: color-mix(in srgb, white 10%, transparent);
+  border-color: color-mix(in srgb, white 20%, transparent);
+  color: white;
+}
+
+.sidebar.gradient .collapseButton:hover {
+  background-color: color-mix(in srgb, white 20%, transparent);
+}
+
+/* ===== NAV ITEM TOUCH TARGETS (#40, WCAG 2.5.8) =====
+ *
+ * Sidebar nav items previously bottomed out at ~25px tall — well below
+ * the 44×44 target guidance. Enforce a 44px minimum on all List-based
+ * nav items within the Sidebar so the component is usable on touch
+ * devices and by users with motor impairments.
+ *
+ * The selector targets `:global(.listItem)` because List/ListItem emit
+ * scoped CSS Module classes with the bare name `listItem` — same pattern
+ * the legacy collapsed rules below use.
+ */
+.sidebar :global(.listItem) {
+  min-height: 44px;
+}
+
+/* aria-current="page" styling for consumers who render naked
+ * <a aria-current="page"> directly under <Sidebar> (NavLink integrations
+ * etc.) — the active "you are here" cue lives on color + weight here.
+ *
+ * #389 — the background-color paint was REMOVED from this descendant rule
+ * because <SidebarNavItem> owns the active background on its own wrapper
+ * (.item.active). When BOTH rules painted, the outer wrapper went near-
+ * white while the inner anchor went ocean-dark, stacking into a visible
+ * box-in-box artifact (especially in dark mode where the wrapper colour
+ * was light-mode-only). Active background is now SidebarNavItem's
+ * responsibility; this rule only contributes the typographic affordance.
+ */
+.sidebar :global([aria-current="page"]),
+.sidebar :global([aria-current="true"]) {
+  color: var(--color-primary-darker);
+  font-weight: var(--font-weight-medium);
+}
+
+[data-theme='dark'] .sidebar :global([aria-current="page"]),
+[data-theme='dark'] .sidebar :global([aria-current="true"]) {
+  color: var(--color-primary-light);
+}
+
+/* ===== COLLAPSED LIST / ICON-ONLY MODE (legacy children path) ===== */
+/* When consumers don't provide `collapsedContent`, we still try to make the
+   children legible in rail mode by hiding label-like slots on List items. */
+
+.sidebar.collapsed :global(.list) {
+  gap: var(--spacing-4);
+}
+
+.sidebar.collapsed :global(.listItem) {
+  justify-content: center;
+  padding: var(--component-padding-xs);
+  /* Keep the 44px target even in collapsed rail mode — touch users on
+     tablets still need the full hit area. */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.sidebar.collapsed :global(.listItem .content) {
+  display: none;
+}
+
+.sidebar.collapsed :global(.listItem .actions) {
+  display: none;
+}

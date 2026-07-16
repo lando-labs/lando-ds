@@ -1,0 +1,119 @@
+/**
+ * Breadcrumb Component Styles
+ * Ocean-inspired navigation breadcrumbs
+ */
+
+.breadcrumb {
+  font-family: var(--font-family-base);
+
+  /* #270 — container-query responsive. A Breadcrumb in a narrow slot truncates
+   * its middle crumbs by ITS OWN width, not the viewport. The `breadcrumb`
+   * container-name is GLOBAL (CSS Modules does not hash it). Threshold
+   * preserved: 40rem (640px). Token: tokens/containerQueries. */
+  container: breadcrumb / inline-size;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ===== ITEM ===== */
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+/* ===== LINK ===== */
+
+/*
+ * #64 — Underline-jump stabilised. Previously `text-decoration: none` at
+ * rest flipped to `underline` on hover, which caused a subtle baseline
+ * jump as the underline re-painted. We now keep `text-decoration:
+ * underline` always-on but paint the underline `transparent` at rest;
+ * the underline *colour* is the hover affordance, not its presence.
+ * Zero layout shift, same perceived behaviour.
+ */
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition:
+    color var(--duration-fast) var(--easing-ease-out),
+    text-decoration-color var(--duration-fast) var(--easing-ease-out);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-2) var(--component-padding-2xs);
+  margin: calc(var(--spacing-2) * -1) calc(var(--spacing-4) * -1);
+}
+
+.link:hover {
+  color: var(--color-primary-hover);
+  text-decoration-color: currentColor;
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.link:active {
+  color: var(--color-primary-active);
+}
+
+/* ===== TEXT (Active/Non-link) ===== */
+
+.text {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-2) var(--component-padding-2xs);
+}
+
+.active .text {
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+/* ===== SEPARATOR ===== */
+
+.separator {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+
+/* ===== TRUNCATION FOR LONG PATHS ===== */
+
+/* #270 — truncate middle crumbs on the breadcrumb's own width (was viewport
+ * @media). Threshold preserved: 40rem (640px). Targets descendants of
+ * `.breadcrumb`. */
+@container breadcrumb (max-width: 40rem) {
+  .item:not(:first-child):not(:last-child):not(:nth-last-child(2)) .link,
+  .item:not(:first-child):not(:last-child):not(:nth-last-child(2)) .text {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .link {
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,122 @@
+/**
+ * CardMedia — image / video media slot for Card composition.
+ *
+ * Wraps an `<img>`, `<video>`, or any media element so consumers don't
+ * need to hand-roll the `position: relative; overflow: hidden;
+ * object-fit: cover` boilerplate that previously lived inside FeedItemCard,
+ * BaseCard, NewsItemCard, LeadStoryCard etc.
+ *
+ * Card is already `overflow: hidden` with `border-radius: var(--radius-xl)`,
+ * so a `top`-positioned CardMedia at the top of a Card naturally clips to
+ * the rounded corners. `border-radius: inherit` here is defense-in-depth
+ * for nested overflow contexts and for `position="left" | "right"`.
+ *
+ * Sprint 17 (#86 / v0.11.0).
+ */
+
+.media {
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: var(--color-surface-elevated, var(--color-neutral-100));
+  /* Flex item defaults — when Card flips to row-flex (side positions),
+   * we want the media column to keep its configured width and not flex. */
+  flex-shrink: 0;
+}
+
+/* #379 — Edge-to-edge (no Card padding) for top-positioned CardMedia.
+ *
+ * Card carries `padding: var(--spacing-N)` by default (`padding="md"`/`"lg"`
+ * etc.). A `<CardMedia position="top">` placed at the top of the card is
+ * meant to be full-bleed — image/color hero strip flush with the card's
+ * rounded outer edge. We achieve that with symmetric negative inline
+ * margins (cancel left/right padding) plus a negative top margin (cancel
+ * top padding). The bottom margin is intentionally left alone so the
+ * media doesn't collide with CardBody.
+ *
+ * We use the `:first-child` selector so CardMedia only "absorbs" the
+ * card's TOP padding when it's actually first — a CardMedia inserted
+ * mid-card (rare, but legal under the slot model) keeps its in-flow box.
+ *
+ * Padding tokens are referenced by CSS custom property so the rule
+ * works for every Card padding size; Card writes its own padding value
+ * into `--card-padding` (see Card.module.css). When that var isn't
+ * available (e.g. CardMedia rendered outside a Card), the negative
+ * margins resolve to 0 via the fallback, leaving layout unchanged. */
+.media.position-top:first-child {
+  margin-left: calc(-1 * var(--card-padding, 0px));
+  margin-right: calc(-1 * var(--card-padding, 0px));
+  margin-top: calc(-1 * var(--card-padding, 0px));
+}
+
+/* Children that are media elements (img/video) get token-cover sizing.
+ * Scoped to the FIRST level so wrappers from next/image (which renders
+ * <span><img/></span>) still benefit via the inner img selector below. */
+.media > img,
+.media > video,
+.media > picture > img,
+.media > span > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Aspect ratio is set inline via the `aspectRatio` prop (CSS aspect-ratio
+ * accepts ratio strings like "16/9" natively, so we forward the prop
+ * value straight to the style attribute). */
+
+/* ===== POSITION VARIANTS ===== */
+
+/* `top` (default) — media spans full Card width above content. Card's
+ * existing `flex-direction: column` is preserved; nothing to do here. */
+.position-top {
+  width: 100%;
+}
+
+/* `left` / `right` — media becomes a fixed-width column beside CardBody.
+ *
+ * To avoid editing Card.tsx, we use `:has()` on the parent Card element
+ * to flip its `flex-direction` to row when it contains a side-positioned
+ * CardMedia. `:has()` is supported in all modern browsers (Chrome 105+,
+ * Firefox 121+, Safari 15.4+). Older runtimes simply fall back to the
+ * column layout — the media still renders, just stacked on top.
+ *
+ * `:global(*)` keeps the rule unscoped from CSS Modules class hashing,
+ * which is necessary because Card's `.card` class is also hashed and we
+ * have no stable selector for it from inside CardMedia.module.css. The
+ * data-attribute scoping (`[data-card-media-position]`) keeps the rule
+ * targeted to actual CardMedia children. */
+
+.position-left {
+  /* `order: -1` would flip ordering inside a row-flex parent so a CardMedia
+   * placed AFTER CardBody still renders on the left, but consumers should
+   * place CardMedia first in JSX for correct visual + DOM order. We set
+   * order anyway as a convenience for `position="left"`. */
+  order: -1;
+}
+
+.position-right {
+  order: 1;
+}
+
+/* Parent flex-direction flip via :has() — see comment above. */
+:global(*):has(> [data-card-media-position='left']),
+:global(*):has(> [data-card-media-position='right']) {
+  flex-direction: row;
+}
+
+/* ===== PLACEHOLDER + FALLBACK SLOTS ===== */
+
+.placeholder,
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-surface-elevated, var(--color-neutral-100));
+  color: var(--color-text-secondary);
+}

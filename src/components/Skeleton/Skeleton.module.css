@@ -1,0 +1,109 @@
+/**
+ * Skeleton Component Styles
+ * Ocean-inspired wave animation for loading states
+ */
+
+.skeleton {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-neutral-200);
+  border-radius: var(--radius-md);
+}
+
+[data-theme='dark'] .skeleton {
+  background-color: var(--color-surface-elevated);
+}
+
+/* ===== VARIANTS ===== */
+
+.text {
+  height: 1em;
+  width: 100%;
+  transform: scale(1, 0.6);
+  border-radius: var(--radius-sm);
+}
+
+.circular {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+}
+
+.rectangular {
+  width: 100%;
+  height: 8rem;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/* Pulse Animation */
+.pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Wave Animation (Ocean-inspired) */
+.wave {
+  position: relative;
+}
+
+.waveOverlay {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, white 40%, transparent),
+    transparent
+  );
+  animation: skeletonWave 1.6s ease-in-out infinite;
+  transform: translateX(-100%);
+}
+
+[data-theme='dark'] .waveOverlay {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--color-primary-base-rgb) / 0.15),
+    transparent
+  );
+}
+
+@keyframes skeletonWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .wave {
+    animation: none;
+  }
+
+  .waveOverlay {
+    display: none;
+  }
+
+  .skeleton {
+    opacity: 0.6;
+  }
+}

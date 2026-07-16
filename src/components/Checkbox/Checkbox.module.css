@@ -1,0 +1,188 @@
+/**
+ * Checkbox Component Styles
+ * Ocean-inspired with smooth checkmark animation
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+/* ===== CHECKBOX WRAPPER ===== */
+
+.checkboxWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  cursor: pointer;
+  position: relative;
+}
+
+.checkboxWrapper:has(.checkbox:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ===== HIDDEN CHECKBOX INPUT ===== */
+
+.checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ===== CUSTOM CHECKBOX CONTROL ===== */
+
+.checkboxControl {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem; /* Align with text */
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  transition: var(--transition-default);
+  overflow: visible;
+}
+
+.checkbox:hover:not(:disabled) ~ .checkboxControl {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .checkbox:hover:not(:disabled) ~ .checkboxControl {
+  background-color: var(--color-surface-elevated);
+}
+
+.checkbox:focus-visible ~ .checkboxControl {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== CHECKED STATE ===== */
+
+.checkbox:checked ~ .checkboxControl {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox:checked:hover:not(:disabled) ~ .checkboxControl {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.checkbox:checked:active:not(:disabled) ~ .checkboxControl {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* ===== ERROR STATE ===== */
+
+.checkbox.error ~ .checkboxControl {
+  border-color: var(--color-error-base);
+}
+
+.checkbox.error:hover:not(:disabled) ~ .checkboxControl {
+  border-color: var(--color-error-dark);
+}
+
+.checkbox.error:focus-visible ~ .checkboxControl {
+  outline-color: var(--color-error-base);
+}
+
+/* ===== ICONS ===== */
+
+.checkIcon,
+.indeterminateIcon {
+  grid-area: 1 / 1;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 1.125rem;
+  min-height: 1.125rem;
+  max-width: 1.125rem;
+  max-height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--color-on-primary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-wave);
+}
+
+/* Show checkmark when checked */
+.checkbox:checked ~ .checkboxControl .checkIcon {
+  opacity: 1;
+}
+
+/* Hide checkmark when indeterminate */
+.checkbox:indeterminate ~ .checkboxControl .checkIcon {
+  opacity: 0;
+}
+
+/* Show indeterminate icon */
+.checkbox:indeterminate ~ .checkboxControl {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox:indeterminate ~ .checkboxControl .indeterminateIcon {
+  opacity: 1;
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox:disabled ~ .label {
+  cursor: not-allowed;
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ===== ERROR TEXT ===== */
+
+.errorText {
+  display: block;
+  margin-inline-start: calc(1.25rem + var(--spacing-12)); /* Align with label */
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 16;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkbox:checked ~ .checkboxControl .checkIcon path {
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: checkmarkDraw var(--duration-normal) var(--easing-wave) forwards;
+}

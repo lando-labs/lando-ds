@@ -1,0 +1,226 @@
+/**
+ * Toast Component Styles
+ * Ocean-inspired notification toasts with slide-in animations
+ */
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  min-width: 320px;
+  max-width: 480px;
+  padding: var(--component-padding-md);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: toastSlideIn var(--duration-slow) var(--easing-wave);
+  overflow: hidden;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast.exiting {
+  animation: toastSlideOut var(--duration-normal) var(--easing-ease-in);
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+}
+
+/* Variant colors */
+.toast.success {
+  border-inline-start: 4px solid var(--color-success-base);
+}
+
+.toast.success .icon {
+  color: var(--color-success-base);
+}
+
+.toast.error {
+  border-inline-start: 4px solid var(--color-error-base);
+}
+
+.toast.error .icon {
+  color: var(--color-error-base);
+}
+
+.toast.warning {
+  border-inline-start: 4px solid var(--color-warning-base);
+}
+
+.toast.warning .icon {
+  color: var(--color-warning-base);
+}
+
+.toast.info {
+  border-inline-start: 4px solid var(--color-info-base);
+}
+
+.toast.info .icon {
+  color: var(--color-info-base);
+}
+
+/* Icon */
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-4);
+  line-height: var(--line-height-tight);
+}
+
+.message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  word-wrap: break-word;
+}
+
+/* Action button */
+.action {
+  flex-shrink: 0;
+  padding: var(--component-padding-2xs) var(--component-padding-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.action:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.action:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Close button */
+.closeButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.closeButton:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.closeButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Progress bar */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  height: 3px;
+  background-color: var(--color-border-subtle);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-base),
+    var(--color-primary-light)
+  );
+  transition: width linear 50ms;
+  border-radius: var(--radius-full);
+}
+
+/* Success variant progress */
+.toast.success .progressFill {
+  background: linear-gradient(
+    90deg,
+    var(--color-success-base),
+    var(--color-success-light)
+  );
+}
+
+/* Error variant progress */
+.toast.error .progressFill {
+  background: linear-gradient(
+    90deg,
+    var(--color-error-base),
+    var(--color-error-light)
+  );
+}
+
+/* Warning variant progress */
+.toast.warning .progressFill {
+  background: linear-gradient(
+    90deg,
+    var(--color-warning-base),
+    var(--color-warning-light)
+  );
+}
+
+/* Responsive */
+/* #281 — intentionally kept as a viewport `@media` (category B). The rule is
+ * irreducibly viewport-relative (it caps `max-width` at `calc(100vw - …)`), and
+ * `<Toast>` is exported standalone — used outside any ToastContainer/Provider it
+ * has NO container-named ancestor, so an `@container` rule would silently no-op
+ * on a narrow phone and let the 320px min-width overflow. Stays `@media`. */
+@media (max-width: 640px) {
+  .toast {
+    min-width: 280px;
+    max-width: calc(100vw - var(--spacing-32));
+  }
+}
+
+/* Reduced motion — handled centrally (#274). The slide animations above
+ * reference `var(--duration-*)` tokens which collapse to 0ms inside the
+ * `@media (prefers-reduced-motion: reduce)` block in tokens.css; the
+ * animations still run, just for 0ms (effectively instantaneous). The
+ * legacy per-component `animation: none` overrides are redundant against
+ * that token cascade and have been removed. */

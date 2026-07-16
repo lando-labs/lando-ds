@@ -1,0 +1,65 @@
+/**
+ * ColorSwatch styles (#379).
+ *
+ * Intentionally minimal — the swatch is a presentational chip whose
+ * color is consumer-controlled via inline `background-color`. We provide
+ * sizing, shape, a subtle border for low-contrast colors (so a `#FFFFFF`
+ * swatch is still visible on a white surface), and a caption-style label
+ * underneath.
+ *
+ * No brand-color literals here — `no-raw-brand-color.test.ts` would flag
+ * them, and the swatch surface should never bake a brand value (consumers
+ * supply that). Border + text color route through neutral tokens that
+ * re-skin with the rest of the system.
+ */
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+/* With a label, stack swatch and caption vertically with a small gap. */
+.root.withLabel {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+
+/* The swatch chip itself.
+ *
+ * `inset-shadow` provides a faint outline so a near-surface color (e.g.
+ * white swatch on a white card) still reads as a distinct chip. Using
+ * `inset 0 0 0 1px` instead of `border:` keeps the chip's outer dimensions
+ * exactly equal to the supplied `width`/`height` (border would expand the
+ * box and offset alignment in tight grids). */
+.chip {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+  /* width / height set inline via the size prop. */
+  /* background-color set inline via the color prop. */
+}
+
+/* Shape variants ----------------------------------------------------- */
+
+.shape-square {
+  /* Default — small radius gives chips a friendly, modern feel without
+   * looking like pills. Matches the system's `--radius-sm`. */
+  border-radius: var(--radius-sm);
+}
+
+.shape-circle {
+  border-radius: 50%;
+}
+
+/* Caption ------------------------------------------------------------ */
+
+.label {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-secondary);
+}

@@ -1,0 +1,7 @@
+node_modules/
+.next/
+*.tgz
+next-env.d.ts
+# Not committed: the DS is a file: tarball re-packed each CI run, so a pinned
+# integrity hash here causes EINTEGRITY. The harness installs fresh.
+package-lock.json

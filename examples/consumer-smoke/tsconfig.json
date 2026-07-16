@@ -1,0 +1,18 @@
+{
+  "//": "Mirrors create-next-app's defaults for the surface that matters here: moduleResolution 'bundler' + strict + skipLibCheck. This is the resolution mode real consumers use, and the one under which #468's missing dist/components.d.ts collapsed the root barrel to `any`.",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

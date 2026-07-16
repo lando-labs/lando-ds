@@ -1,0 +1,287 @@
+/**
+ * Footer Component Styles
+ * Ocean-inspired with responsive layout
+ */
+
+.footer {
+  width: 100%;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  /* Positioning context for the .accent ribbon pseudo-element below. */
+  position: relative;
+
+  /* #270 — container-query responsive. A Footer placed in a narrow slot (e.g.
+   * inside a modal or a constrained column) collapses its rich link grid by ITS
+   * OWN width, not the viewport. The `footer` container-name is GLOBAL (CSS
+   * Modules does not hash it). Thresholds preserved: the rich grid collapses at
+   * 48rem (768px) and the columns reflow at 40rem (640px) — see the two
+   * `@container footer` blocks below. Token: tokens/containerQueries. */
+  container: footer / inline-size;
+}
+
+/* ===== GRADIENT RIBBON (Sprint 10 #59) =====
+ *
+ * Brand-foundation.md:729 calls for "gradient border-top" as a signature
+ * element on every Lando Labs product. This renders a 2px ocean → teal
+ * horizontal gradient sitting on top of the default 1px border so the
+ * ribbon reads as brand-identifying without becoming a hero banner.
+ *
+ * 2px is the sweet spot: 1px disappears below an inch of viewing distance,
+ * 3px starts feeling like a content strip. Opt out via `accent={false}`
+ * on the Footer component.
+ */
+.footer.accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-base) 0%,
+    var(--color-secondary-base) 100%
+  );
+  /* Sit above the 1px neutral border underneath so the ribbon shows cleanly. */
+  pointer-events: none;
+}
+
+[data-theme='dark'] .footer.accent::before {
+  /* Dark mode uses the brighter ocean/teal steps to stay visible against
+   * the deeper page surface. */
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-base) 0%,
+    var(--color-secondary-base) 100%
+  );
+}
+
+/* ===== SIMPLE VARIANT ===== */
+
+.simple {
+  padding: var(--component-padding-lg) 0;
+}
+
+.simpleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-16);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--component-padding-lg);
+  text-align: center;
+}
+
+.simpleLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== RICH VARIANT ===== */
+
+.rich {
+  padding: var(--component-padding-2xl) 0 0;
+}
+
+.richContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--spacing-48);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--component-padding-lg);
+}
+
+/* #270 — rich link grid collapses on the footer's own width (was viewport
+ * @media). Threshold preserved: 48rem (768px). `.richContainer` is a descendant
+ * of `.footer`. */
+@container footer (max-width: 48rem) {
+  .richContainer {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-32);
+  }
+}
+
+/* ===== BRAND SECTION ===== */
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+/* ===== SOCIAL LINKS ===== */
+
+.social {
+  display: flex;
+  gap: var(--spacing-12);
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface-elevated);
+  transition: var(--transition-default);
+  text-decoration: none;
+}
+
+/*
+ * #64 — socialLink previously lifted -2px; dialed to -1px to sit in the
+ * same hover-lift family as cards. color + bg shift + translate is three
+ * effects, but the color and bg are the same tonal family (ocean) so
+ * they read as one "ocean-ify" step rather than competing.
+ */
+.socialLink:hover {
+  color: var(--color-primary);
+  background-color: var(--color-primary-lightest);
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .socialLink:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.socialLink:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== LINK COLUMNS ===== */
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-32);
+}
+
+/* #270 — link columns reflow on the footer's own width (was viewport @media).
+ * Threshold preserved: 40rem (640px). `.columns` is a descendant of `.footer`. */
+@container footer (max-width: 40rem) {
+  .columns {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-24);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.columnTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.linkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+/*
+ * #64 — Underline stabilised (see Breadcrumb.module.css for the same
+ * pattern). Always-on underline with transparent colour at rest →
+ * currentColor on hover. Zero baseline shift.
+ */
+.link {
+  display: inline-block;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition:
+    color var(--duration-fast) var(--easing-ease-out),
+    text-decoration-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.link:hover {
+  color: var(--color-primary);
+  text-decoration-color: currentColor;
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== BOTTOM SECTION (COPYRIGHT) ===== */
+
+.bottom {
+  margin-top: var(--spacing-48);
+  padding: var(--component-padding-lg) 0;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.copyright {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.simple .copyright {
+  text-align: center;
+}
+
+/* ===== OCEAN GRADIENT VARIANT ===== */
+
+.footer.gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary-medium) 50%,
+    var(--color-primary-light) 100%
+  );
+  border-top-color: transparent;
+  color: color-mix(in srgb, white 90%, transparent);
+}
+
+.footer.gradient .columnTitle,
+.footer.gradient .copyright {
+  color: white;
+}
+
+.footer.gradient .link {
+  color: color-mix(in srgb, white 80%, transparent);
+}
+
+.footer.gradient .link:hover {
+  color: white;
+}
+
+.footer.gradient .socialLink {
+  background-color: color-mix(in srgb, white 10%, transparent);
+  color: white;
+}
+
+.footer.gradient .socialLink:hover {
+  background-color: color-mix(in srgb, white 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.footer.gradient .bottom {
+  border-top-color: color-mix(in srgb, white 20%, transparent);
+}

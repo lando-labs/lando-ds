@@ -1,0 +1,151 @@
+/**
+ * Chart Component Styles
+ *
+ * Ocean-themed styling for base chart wrapper with loading, empty, and error states
+ */
+
+/* #270 — container-query host (inner-wrapper pattern).
+ *
+ * A Chart in a narrow Card/grid track drops to a smaller base font by ITS OWN
+ * width, not the viewport. The responsive rule below sets `.chartContainer`'s
+ * OWN `font-size` (which then cascades into the Recharts subtree + title), which
+ * is the bug-prone case: an element's `@container` query is evaluated against
+ * its nearest ANCESTOR container, never itself, so putting the container on
+ * `.chartContainer` AND querying `.chartContainer` from it would silently do
+ * nothing.
+ *
+ * `.sizer` is a zero-box wrapper (a plain block — fills its track's inline size,
+ * adds no padding/border/background/layout of its own) that carries the
+ * container. `.chartContainer` is its child, so the `@container chart` font-size
+ * rule now correctly matches. The `chart` container-name is GLOBAL (CSS Modules
+ * does not hash it). Threshold preserved: 40rem (640px).
+ * Token: tokens/containerQueries. */
+.sizer {
+  display: block;
+  container: chart / inline-size;
+}
+
+.chartContainer {
+  position: relative;
+  width: 100%;
+  animation: waveIn var(--duration-medium) var(--easing-out);
+}
+
+@keyframes waveIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-primary-lightest) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Empty State */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-text-secondary);
+  gap: var(--spacing-sm);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  color: var(--color-primary-lighter);
+}
+
+.emptyText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Error State */
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-error);
+  gap: var(--spacing-sm);
+}
+
+.errorIcon {
+  font-size: 3rem;
+}
+
+.errorText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Chart Title */
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+/* #270 — base font shrinks on the chart's own width (was viewport @media).
+ * Threshold preserved: 40rem (640px). `.chartContainer` is a DESCENDANT of the
+ * `.sizer` container host (see the note on `.sizer` above), so this font-size
+ * override actually applies — it would NOT have, as a container self-rule. */
+@container chart (max-width: 40rem) {
+  .chartContainer {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .chartContainer {
+    animation: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+}

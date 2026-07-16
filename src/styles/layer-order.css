@@ -1,0 +1,51 @@
+/*
+ * @lando-labs/lando-ds — Cascade-layer ORDER PRIMER (issue #462)
+ * ---------------------------------------------------------------------------
+ * Import this FIRST, before your own reset and before the DS stylesheet, when
+ * you consume the DS alongside a global CSS reset (e.g. the create-next-app
+ * default `globals.css` with `* { margin: 0; padding: 0 }`).
+ *
+ * WHY THIS EXISTS
+ * --------------
+ * The DS ships all of its CSS inside named cascade layers
+ * (`ll.reset` … `ll.utilities`). Per the CSS cascade, an UNLAYERED rule beats
+ * EVERY layered rule regardless of specificity. That is the DS override
+ * contract — your unlayered `.my-button { … }` wins with no `!important`.
+ *
+ * But it cuts both ways: an UNLAYERED reset such as `* { padding: 0; margin: 0 }`
+ * ALSO beats the DS's layered component padding/margins and zeroes them out.
+ * The fix is to give your reset a layer too, ordered BEFORE the DS layers, and
+ * keep your real app overrides in a layer ordered AFTER them (or unlayered).
+ *
+ * HOW TO USE
+ * ----------
+ * 1. Import this primer once, at the very top of your global CSS entry — it
+ *    must appear before the first `@layer NAME { … }` block anywhere, because
+ *    layer precedence is fixed by first appearance:
+ *
+ *      @import '@lando-labs/lando-ds/layer-order.css';
+ *      @import '@lando-labs/lando-ds/styles';
+ *
+ * 2. Put your reset in the `app-reset` layer (declared first here, so it sits
+ *    BELOW the DS layers and no longer clobbers component spacing):
+ *
+ *      @layer app-reset {
+ *        * { margin: 0; padding: 0; box-sizing: border-box; }
+ *      }
+ *
+ * 3. Put deliberate overrides in the `app` layer (declared last here, so it
+ *    beats the DS layers) — or write them unlayered, which beats everything.
+ *
+ * The resulting precedence (low → high):
+ *   app-reset < ll.reset < ll.tokens < ll.base < ll.components < ll.utilities
+ *             < app < your unlayered CSS
+ *
+ * ALTERNATIVE: if you don't want to manage layer order at all, import the
+ * FLATTENED escape-hatch bundle instead of `…/styles`, which ships the same
+ * rules with NO `@layer` wrappers so ordinary source order / specificity apply:
+ *
+ *      @import '@lando-labs/lando-ds/styles.unlayered.css';
+ *
+ * See reference/css-layers.md → "Consuming alongside a CSS reset".
+ */
+@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;

@@ -1,0 +1,51 @@
+/**
+ * Field Component Styles
+ *
+ * Only applies to the "bare child" path (raw `<input>`, `<select>`, etc.).
+ * Label-aware Lando inputs render their own chrome and never see these
+ * styles. Structure mirrors Input.module.css so a mixed form looks
+ * consistent.
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}

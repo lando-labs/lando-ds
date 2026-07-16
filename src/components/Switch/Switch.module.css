@@ -1,0 +1,212 @@
+/**
+ * Switch Component Styles
+ * Ocean-inspired with smooth wave transition
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== SWITCH WRAPPER ===== */
+
+.switchWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  cursor: pointer;
+  position: relative;
+}
+
+.switchWrapper:has(.switch:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ===== HIDDEN SWITCH INPUT ===== */
+
+.switch {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ===== TRACK ===== */
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-default);
+  transition: background-color var(--duration-normal) var(--easing-wave);
+}
+
+/* Track sizes */
+.track.sm {
+  width: 2rem;
+  height: 1rem;
+  padding: 0.125rem;
+}
+
+.track.md {
+  width: 2.75rem;
+  height: 1.5rem;
+  padding: 0.125rem;
+}
+
+.track.lg {
+  width: 3.5rem;
+  height: 2rem;
+  padding: 0.1875rem;
+}
+
+/* Hover state */
+.switch:hover:not(:disabled) ~ .track {
+  background-color: var(--color-border-strong);
+}
+
+/* Focus state — unified --focus-ring-* tokens (#38) */
+.switch:focus-visible ~ .track {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Checked state */
+.switch:checked ~ .track {
+  background-color: var(--color-primary);
+}
+
+.switch:checked:hover:not(:disabled) ~ .track {
+  background-color: var(--color-primary-hover);
+}
+
+.switch:checked:active:not(:disabled) ~ .track {
+  background-color: var(--color-primary-active);
+}
+
+/* ===== THUMB ===== */
+
+.thumb {
+  display: block;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  /*
+   * #62 Defect 4 — `width` is now in the transition list so the press-down
+   * "stretch" on :active eases in/out rather than snapping. Previously
+   * only `transform` was eased; the width change fought the ease and
+   * looked like a flicker.
+   */
+  transition: transform var(--duration-normal) var(--easing-wave),
+              width var(--duration-fast) var(--easing-wave);
+}
+
+/* Thumb sizes */
+.sm .thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.md .thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.lg .thumb {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+/* Checked thumb position */
+.switch:checked ~ .track.sm .thumb {
+  transform: translateX(1rem);
+}
+
+.switch:checked ~ .track.md .thumb {
+  transform: translateX(1.25rem);
+}
+
+.switch:checked ~ .track.lg .thumb {
+  transform: translateX(1.5rem);
+}
+
+/* Active state - slight scale */
+.switch:active:not(:disabled) ~ .track .thumb {
+  width: calc(100% - 0.25rem);
+}
+
+.switch:checked:active:not(:disabled) ~ .track.sm .thumb {
+  transform: translateX(0.75rem);
+}
+
+.switch:checked:active:not(:disabled) ~ .track.md .thumb {
+  transform: translateX(1rem);
+}
+
+.switch:checked:active:not(:disabled) ~ .track.lg .thumb {
+  transform: translateX(1.25rem);
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch:disabled ~ .label {
+  cursor: not-allowed;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/*
+ * #62 Defect 4 — `switchWave` was applied via `.switch:checked ~ .track .thumb`,
+ * which re-fires the keyframe animation whenever the parent re-renders in
+ * the checked state. The keyframe also competed with the .thumb transform
+ * transition: the transition eased into the checked translateX, then the
+ * animation pushed it an extra 2px back-and-forth — a visible wobble.
+ *
+ * Removed. The checked-state translateX on `.thumb` already provides the
+ * movement feedback; the extra wobble was decorative and unreliable.
+ * Kept the @keyframes (commented) below for future event-scoped
+ * reinstatement via a transient class applied on user change.
+ */
+/*
+@keyframes switchWave {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+*/
+
+/* Dark mode adjustments */
+[data-theme='dark'] .track {
+  background-color: var(--color-surface-elevated);
+}
+
+[data-theme='dark'] .switch:hover:not(:disabled) ~ .track {
+  background-color: var(--color-surface-hover);
+}
+
+[data-theme='dark'] .thumb {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}

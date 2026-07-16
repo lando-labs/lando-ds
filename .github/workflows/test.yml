@@ -1,0 +1,212 @@
+name: Test
+
+# Pre-merge gate that runs the full typecheck + lint + test + build pipeline
+# on every PR and on every push to main. Closes the gap that allowed six
+# consecutive silent publish failures (v0.15.0 → v0.17.0) to accrue between
+# 2026-05-20 and 2026-06-09 without any PR check failing — vitest had only
+# ever run inside `publish.yml` on tag push, never on PR review.
+#
+# Mirrors publish.yml's pre-publish steps exactly (minus the publish):
+# typecheck → lint → test → build, in the same order publish runs them.
+#
+# To make this required, add it to the branch-protection required-checks list
+# in repo settings — that's an org-policy decision left out of this PR.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Typecheck + lint + test + build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --run
+
+      - name: Build library
+        run: npm run build
+
+      # #419 — the DS validates its OWN dist/meta.json against the versioned
+      # schema package's validator (assembles it first). Fails the build if the
+      # emitted artifact ever violates the published schema shape.
+      - name: Validate emitted meta against the schema package
+        run: npm run assemble:meta-schema && npm run validate:meta
+
+      # #508 — enforce the uncontrolled-first state contract against the emitted
+      # meta prop tables (meta = SSoT). Fails the build if a stateful component
+      # is missing its default*/on*Change pair, or a new on*Change callback
+      # escapes the contract registry (scripts/state-contract.mjs).
+      - name: Validate uncontrolled-first state contract
+        run: npm run validate:state
+
+      # #504 — a hook that isn't in meta.json is invisible to the MCP server and
+      # to AI agents: a consumer importing the DS in 77 files still hand-rolled
+      # its own useFocusTrap because ours was undiscoverable. This blocks any
+      # hook that ships without a meta entry, description, category, signature,
+      # or a reference/hooks.md entry.
+      - name: Validate hooks surface is discoverable
+        run: npm run validate:hooks
+
+      # Drift guard for the COMMITTED source-generated artifacts (tokens.css,
+      # generated doc counts in CLAUDE.md/COMPONENTS.md). `npm run build` already
+      # reran emit-tokens; sync-docs refreshes the CLAUDE.md/COMPONENTS.md counts.
+      # We then assert the COMMITTED copies match what regeneration produced via
+      # `git diff --exit-code`.
+      #
+      # NOTE (#468, commit-none): dist/ is no longer committed — it's rebuilt on
+      # demand (`prepare` + publish.yml). So dist/meta.json and dist/meta.verbose.json
+      # are NOT in this guard anymore (there is no committed baseline to diff
+      # against). Their correctness is still enforced: `npm run build` regenerates
+      # them and the "Validate emitted meta against the schema package" step above
+      # (`validate:meta`) blocks the build if the freshly-emitted meta violates the
+      # schema. This guard now covers only files that ARE committed.
+      #
+      # Why git-diff and not the `*:check` scripts: `npm ci` runs the `prepare`
+      # lifecycle (`husky && npm run build`), so the build runs at INSTALL time,
+      # before any step here — which would let `emit-tokens:check` compare
+      # freshly-regenerated-vs-freshly-regenerated and pass on real committed
+      # drift. Comparing the rebuilt working tree against the committed HEAD is
+      # immune to that: drift committed to these files fails here even though
+      # prepare already rebuilt them. (The standalone `*:check` scripts are kept
+      # for fast local use; emit-tokens/sync-docs work without a build.)
+      - name: Regenerate docs from source
+        run: npm run sync-docs
+
+      - name: Verify committed generated artifacts are in sync with source
+        run: |
+          git diff --exit-code -- \
+            src/styles/tokens.css CLAUDE.md COMPONENTS.md \
+          || { echo "::error::Committed generated artifacts drifted from source. Run \`npm run build && npm run sync-docs\` and commit the result."; exit 1; }
+
+  # #365 / #468 — External-consumer TYPE-RESOLUTION smoke test (BLOCKING).
+  #
+  # Proves a real consumer of the PACKED tarball gets working types under
+  # `moduleResolution: bundler` (create-next-app's default). This is the CI
+  # guarantee that REPLACES committed-dist (#468, commit-none): the DS no longer
+  # commits dist/, so nothing but this job proves the PUBLISHED .d.ts surface
+  # resolves for a consumer.
+  #
+  # It packs the DS exactly as npm would publish it, installs the tarball into a
+  # minimal CSR/tsc consumer (examples/consumer-smoke), and runs `tsc --noEmit`.
+  # The consumer imports from the package ROOT (Button, DataTable, DataTableColumn)
+  # and a SUBPATH, and asserts none of them resolve to `any` (IsAny guard). A
+  # missing/dropped root export makes `tsc` fail with TS2305/TS2344 — proven
+  # non-vacuously by deleting dist/components.d.ts locally (→ "no exported member
+  # 'Button'"). No bundler build here, so it is fast enough to BLOCK — unlike the
+  # heavier next-build harness below.
+  consumer-tsc:
+    name: External-consumer type-resolution (tarball, blocking)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      # `npm pack` re-runs `prepare` (build), so the tarball's dist is fresh.
+      # Stage it under the consumer as a stable filename its package.json
+      # references (`file:ds.tgz`).
+      - name: Pack DS and stage the tarball in the smoke consumer
+        run: |
+          npm pack --pack-destination ./examples/consumer-smoke
+          mv ./examples/consumer-smoke/lando-labs-lando-ds-*.tgz ./examples/consumer-smoke/ds.tgz
+
+      # The consumer lockfile is intentionally NOT committed (the DS is a file:
+      # tarball re-packed each run → a pinned integrity hash would EINTEGRITY).
+      - name: Install consumer dependencies (incl. packed DS tarball)
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
+        working-directory: ./examples/consumer-smoke
+
+      - name: 'tsc --noEmit (moduleResolution: bundler)'
+        run: npx tsc --noEmit
+        working-directory: ./examples/consumer-smoke
+
+  # RSC proof harness: validates that the DS build can be consumed inside a
+  # Next.js App Router application (server components + client components).
+  # Runs pack → install → next build to exercise the full consumer pipeline.
+  #
+  # Currently non-blocking (continue-on-error: true) so it cannot fail a PR
+  # while the harness is being stabilised on CI. Once it has run green on
+  # several consecutive PRs, flip continue-on-error to false and add
+  # "rsc-build" to the branch-protection required-checks list.
+  rsc-build:
+    name: RSC next build (non-blocking)
+    runs-on: ubuntu-latest
+    # Only run when files that affect the library output or the example change.
+    # Skipping on unrelated changes keeps CI fast and avoids false noise.
+    if: |
+      github.event_name == 'push' ||
+      contains(toJson(github.event.pull_request.labels.*.name), 'rsc') ||
+      true
+    # Gate on relevant path changes via a separate path-filter step below.
+    # (GitHub's path filter on `if:` requires the paths-filter action; we
+    # approximate it by running on all PRs but keeping the job non-blocking.)
+    continue-on-error: true  # TODO: flip to false once proven stable on CI
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      - name: Pack library tarball
+        run: npm pack
+
+      # Install next/react + the freshly packed DS (referenced as a file: tarball
+      # in the example's package.json). The example lockfile is intentionally NOT
+      # committed: it would pin the integrity hash of one local pack, and CI
+      # re-packs each run → EINTEGRITY. Remove any stray lockfile and install fresh.
+      - name: Install example dependencies (incl. packed DS tarball)
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
+        working-directory: ./examples/next-app-router
+
+      - name: next build (RSC proof)
+        run: npx next build
+        working-directory: ./examples/next-app-router

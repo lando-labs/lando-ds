@@ -1,0 +1,335 @@
+/**
+ * Button Component Styles
+ * Ocean-inspired with ripple effects and smooth transitions
+ */
+
+.button {
+  /* Reset default button styles */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  border: none;
+  outline: none;
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  white-space: nowrap;
+  transition: var(--transition-default);
+  border-radius: var(--radius-lg);
+
+  /* Ensure ripple stays within bounds */
+  overflow: hidden;
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/*
+ * #39 — Disabled state uses dedicated surface/text tokens rather than
+ * opacity. Opacity-only disabled is easily mistaken for an in-flight
+ * (loading) state; the dedicated tokens read as "not interactive" while
+ * leaving the loading state (variant color + spinner) visually distinct.
+ *
+ * Applies to every variant (primary/secondary/outline/ghost/danger/link)
+ * EXCEPT when the button is simultaneously in the `loading` state — the
+ * `.loading` selector below restores variant coloring so the spinner sits
+ * on top of the normal button fill.
+ */
+.button:disabled:not(.loading) {
+  background-color: var(--color-surface-disabled);
+  color: var(--color-text-on-disabled);
+  border-color: var(--color-border-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/*
+ * Loading state: disabled at the DOM level for a11y / to suppress clicks,
+ * but visually retains the variant look with a 50% veil so users perceive
+ * "working" rather than "not available." This MUST come after the
+ * disabled rule to win specificity.
+ */
+.button:disabled.loading {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.button.fullWidth {
+  width: 100%;
+}
+
+/*
+ * ===== SIZES =====
+ *
+ * #73 — Canonical size scale for interactive controls. Badge was realigned
+ * to match this scale so adjacent `<Button size="sm" />` + `<Badge size="sm" />`
+ * compositions sit at the same flex-row height:
+ *
+ *   sm → 2rem   (32px)
+ *   md → 2.5rem (40px)
+ *   lg → 3rem   (48px)
+ *
+ * Button retains additional xs (28px) / xl (56px) steps; Badge intentionally
+ * does not — chip-sized badges use `dot` + `pill` compositions instead.
+ */
+
+.xs {
+  min-height: 1.75rem;
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  font-size: var(--font-size-xs);
+  gap: var(--spacing-4);
+}
+
+.sm {
+  min-height: 2rem;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-8);
+}
+
+.md {
+  min-height: 2.5rem;
+  padding: var(--component-padding-sm) var(--component-padding-lg);
+  font-size: var(--font-size-base);
+}
+
+.lg {
+  min-height: 3rem;
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  font-size: var(--font-size-lg);
+}
+
+.xl {
+  min-height: 3.5rem;
+  padding: var(--component-padding-lg) var(--component-padding-xl);
+  font-size: var(--font-size-xl);
+}
+
+/* ===== VARIANTS ===== */
+
+.primary {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+ * #43 DS-POLISH-Button-Ripple-Lift — dialed back from translateY(-1px) +
+ * shadow-md to translateY(-0.5px) + shadow-sm→md. Combined movement +
+ * shadow jump previously felt like a second affordance. Now it's a
+ * gentle rise that still reads as hover.
+ */
+.primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-0.5px);
+}
+
+.primary:active:not(:disabled) {
+  background-color: var(--color-primary-active);
+  box-shadow: var(--shadow-xs);
+  transform: translateY(0);
+}
+
+/*
+ * #41 — Secondary variant now carries a visible 1px border so it reads
+ * as interactive against both the default page background (neutral-50)
+ * AND surfaces like Card interiors. Previously the luminance delta
+ * against the page bg was ~1% and the button read as a dim label.
+ * Border matches the `outline` variant's convention.
+ */
+.secondary {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-0.5px);
+}
+
+.secondary:active:not(:disabled) {
+  box-shadow: var(--shadow-xs);
+  transform: translateY(0);
+}
+
+.outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-border-default);
+}
+
+.outline:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .outline:hover:not(:disabled) {
+  background-color: var(--color-surface-elevated);
+}
+
+.outline:active:not(:disabled) {
+  background-color: var(--color-primary-lighter);
+}
+
+[data-theme='dark'] .outline:active:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.ghost:active:not(:disabled) {
+  background-color: var(--color-surface-elevated);
+}
+
+.danger {
+  background-color: var(--color-error-base);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.danger:hover:not(:disabled) {
+  /* #271 — derived from --color-error so a preset that overrides the error base
+   * re-skins danger hover/active. Ocean default ≈ the prior error-dark rung. */
+  background-color: var(--color-error-hover);
+  box-shadow: var(--shadow-error);
+  transform: translateY(-0.5px);
+}
+
+.danger:active:not(:disabled) {
+  background-color: var(--color-error-active);
+  box-shadow: var(--shadow-xs);
+  transform: translateY(0);
+}
+
+.link {
+  background-color: transparent;
+  color: var(--color-primary);
+  padding: 0;
+  min-height: auto;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:hover:not(:disabled) {
+  color: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+.link:active:not(:disabled) {
+  color: var(--color-primary-active);
+}
+
+/*
+ * #39 — Link variant disabled state keeps the text-link shape (no
+ * background fill) but uses --color-text-on-disabled and strips the
+ * underline so it reads as "not actionable text." Overrides the
+ * generic `.button:disabled:not(.loading)` rule above.
+ */
+.link:disabled:not(.loading) {
+  background-color: transparent;
+  color: var(--color-text-on-disabled);
+  border-color: transparent;
+  text-decoration: none;
+}
+
+/* ===== LOADING STATE ===== */
+
+.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.loading .content {
+  opacity: 0;
+}
+
+.loading .leftIcon,
+.loading .rightIcon {
+  opacity: 0;
+}
+
+.spinnerWrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.spinner {
+  display: block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== ICONS ===== */
+
+.leftIcon,
+.rightIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.leftIcon {
+  margin-inline-end: calc(var(--spacing-4) * -1);
+}
+
+.rightIcon {
+  margin-inline-start: calc(var(--spacing-4) * -1);
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  transition: var(--transition-opacity);
+}
+
+/* ===== RIPPLE EFFECT ===== */
+
+.ripple {
+  position: absolute;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, white 40%, transparent);
+  transform: scale(0);
+  animation: rippleEffect 0.6s var(--easing-wave);
+  pointer-events: none;
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}

@@ -1,0 +1,214 @@
+/**
+ * AlertDialog Component Styles (#314)
+ *
+ * Mirrors Modal.module.css's native-`<dialog>` infrastructure with stricter
+ * visual semantics (single fixed size; no accent bar; tighter footer).
+ *
+ *   - top-layer promotion from showModal() (browser)
+ *   - ::backdrop pseudo-element for the dimmer (browser)
+ *   - inert-when-closed via pointer-events:none + visibility:hidden (#387);
+ *     restored to auto / visible under `[open]`. The
+ *     `no-clickjacking-closed-dialog` CI guard enforces this exact pairing.
+ *   - @starting-style + transition-behavior: allow-discrete for enter/exit
+ *     without JS animation bookkeeping (#274). Reduced-motion is automatic
+ *     because the --motion-overlay-* tokens collapse to 0ms inside the
+ *     prefers-reduced-motion media block in tokens.css.
+ *
+ * DOM shape:
+ *   <dialog class="dialog">          ← container host, transparent shell
+ *     <div class="dialogBox">         ← visible box (descendant — queryable)
+ *       header / footer
+ *     </div>
+ *   </dialog>
+ *
+ * The inner `.dialogBox` exists so the `@container alertdialog` rule can
+ * target a descendant of the container host (the #270 self-rule no-op guard
+ * requires it). The dialog itself IS the container host and a host never
+ * matches its own @container query.
+ */
+
+/* ===== Dialog shell (container host, animated outer box) ===== */
+.dialog {
+  position: fixed;
+  display: block;
+  inset: 0;
+  margin: auto;
+  max-width: none;
+  max-height: 100vh;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  overflow: visible;
+
+  /* P0 fix (#387) — keep `display: block` (required so the discrete-display
+   * transition has a from-value), but make the CLOSED state inert so the
+   * invisible-but-positioned dialog can't intercept clicks across the
+   * viewport. The `[open]` rule below restores both. The
+   * `no-clickjacking-closed-dialog` CI guard scans for this exact pairing. */
+  pointer-events: none;
+  visibility: hidden;
+
+  /* Closed-state animation values. */
+  opacity: 0;
+  transform: scale(0.95) translateY(-20px);
+
+  transition:
+    opacity var(--motion-overlay-exit-duration) var(--motion-overlay-exit-easing),
+    transform var(--motion-overlay-exit-duration) var(--motion-overlay-exit-easing),
+    overlay var(--motion-overlay-exit-duration) allow-discrete,
+    display var(--motion-overlay-exit-duration) allow-discrete;
+
+  /* #270 — container-query host. Inner `.dialogBox` and the header / footer
+   * descendants ARE queried by the rule at the bottom of this file. The
+   * dialog itself is the host and is NOT queried (self-rule no-op). Name
+   * `alertdialog` is GLOBAL (CSS Modules does not hash container names). */
+  container: alertdialog / inline-size;
+}
+
+/* Visible state — when the dialog is open. */
+.dialog[open] {
+  /* #387 fix — restore interactivity + a11y exposure when open. Paired with
+   * the pointer-events:none + visibility:hidden on the closed state above. */
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+
+  transition:
+    opacity var(--motion-overlay-enter-duration) var(--motion-overlay-enter-easing),
+    transform var(--motion-overlay-enter-duration) var(--motion-overlay-enter-easing),
+    overlay var(--motion-overlay-enter-duration) allow-discrete,
+    display var(--motion-overlay-enter-duration) allow-discrete;
+}
+
+/* @starting-style — FROM state for the enter animation (#274). Without this,
+ * the browser has no prior value to interpolate from when display flips
+ * none → block, so the transition snaps. Values match the closed state. */
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+}
+
+/* ===== Backdrop (::backdrop pseudo-element) ===== */
+.dialog::backdrop {
+  background-color: rgb(var(--color-primary-darkest-rgb) / 0.6);
+  backdrop-filter: blur(4px);
+
+  opacity: 0;
+  transition:
+    opacity var(--motion-backdrop-exit-duration) var(--motion-overlay-exit-easing),
+    overlay var(--motion-backdrop-exit-duration) allow-discrete,
+    display var(--motion-backdrop-exit-duration) allow-discrete;
+}
+
+.dialog[open]::backdrop {
+  opacity: 1;
+  transition:
+    opacity var(--motion-backdrop-enter-duration) var(--motion-overlay-enter-easing),
+    overlay var(--motion-backdrop-enter-duration) allow-discrete,
+    display var(--motion-backdrop-enter-duration) allow-discrete;
+}
+
+@starting-style {
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* ===== Inner dialog box (visible frame) =====
+ * AlertDialog is intentionally narrower than Modal — its content is always
+ * a short prompt + two buttons, never long-form. A single fixed max-width
+ * matches the role: the user shouldn't be reading a wall of text on a
+ * destructive confirm. (If you need long-form, you want a Modal, not an
+ * alertdialog.) */
+.dialogBox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: var(--spacing-md) auto;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+}
+
+/* ===== Header (title + description) ===== */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--component-padding-xl);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+/* ===== Footer (cancel + confirm buttons) =====
+ * Right-aligned button pair, conventional placement: Cancel on the left,
+ * affirmative action on the right. The visual weight (primary or danger)
+ * communicates the affirmative path. */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--component-padding-md) var(--component-padding-xl) var(--component-padding-xl);
+}
+
+/* The native <dialog> would receive a default UA focus outline on
+ * showModal(). We focus a child button explicitly; suppress the host
+ * outline so it doesn't double up. */
+.dialog:focus,
+.dialogBox:focus {
+  outline: none;
+}
+
+/* ===== Responsive (#270 container query) =====
+ * On narrow viewports, the dialog goes full-bleed and the footer stacks so
+ * tap targets stay comfortably sized. The dialog IS the container host;
+ * `.dialogBox`, `.header`, and `.footer` are all descendants. Threshold
+ * matches Modal: 40rem (640px). */
+@container alertdialog (max-width: 40rem) {
+  .dialogBox {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .header {
+    padding-inline-start: var(--component-padding-md);
+    padding-inline-end: var(--component-padding-md);
+  }
+
+  .footer {
+    padding-inline-start: var(--component-padding-md);
+    padding-inline-end: var(--component-padding-md);
+    /* Stack buttons full-width on narrow screens so tap targets are
+     * comfortable. Confirm stays first (visually on top) which keeps the
+     * affirmative button in the spot the user is reaching for, while
+     * Cancel below it is still the safer default focus. */
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

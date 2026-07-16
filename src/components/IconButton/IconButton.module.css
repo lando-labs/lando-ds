@@ -1,0 +1,192 @@
+/**
+ * IconButton Component Styles
+ *
+ * Square (1:1) icon-only button. Guarantees a 44×44px minimum hit area
+ * regardless of the visible chrome size — the visible square is centered
+ * inside the larger interactive area via inner padding so touch targets
+ * always meet iOS/Android guidance (Apple HIG / Material).
+ *
+ * Visible-vs-hit sizing (all sizes):
+ *   xs → 24×24 visible / 44×44 hit
+ *   sm → 32×32 visible / 44×44 hit (default)
+ *   md → 40×40 visible / 44×44 hit
+ *
+ * The button element itself sits at the hit-area dimensions; the inner
+ * `.iconWrapper` is what consumers visually perceive as "the button."
+ * Background, border, and hover tint are applied to `.iconWrapper` so
+ * the visible chrome matches `size`, while the click area extends out
+ * to meet the 44px minimum.
+ */
+
+.iconButton {
+  /* Reset button chrome */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+
+  /* Guaranteed 44×44 minimum hit area for touch — applies to every size */
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.iconButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-md);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.iconButton:disabled .iconWrapper {
+  background-color: var(--color-surface-disabled);
+  color: var(--color-text-on-disabled);
+  border-color: var(--color-border-disabled);
+  box-shadow: none;
+}
+
+/* ===== ICON WRAPPER (the visible square) =====
+ *
+ * The `.iconWrapper` is the visible chrome. It carries the size, the
+ * variant background/border, and the hover tint. Centering inside the
+ * 44×44 hit area is handled by the parent's flex centering.
+ */
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: var(--transition-default);
+  flex-shrink: 0;
+}
+
+/*
+ * Constrain the icon child to fill the wrapper. Lucide icons accept
+ * height/width via CSS, so a generic svg selector keeps this working
+ * for any consumer-supplied SVG (Lucide, hand-authored, the DS Icon
+ * wrapper). aspect-ratio + width/height auto keeps it square.
+ *
+ * The `:not(...)` exclusions keep this rule from clobbering the
+ * `<Spinner>` SVG used in the loading state — Spinner sets its own
+ * dimensions via its CSS module and shouldn't be re-sized to 60%.
+ */
+.iconWrapper > svg,
+.iconWrapper > *:not([role='status']) > svg {
+  width: 60%;
+  height: 60%;
+  display: block;
+}
+
+/* ===== LOADING =====
+ *
+ * When `loading` is true, the icon child is swapped for a `<Spinner>`.
+ * The Spinner brings its own dimensions; we only need to ensure its
+ * `role="status"` container lays out cleanly inside the wrapper.
+ */
+.iconButton.loading {
+  cursor: progress;
+}
+
+.loading .iconWrapper > [role='status'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ===== SIZES =====
+ *
+ * Visible square dimensions. The button's 44×44 minimum still applies
+ * (set on `.iconButton` above) — the wrapper is what consumers see.
+ */
+
+.xs .iconWrapper {
+  width: 24px;
+  height: 24px;
+}
+
+.sm .iconWrapper {
+  width: 32px;
+  height: 32px;
+}
+
+.md .iconWrapper {
+  width: 40px;
+  height: 40px;
+}
+
+/* ===== VARIANTS =====
+ *
+ * Variants paint the wrapper, not the button — so the hit area extends
+ * past the visible chrome without painting empty space around the icon.
+ */
+
+/* Ghost: transparent base, subtle hover tint. Default. */
+.ghost .iconWrapper {
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.iconButton.ghost:hover:not(:disabled) .iconWrapper {
+  background-color: var(--color-surface-hover);
+}
+
+.iconButton.ghost:active:not(:disabled) .iconWrapper {
+  background-color: var(--color-surface-elevated);
+}
+
+/* Solid: filled primary, white-ish icon. */
+.solid .iconWrapper {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.iconButton.solid:hover:not(:disabled) .iconWrapper {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.iconButton.solid:active:not(:disabled) .iconWrapper {
+  background-color: var(--color-primary-active);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Outline: 1px border, transparent base. */
+.outline .iconWrapper {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.iconButton.outline:hover:not(:disabled) .iconWrapper {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-lightest);
+}
+
+[data-theme='dark'] .iconButton.outline:hover:not(:disabled) .iconWrapper {
+  background-color: var(--color-surface-elevated);
+}
+
+.iconButton.outline:active:not(:disabled) .iconWrapper {
+  background-color: var(--color-primary-lighter);
+}
+
+[data-theme='dark'] .iconButton.outline:active:not(:disabled) .iconWrapper {
+  background-color: var(--color-surface-hover);
+}

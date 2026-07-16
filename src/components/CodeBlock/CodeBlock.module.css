@@ -1,0 +1,389 @@
+/**
+ * CodeBlock Component Styles
+ *
+ * Structural rules (container, header, toolbar, code, scrollbar, lines)
+ * use semantic tokens (--color-surface-*, --color-text-*, --color-border-*,
+ * --color-primary, --color-primary-active) so the block is theme-aware
+ * by default: light surface + dark text in :root, dark surface + light
+ * text under [data-theme='dark']. Apps without a data-theme attribute
+ * get a sensible light default rather than a dark-themed block on a
+ * light page (#256).
+ *
+ * Syntax-highlighting token rules continue to use the --color-primary-*
+ * ramp; the [data-theme='light'] block at the bottom of this file
+ * darkens those shades for legibility on the light surface.
+ */
+
+/* #270 — container-query host (inner-wrapper pattern).
+ *
+ * A CodeBlock dropped into a narrow slot tightens its padding/font/radius by ITS
+ * OWN width, not the viewport. The responsive rule below sets `.container`'s OWN
+ * `font-size` and `border-radius`, which is the bug-prone case: an element's
+ * `@container` query is evaluated against its nearest ANCESTOR container, never
+ * itself, so putting the container on `.container` AND querying `.container` from
+ * it would silently do nothing (and `border-radius`/`font-size` genuinely belong
+ * to the rounded, overflow-clipping root box — they can't simply move to a
+ * child).
+ *
+ * `.sizer` is a zero-box wrapper (a plain block — fills its slot's inline size,
+ * adds no padding/border/background/layout of its own) that carries the
+ * container. `.container` is its child, so every `@container code-block` rule —
+ * the `.container` self-styling AND the `.header`/`.toolbar`/`.pre`/`.code`
+ * descendant rules — now correctly matches. The `code-block` container-name is
+ * GLOBAL (CSS Modules does not hash it). Threshold preserved: 40rem (640px).
+ * Token: tokens/containerQueries. */
+.sizer {
+  display: block;
+  container: code-block / inline-size;
+}
+
+.container {
+  position: relative;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* ===== HEADER ===== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
+}
+
+/* ===== TOOLBAR ===== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--component-padding-xs) var(--component-padding-md);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.language {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* ===== COPY BUTTON ===== */
+
+.copyButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-base);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-default);
+  overflow: hidden;
+}
+
+.copyButton:hover {
+  background-color: var(--color-primary);
+  color: var(--color-neutral-white);
+  border-color: var(--color-primary);
+}
+
+.copyButton:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.copyButton svg {
+  flex-shrink: 0;
+}
+
+/* ===== CODE WRAPPER ===== */
+
+.codeWrapper {
+  overflow: auto;
+  background-color: var(--color-surface-elevated);
+}
+
+.codeWrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.codeWrapper::-webkit-scrollbar-track {
+  background-color: var(--color-surface);
+}
+
+.codeWrapper::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+
+.codeWrapper::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary);
+}
+
+/* ===== PRE AND CODE ===== */
+
+.pre {
+  margin: 0;
+  padding: var(--component-padding-md);
+  overflow: visible;
+}
+
+.code {
+  display: block;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+/* ===== LINES ===== */
+
+.line {
+  display: flex;
+  align-items: flex-start;
+  min-height: 1.625rem;
+}
+
+.line.highlighted {
+  background-color: rgb(var(--color-primary-base-rgb) / 0.1);
+  border-inline-start: 3px solid var(--color-primary);
+  padding-inline-start: var(--component-padding-xs);
+  margin-inline-start: calc(var(--spacing-8) * -1);
+}
+
+.lineNumber {
+  display: inline-block;
+  min-width: 3rem;
+  padding-inline-end: var(--component-padding-md);
+  text-align: end;
+  color: var(--color-text-tertiary);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.lineContent {
+  flex: 1;
+  white-space: pre;
+  word-break: break-word;
+}
+
+/* ===== SYNTAX HIGHLIGHTING TOKENS ===== */
+
+.code :global(.token-comment) {
+  color: var(--color-neutral-500);
+  font-style: italic;
+}
+
+.code :global(.token-keyword) {
+  color: var(--color-primary-light);
+  font-weight: var(--font-weight-semibold);
+}
+
+.code :global(.token-string) {
+  color: var(--color-secondary-light);
+}
+
+.code :global(.token-number) {
+  color: var(--color-primary-lighter);
+}
+
+.code :global(.token-function) {
+  color: var(--color-primary-base);
+}
+
+.code :global(.token-property) {
+  color: var(--color-primary-light);
+}
+
+.code :global(.token-value) {
+  color: var(--color-secondary-lighter);
+}
+
+.code :global(.token-selector) {
+  color: var(--color-primary-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.code :global(.token-key) {
+  color: var(--color-primary-light);
+}
+
+/* ===== RIPPLE EFFECT ===== */
+
+.ripple {
+  position: absolute;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, white 30%, transparent);
+  transform: scale(0);
+  animation: rippleEffect 0.6s var(--easing-wave);
+  pointer-events: none;
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ===== LIGHT MODE ===== */
+
+[data-theme='light'] .container {
+  background-color: var(--color-neutral-100);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme='light'] .header,
+[data-theme='light'] .toolbar {
+  background-color: var(--color-neutral-50);
+  border-bottom-color: var(--color-border-default);
+}
+
+[data-theme='light'] .title {
+  color: var(--color-text-primary);
+}
+
+[data-theme='light'] .language {
+  color: var(--color-text-secondary);
+}
+
+[data-theme='light'] .copyButton {
+  background-color: var(--color-neutral-200);
+  color: var(--color-text-primary);
+}
+
+[data-theme='light'] .copyButton:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-neutral-white);
+}
+
+[data-theme='light'] .copyButton:active {
+  background-color: var(--color-primary-medium);
+}
+
+[data-theme='light'] .codeWrapper {
+  background-color: var(--color-neutral-100);
+}
+
+[data-theme='light'] .codeWrapper::-webkit-scrollbar-track {
+  background-color: var(--color-neutral-50);
+}
+
+[data-theme='light'] .codeWrapper::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-300);
+}
+
+[data-theme='light'] .codeWrapper::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-400);
+}
+
+[data-theme='light'] .code {
+  color: var(--color-neutral-800);
+}
+
+[data-theme='light'] .lineNumber {
+  color: var(--color-neutral-400);
+}
+
+[data-theme='light'] .line.highlighted {
+  background-color: rgb(var(--color-primary-base-rgb) / 0.08);
+}
+
+/* Light mode syntax highlighting */
+[data-theme='light'] .code :global(.token-comment) {
+  color: var(--color-neutral-500);
+}
+
+[data-theme='light'] .code :global(.token-keyword) {
+  color: var(--color-primary-dark);
+  font-weight: var(--font-weight-semibold);
+}
+
+[data-theme='light'] .code :global(.token-string) {
+  color: var(--color-secondary-dark);
+}
+
+[data-theme='light'] .code :global(.token-number) {
+  color: var(--color-primary-medium);
+}
+
+[data-theme='light'] .code :global(.token-function) {
+  color: var(--color-primary-darker);
+}
+
+[data-theme='light'] .code :global(.token-property) {
+  color: var(--color-primary-dark);
+}
+
+[data-theme='light'] .code :global(.token-value) {
+  color: var(--color-secondary-darker);
+}
+
+[data-theme='light'] .code :global(.token-selector) {
+  color: var(--color-primary-darker);
+}
+
+[data-theme='light'] .code :global(.token-key) {
+  color: var(--color-primary-dark);
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* #270 — reflows on the code block's own width (was viewport @media).
+ * Threshold preserved: 40rem (640px). `.container` is a DESCENDANT of the
+ * `.sizer` container host (see the note on `.sizer` above), so its font-size /
+ * border-radius overrides actually apply here — as do the `.header` / `.toolbar`
+ * / `.pre` / `.lineNumber` / `.code` rules. */
+@container code-block (max-width: 40rem) {
+  .container {
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-md);
+  }
+
+  .header,
+  .toolbar {
+    padding: var(--component-padding-xs) var(--component-padding-sm);
+  }
+
+  .pre {
+    padding: var(--component-padding-sm);
+  }
+
+  .lineNumber {
+    min-width: 2.5rem;
+    padding-inline-end: var(--component-padding-sm);
+  }
+
+  .code {
+    font-size: var(--font-size-xs);
+  }
+}

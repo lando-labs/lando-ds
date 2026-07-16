@@ -1,0 +1,290 @@
+/**
+ * FileInput Component Styles
+ *
+ * A dashed dropzone with hover/drag-over/error/disabled states, a
+ * compact file list below, and a screen-reader-only aria-live region.
+ *
+ * Tokens only — never raw brand hex (guarded by no-raw-brand-color.test.ts).
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+/* ===== DROPZONE ===== */
+
+.zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+  padding: var(--component-padding-lg) var(--component-padding-md);
+  background-color: var(--color-surface);
+  border: 2px dashed var(--color-border-default);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition-default);
+  user-select: none;
+}
+
+.zone:hover {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-surface-hover);
+}
+
+/*
+ * Mirror Input's #38 unified focus-ring contract: border shift + halo on
+ * :focus-visible ONLY. Mouse focus stays clean.
+ */
+.zone:focus-visible {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.dragOver {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background-color: var(--color-surface-active);
+  color: var(--color-text-primary);
+}
+
+.dragOver:hover {
+  /* While drag-over is active, suppress the hover transform so the
+   * highlight stays stable as the user moves the pointer inside. */
+  background-color: var(--color-surface-active);
+}
+
+.error {
+  border-color: var(--color-error-base);
+}
+
+.error:hover {
+  border-color: var(--color-error-dark);
+}
+
+.error:focus-visible {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+  outline: none;
+}
+
+.disabled {
+  cursor: not-allowed;
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-disabled);
+}
+
+.disabled:hover {
+  border-color: var(--color-border-default);
+  background-color: var(--color-surface-hover);
+}
+
+/* ===== ZONE INNER ===== */
+
+.zoneInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  pointer-events: none;
+}
+
+/* ===== ZONE ACTIONS (Browse-files button row) =====
+ *
+ * Lives BELOW the zone <div> to avoid a nested-interactive a11y violation
+ * (the zone has role="button"; an interactive control cannot contain
+ * another interactive control). The button is still visually a single
+ * affordance with the prompt via proximity + the matching label.
+ */
+.zoneActions {
+  display: flex;
+  justify-content: center;
+  margin-top: calc(-1 * var(--spacing-8));
+}
+
+.zoneIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+}
+
+.zonePrompt {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.zonePrompt strong {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.zoneMeta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-8);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.zoneMeta > span:not(:last-child)::after {
+  content: '·';
+  margin-inline-start: var(--spacing-8);
+  color: var(--color-text-tertiary);
+}
+
+/* ===== HIDDEN NATIVE INPUT =====
+ *
+ * Off-screen but kept in the DOM so the picker can be programmatically
+ * triggered AND label-associated. Using the standard sr-only pattern:
+ * 1px clip-path positioning beats display:none for AT discoverability.
+ */
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== FILE LIST ===== */
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.fileMeta {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: var(--spacing-8);
+  min-width: 0;
+}
+
+.fileName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSize {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fileRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-padding-2xs);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.fileRemove:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.fileRemove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.fileRemove:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* ===== FOOTER (error / helper text) ===== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== SCREEN-READER-ONLY ===== */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

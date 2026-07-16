@@ -1,0 +1,372 @@
+/**
+ * Card Component Styles
+ * Ocean-inspired with subtle gradients and smooth transitions
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-default);
+  position: relative;
+  overflow: hidden;
+
+  /* Sprint 40 (#269) — container-query responsive.
+   * The card reflows by ITS OWN width, not the viewport, so a card placed in a
+   * narrow Grid track (e.g. autoFill minmax(340px,1fr)) adopts its compact
+   * layout even on a wide screen. `container-name` is GLOBAL (CSS Modules does
+   * not hash it) — this card's name is `card`; a card nested inside another
+   * card queries the right ancestor by name. Threshold token: tokens/containerQueries.
+   * (`overflow: hidden` already present above also satisfies the
+   * `container-type: inline-size` requirement that the element establish a
+   * containment context.) */
+  container: card / inline-size;
+}
+
+/* ===== VARIANTS =====
+ *
+ * Sprint 10 (#59) — Default Card now carries a subtle ocean-tinted
+ * shadow ("felt before seen") so the DS feels like Lando Labs at first
+ * glance instead of a generic flat SaaS card. The shadow uses the
+ * ocean-dark RGB channel at 4% alpha rather than pure neutral black —
+ * the tint only registers on close inspection but the surface stops
+ * feeling like an input field.
+ *
+ *   variant="default"   → subtle ocean shadow + hairline border (NEW)
+ *   variant="outlined"  → hairline border only (stays flat; unchanged)
+ *   variant="flat"      → no shadow, no border (NEW — explicit opt-out)
+ *   variant="elevated"  → strong shadow (unchanged; still strongest)
+ */
+
+.default {
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 1px 2px 0 rgb(var(--color-primary-dark-rgb) / 0.04);
+}
+
+[data-theme='dark'] .default {
+  /* Dark mode lifts the tint slightly so the card still reads as
+   * lifted against the deep page background. */
+  box-shadow: 0 1px 2px 0 rgb(var(--color-primary-darkest-rgb) / 0.45);
+}
+
+.outlined {
+  /* #116 — Border color is hooked to a CSS custom property so consumers
+   * can override per-instance for semantic-colored outlined cards (e.g.
+   * red error state, green success state) without needing a typed prop:
+   *   <Card variant="outlined" style={{ '--card-outline-color': 'var(--color-error-base)' }} />
+   * Default behavior unchanged: the var falls back to --color-border-default. */
+  border: 2px solid var(--card-outline-color, var(--color-border-default));
+}
+
+.flat {
+  /* Explicit opt-out: no shadow, no border. Matches the pre-Sprint-10
+   * look for consumers that want a truly flat surface inside tight
+   * compositions (e.g. nested cards, dashboards with their own depth). */
+  border: none;
+  box-shadow: none;
+}
+
+.elevated {
+  box-shadow: var(--shadow-md);
+  border: none;
+}
+
+.elevated:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== PADDING OPTIONS =====
+ *
+ * Each padding rule sets `padding` AND publishes its value via the
+ * `--card-padding` custom property so descendant components can compute
+ * against it. CardMedia uses this to render edge-to-edge (#379) — it
+ * cancels the card's padding with symmetric negative margins when it's
+ * the first child of a top-positioned media slot.
+ */
+
+.padding-none {
+  --card-padding: 0px;
+  padding: 0;
+}
+
+.padding-sm {
+  --card-padding: var(--component-padding-sm);
+  padding: var(--component-padding-sm);
+}
+
+.padding-md {
+  --card-padding: var(--component-padding-lg);
+  padding: var(--component-padding-lg);
+}
+
+.padding-lg {
+  /* #269 — ROOT SELF-RULE: the card element can't query its own container, so
+   * its large padding is made fluid with `cqi` (1cqi = 1% of the card's inline
+   * size) instead of a viewport @media step-down. Endpoints are preserved:
+   * 32px at a 640px-wide card (the old desktop value) collapsing to a 20px
+   * floor below that (the old <640px @media value). Slope solves
+   * 12px + 3.125 * 1cqi = 32px at cqi = 6.4 (640px container). The former
+   * `@media (max-width:640px) .card.padding-lg { padding: 20px }` override is
+   * now redundant and was removed. */
+  --card-padding: clamp(var(--component-padding-lg), 0.75rem + 3.125cqi, var(--component-padding-xl));
+  padding: clamp(var(--component-padding-lg), 0.75rem + 3.125cqi, var(--component-padding-xl));
+}
+
+/* ===== CLICKABLE STATE =====
+ *
+ * #64 — Hover-lift consistency. Sprint 8 (#43) dialed Button hover to
+ * translateY(-0.5px). Clickable cards sit at -1px (half-step larger than
+ * Button because cards read as an "invitation" versus Button's "action
+ * confirmation" — but still a quiet rise, not the -2px trampoline it
+ * used to be). Shadow bumps one step (xs → sm / default → sm) so the
+ * motion reads as a single coherent lift instead of transform + shadow
+ * dual affordance. :active returns to rest position with the card's
+ * resting shadow — no shadow-xs undershoot (which previously made the
+ * card visually sink under the press). */
+
+.clickable {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  width: 100%;
+  /* DO NOT override border or background — let variant rules win. (#106)
+   * The previous `border: none; background: inherit;` reset nuked the
+   * variant border + Card surface bg whenever both were applied (e.g.
+   * <Card variant="outlined" clickable>). */
+}
+
+.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.clickable:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+.clickable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/*
+ * Elevated cards already sit at shadow-md; their hover bump lifts them
+ * one step (md → lg) to preserve the "already surfaced" feel without
+ * stacking a transform on top. Unchanged behavior; annotated here so
+ * the two variants' hover treatments read as deliberate siblings.
+ */
+
+/* ===== FULL-WIDTH MODIFIER =====
+ *
+ * Sprint 30 — Backported from the React Native `Card` primitive for
+ * cross-platform prop parity (Refs: #240 remediation). RN uses
+ * `alignSelf: 'stretch'` + `width: '100%'` to make the card fill the
+ * available cross-axis width; on the web the equivalent is simply
+ * `width: 100%`. The block `display` is preserved (Card is a flex
+ * column by default), and any parent `inline-block` / `inline-flex`
+ * context is overridden so the prop is reliable in mixed layouts.
+ */
+
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+/* ===== GRADIENT VARIANT ===== */
+
+.gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-primary-lightest) 100%
+  );
+}
+
+[data-theme='dark'] .gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-surface-elevated) 100%
+  );
+}
+
+/* ===== CARD SECTIONS ===== */
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-16);
+  padding-bottom: var(--component-padding-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.card.padding-none .cardHeader {
+  padding: var(--component-padding-lg);
+  padding-bottom: var(--component-padding-md);
+}
+
+.cardHeaderContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardHeaderContent h1,
+.cardHeaderContent h2,
+.cardHeaderContent h3,
+.cardHeaderContent h4,
+.cardHeaderContent h5,
+.cardHeaderContent h6 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.cardHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+}
+
+/* ===== AUTO-HEADER (title/subtitle/actions Card props) ===== */
+
+.autoHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  width: 100%;
+}
+
+.autoTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+  flex: 1;
+}
+
+.autoActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-shrink: 0;
+}
+
+/* #269 — descendants reflow on the card's own width (was viewport @media). */
+@container card (max-width: 40rem) {
+  .autoHeaderRow {
+    flex-direction: column;
+    gap: var(--spacing-12);
+  }
+
+  .autoActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.cardBody {
+  flex: 1;
+  padding-top: var(--component-padding-md);
+  padding-bottom: var(--component-padding-md);
+}
+
+.card.padding-none .cardBody {
+  padding: var(--component-padding-lg);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding-top: var(--component-padding-md);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.card.padding-none .cardFooter {
+  padding: var(--component-padding-lg);
+  padding-top: var(--component-padding-md);
+}
+
+/* ===== LOADING SKELETON ===== */
+
+.loading {
+  pointer-events: none;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.skeletonHeader {
+  width: 40%;
+  height: 1.5rem;
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-300) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+[data-theme='dark'] .skeletonHeader,
+[data-theme='dark'] .skeletonLine {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-800) 25%,
+    var(--color-neutral-700) 50%,
+    var(--color-neutral-800) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 1rem;
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-300) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+/* #269 — descendants reflow on the card's own width (was viewport @media).
+ * The former `.card.padding-lg { padding: 20px }` root override that lived here
+ * moved into the `.padding-lg` rule above as a fluid `cqi` clamp (a root
+ * element can't query its own container). */
+@container card (max-width: 40rem) {
+  .cardHeader {
+    flex-direction: column;
+    gap: var(--spacing-12);
+  }
+
+  .cardHeaderActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

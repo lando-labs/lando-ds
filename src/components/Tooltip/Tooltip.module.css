@@ -1,0 +1,115 @@
+/**
+ * Tooltip Component Styles
+ * Ocean-inspired tooltips with smooth fade-in animations
+ */
+
+.tooltip {
+  position: fixed;
+  z-index: var(--z-index-tooltip);
+  padding: var(--component-padding-xs) var(--component-padding-sm);
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-white);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
+}
+
+.tooltip.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Dark variant (inverted) */
+.tooltip.dark {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+}
+
+/* Arrow */
+.arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-neutral-900);
+  transform: rotate(45deg);
+}
+
+.dark .arrow {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+}
+
+/* Position-specific arrow placement */
+.tooltip.top .arrow {
+  bottom: -4px;
+  left: 50%;
+  margin-left: -4px;
+  border-bottom: 1px solid var(--color-neutral-900);
+  border-right: 1px solid var(--color-neutral-900);
+  border-top: none;
+  border-left: none;
+}
+
+.tooltip.bottom .arrow {
+  top: -4px;
+  left: 50%;
+  margin-left: -4px;
+  border-top: 1px solid var(--color-neutral-900);
+  border-left: 1px solid var(--color-neutral-900);
+  border-bottom: none;
+  border-right: none;
+}
+
+.tooltip.left .arrow {
+  right: -4px;
+  top: 50%;
+  margin-top: -4px;
+  border-top: 1px solid var(--color-neutral-900);
+  border-right: 1px solid var(--color-neutral-900);
+  border-bottom: none;
+  border-left: none;
+}
+
+.tooltip.right .arrow {
+  left: -4px;
+  top: 50%;
+  margin-top: -4px;
+  border-bottom: 1px solid var(--color-neutral-900);
+  border-left: 1px solid var(--color-neutral-900);
+  border-top: none;
+  border-right: none;
+}
+
+/* Dark variant arrow borders */
+.tooltip.dark.top .arrow {
+  border-bottom-color: var(--color-border-default);
+  border-right-color: var(--color-border-default);
+}
+
+.tooltip.dark.bottom .arrow {
+  border-top-color: var(--color-border-default);
+  border-left-color: var(--color-border-default);
+}
+
+.tooltip.dark.left .arrow {
+  border-top-color: var(--color-border-default);
+  border-right-color: var(--color-border-default);
+}
+
+.tooltip.dark.right .arrow {
+  border-bottom-color: var(--color-border-default);
+  border-left-color: var(--color-border-default);
+}
+
+/* Reduced motion (#274) — handled centrally. The `transition` on `.tooltip`
+ * above reads `var(--duration-fast)` which collapses to 0ms inside the
+ * tokens.css `prefers-reduced-motion` media block. The legacy
+ * `transition: none` override here was redundant against that and has been
+ * removed. */

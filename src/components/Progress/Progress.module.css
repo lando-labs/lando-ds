@@ -1,0 +1,256 @@
+/**
+ * Progress Component Styles
+ * Ocean-inspired with gradient fills and smooth animations
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+/* ===== HEADER ===== */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== BAR VARIANT ===== */
+
+.bar {
+  position: relative;
+  width: 100%;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.bar.sm {
+  height: 0.375rem;
+}
+
+.bar.md {
+  height: 0.5rem;
+}
+
+.bar.lg {
+  height: 0.75rem;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--progress-color-start),
+    var(--progress-color-end)
+  );
+  border-radius: var(--radius-full);
+  transition: width var(--duration-normal) var(--easing-wave);
+}
+
+/* Color variants for bar */
+.bar.primary {
+  --progress-color-start: var(--color-primary-base);
+  --progress-color-end: var(--color-primary-light);
+}
+
+.bar.success {
+  --progress-color-start: var(--color-success-base);
+  --progress-color-end: var(--color-secondary-light);
+}
+
+.bar.warning {
+  --progress-color-start: var(--color-warning-base);
+  --progress-color-end: var(--color-warning-light);
+}
+
+.bar.error {
+  --progress-color-start: var(--color-error-base);
+  --progress-color-end: var(--color-error-light);
+}
+
+/* Indeterminate bar animation */
+.bar.indeterminate .barFill {
+  width: 40% !important;
+  animation: indeterminateBar 1.5s var(--easing-wave) infinite;
+}
+
+@keyframes indeterminateBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/* ===== CIRCLE VARIANT ===== */
+
+.circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circleSvg {
+  transform: rotate(0deg);
+}
+
+.circleTrack {
+  stroke: var(--color-surface-elevated);
+}
+
+.circleProgress {
+  stroke: var(--progress-color-start);
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--duration-slow) var(--easing-wave);
+}
+
+/* Color variants for circle */
+.circle.primary .circleProgress {
+  stroke: var(--color-primary);
+}
+
+.circle.success .circleProgress {
+  stroke: var(--color-success-base);
+}
+
+.circle.warning .circleProgress {
+  stroke: var(--color-warning-base);
+}
+
+.circle.error .circleProgress {
+  stroke: var(--color-error-base);
+}
+
+.circleValue {
+  position: absolute;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.circle.sm .circleValue {
+  font-size: var(--font-size-xs);
+}
+
+.circle.lg .circleValue {
+  font-size: var(--font-size-base);
+}
+
+/* Indeterminate circle animation */
+.circle.indeterminate .circleSvg {
+  animation: rotateCircle 1.5s linear infinite;
+}
+
+.circle.indeterminate .circleProgress {
+  animation: indeterminateCircle 1.5s var(--easing-wave) infinite;
+}
+
+@keyframes rotateCircle {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes indeterminateCircle {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  50% {
+    stroke-dashoffset: 150;
+  }
+  100% {
+    stroke-dashoffset: 50;
+  }
+}
+
+/* ===== DOTS VARIANT ===== */
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+.dot {
+  display: block;
+  border-radius: var(--radius-full);
+  background-color: var(--progress-color-start);
+  animation: dotPulse 1.4s var(--easing-wave) infinite;
+}
+
+.dots.sm .dot {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+.dots.md .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.dots.lg .dot {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/* Color variants for dots */
+.dots.primary .dot {
+  background-color: var(--color-primary);
+}
+
+.dots.success .dot {
+  background-color: var(--color-success-base);
+}
+
+.dots.warning .dot {
+  background-color: var(--color-warning-base);
+}
+
+.dots.error .dot {
+  background-color: var(--color-error-base);
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+[data-theme='dark'] .bar,
+[data-theme='dark'] .circleTrack {
+  background-color: var(--color-surface-hover);
+}
+
+[data-theme='dark'] .barFill {
+  opacity: 0.9;
+}

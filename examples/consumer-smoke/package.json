@@ -1,0 +1,20 @@
+{
+  "name": "consumer-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "description": "External-consumer type-resolution smoke test of the PACKED @lando-labs/lando-ds tarball (#365, guards #468).",
+  "//": "ds.tgz is a build artifact produced by CI via `npm pack` (see .github/workflows/test.yml -> consumer-tsc). It is gitignored and absent from a fresh checkout; the CI job stages it before `npm install`.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lando-labs/lando-ds": "file:ds.tgz",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

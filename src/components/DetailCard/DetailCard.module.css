@@ -1,0 +1,628 @@
+/**
+ * DetailCard Styles
+ * Ocean-inspired styling for detailed information cards
+ */
+
+/* Base Card */
+.card {
+  transition: transform 0.2s var(--transition-ease), box-shadow 0.2s var(--transition-ease);
+
+  /* #269 — container-query responsive. DetailCard reflows by its OWN width
+   * (not the viewport), so a detail card in a narrow grid track still collapses
+   * its header / date-section / two-column field grids. Container name
+   * `detail-card` is GLOBAL (CSS Modules does not hash container-name); a card
+   * nested inside this one queries the right ancestor by name. All the former
+   * <640px rules style DESCENDANTS, so none needed a `cqi` self-rule.
+   * Threshold token: tokens/containerQueries. */
+  container: detail-card / inline-size;
+}
+
+.card.clickable {
+  cursor: pointer;
+}
+
+/*
+ * #64 — hover-lift consistency. Dialed from translateY(-2px) to -1px so
+ * DetailCard aligns with Card/TaskCard. Ocean-tinted shadow is softened
+ * one step (the old values were calibrated for a -2px rise and read as
+ * too-heavy at -1px) — keeps the brand-specific ocean tint but at a
+ * quieter amplitude to match the sibling card family.
+ */
+.card.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 10px rgb(var(--color-primary-medium-rgb) / 0.1),
+    0 2px 4px rgb(var(--color-primary-medium-rgb) / 0.06);
+}
+
+.card.clickable:active {
+  transform: translateY(0);
+}
+
+.card.clickable:focus-visible {
+  outline: 2px solid var(--color-primary-base);
+  outline-offset: 2px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 0; /* Enable text truncation */
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  color: var(--color-primary-medium);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.subtitle {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+
+/* Description */
+.description {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Fields Section */
+.fields {
+  display: grid;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.field {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--component-padding-sm);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface-secondary);
+  transition: background-color 0.2s var(--transition-ease);
+}
+
+.field--highlight {
+  background: var(--color-primary-lightest);
+  border-inline-start: 3px solid var(--color-primary-medium);
+  padding-inline-start: calc(var(--component-padding-sm) - 3px);
+}
+
+.field--secondary {
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.fieldIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.fieldContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fieldValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+}
+
+/* Date Section - Prominent */
+.dateSection {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--component-padding-md);
+  margin-bottom: var(--spacing-md);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-lightest) 0%,
+    rgb(var(--color-primary-base-rgb) / 0.05) 100%
+  );
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--border-radius-md);
+}
+
+.dateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.5rem;
+  color: var(--color-primary-medium);
+  background: white;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+}
+
+.dateContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dateLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-xs);
+}
+
+.dateValue {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+}
+
+/* Footer */
+.footer {
+  margin-top: var(--spacing-md);
+  padding-top: var(--component-padding-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+/* Responsive Adjustments */
+/* #269 — descendants reflow on the card's own width (was viewport @media). All
+ * rules here style descendants of the `.card` root, so the whole block converts
+ * cleanly to `@container detail-card` with no `cqi` self-rule needed. */
+@container detail-card (max-width: 40rem) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .badges {
+    align-self: flex-start;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .dateSection {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .dateIcon {
+    margin-bottom: var(--spacing-xs);
+  }
+
+  /* Collapse two-column layouts to single column on narrow cards */
+  .size-lg .fields,
+  .size-xl .fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .field {
+  background: var(--color-surface-tertiary);
+}
+
+[data-theme="dark"] .field--highlight {
+  background: rgb(var(--color-primary-medium-rgb) / 0.25);
+  border-inline-start-color: var(--color-primary-base);
+}
+
+[data-theme="dark"] .dateSection {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--color-primary-medium-rgb) / 0.3) 0%,
+    rgb(var(--color-primary-base-rgb) / 0.2) 100%
+  );
+  border-color: var(--color-primary-base);
+}
+
+[data-theme="dark"] .dateIcon {
+  background: var(--color-surface-secondary);
+  color: var(--color-primary-base);
+}
+
+[data-theme="dark"] .dateLabel {
+  color: var(--color-primary-base);
+}
+
+[data-theme="dark"] .fieldLabel {
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .card.clickable:hover {
+  /* #64 — matched amplitude to light-mode's softened hover shadow */
+  box-shadow:
+    0 4px 10px rgb(var(--color-primary-base-rgb) / 0.18),
+    0 2px 4px rgb(var(--color-primary-base-rgb) / 0.12);
+}
+
+/* ============================================================================
+   SIZE VARIANTS
+   Scale all internal spacing, fonts, and margins proportionally
+   ============================================================================ */
+
+/* Extra Small - Compact for dense grids */
+.size-xs .header {
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.size-xs .icon {
+  font-size: 1rem;
+}
+
+.size-xs .title {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-snug);
+}
+
+.size-xs .subtitle {
+  margin-top: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+}
+
+.size-xs .description {
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+.size-xs .fields {
+  gap: var(--spacing-2xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.size-xs .field {
+  padding: var(--component-padding-2xs);
+  gap: var(--spacing-2xs);
+}
+
+.size-xs .fieldIcon {
+  font-size: 0.875rem;
+}
+
+.size-xs .fieldLabel {
+  font-size: 0.625rem;
+}
+
+.size-xs .fieldValue {
+  font-size: var(--font-size-xs);
+}
+
+.size-xs .dateSection {
+  padding: var(--component-padding-xs);
+  margin-bottom: var(--spacing-xs);
+  gap: var(--spacing-xs);
+}
+
+.size-xs .dateIcon {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1rem;
+}
+
+.size-xs .dateLabel {
+  font-size: 0.625rem;
+  margin-bottom: var(--spacing-2xs);
+}
+
+.size-xs .dateValue {
+  font-size: var(--font-size-xs);
+}
+
+.size-xs .footer {
+  margin-top: var(--spacing-xs);
+  padding-top: var(--component-padding-xs);
+}
+
+.size-xs .actions {
+  gap: var(--spacing-2xs);
+}
+
+/* Small - Condensed for mobile or sidebars */
+.size-sm .header {
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.size-sm .icon {
+  font-size: 1.25rem;
+}
+
+.size-sm .title {
+  font-size: var(--font-size-base);
+}
+
+.size-sm .subtitle {
+  margin-top: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+}
+
+.size-sm .description {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+}
+
+.size-sm .fields {
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.size-sm .field {
+  padding: var(--component-padding-xs);
+  gap: var(--spacing-xs);
+}
+
+.size-sm .fieldIcon {
+  font-size: 1rem;
+}
+
+.size-sm .fieldLabel {
+  font-size: 0.688rem;
+}
+
+.size-sm .fieldValue {
+  font-size: var(--font-size-sm);
+}
+
+.size-sm .dateSection {
+  padding: var(--component-padding-sm);
+  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-sm);
+}
+
+.size-sm .dateIcon {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.125rem;
+}
+
+.size-sm .dateLabel {
+  font-size: 0.688rem;
+  margin-bottom: var(--spacing-2xs);
+}
+
+.size-sm .dateValue {
+  font-size: var(--font-size-sm);
+}
+
+.size-sm .footer {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--component-padding-sm);
+}
+
+.size-sm .actions {
+  gap: var(--spacing-xs);
+}
+
+/* Medium - Default size (no overrides needed, base styles apply) */
+.size-md {
+  /* Uses base styles defined above */
+}
+
+/* Large - Spacious for hero content */
+.size-lg .header {
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.size-lg .icon {
+  font-size: 2rem;
+}
+
+.size-lg .title {
+  font-size: var(--font-size-xl);
+}
+
+.size-lg .subtitle {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-base);
+}
+
+.size-lg .description {
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-base);
+}
+
+.size-lg .fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.size-lg .field {
+  padding: var(--component-padding-md);
+  gap: var(--spacing-md);
+}
+
+.size-lg .fieldIcon {
+  font-size: 1.25rem;
+  margin-top: 3px;
+}
+
+.size-lg .fieldLabel {
+  font-size: var(--font-size-sm);
+}
+
+.size-lg .fieldValue {
+  font-size: var(--font-size-base);
+}
+
+.size-lg .dateSection {
+  padding: var(--component-padding-lg);
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-lg);
+}
+
+.size-lg .dateIcon {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.75rem;
+}
+
+.size-lg .dateLabel {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.size-lg .dateValue {
+  font-size: var(--font-size-lg);
+}
+
+.size-lg .footer {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--component-padding-lg);
+}
+
+.size-lg .actions {
+  gap: var(--spacing-md);
+}
+
+/* Extra Large - Maximum emphasis for featured content */
+.size-xl .header {
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.size-xl .icon {
+  font-size: 2.5rem;
+}
+
+.size-xl .title {
+  font-size: var(--font-size-2xl);
+}
+
+.size-xl .subtitle {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+}
+
+.size-xl .description {
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-loose);
+}
+
+.size-xl .fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.size-xl .field {
+  padding: var(--component-padding-lg);
+  gap: var(--spacing-lg);
+}
+
+.size-xl .fieldIcon {
+  font-size: 1.5rem;
+  margin-top: 4px;
+}
+
+.size-xl .fieldLabel {
+  font-size: var(--font-size-base);
+}
+
+.size-xl .fieldValue {
+  font-size: var(--font-size-lg);
+}
+
+.size-xl .dateSection {
+  padding: var(--component-padding-xl);
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-xl);
+}
+
+.size-xl .dateIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 2rem;
+}
+
+.size-xl .dateLabel {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
+}
+
+.size-xl .dateValue {
+  font-size: var(--font-size-xl);
+}
+
+.size-xl .footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--component-padding-xl);
+}
+
+.size-xl .actions {
+  gap: var(--spacing-lg);
+}

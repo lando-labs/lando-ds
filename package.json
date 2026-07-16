@@ -1,0 +1,185 @@
+{
+  "name": "@lando-labs/lando-ds",
+  "version": "0.57.0",
+  "description": "A self-describing, AI-native design system for React — 127 production-ready components, semantic OKLCH design tokens, and a structured meta.json artifact your AI assistant grounds itself against in milliseconds.",
+  "author": {
+    "name": "Lando Labs",
+    "url": "https://landolabs.co"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/lando-labs/lando-ds#readme",
+  "bugs": {
+    "url": "https://github.com/lando-labs/lando-ds/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lando-labs/lando-ds.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens.js",
+      "require": "./dist/tokens.cjs"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components.js",
+      "require": "./dist/components.cjs"
+    },
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "import": "./dist/components/*.js",
+      "require": "./dist/components/*.cjs"
+    },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks.js",
+      "require": "./dist/hooks.cjs"
+    },
+    "./markdown-editor": {
+      "types": "./dist/components/MarkdownEditor/index.d.ts",
+      "import": "./dist/markdown-editor.js",
+      "require": "./dist/markdown-editor.cjs"
+    },
+    "./icons": {
+      "types": "./dist/icons.d.ts",
+      "import": "./dist/icons.js",
+      "require": "./dist/icons.cjs"
+    },
+    "./meta": {
+      "default": "./dist/meta.json"
+    },
+    "./meta-verbose": {
+      "default": "./dist/meta.verbose.json"
+    },
+    "./meta-schema": {
+      "types": "./dist/meta/index.d.ts",
+      "import": "./dist/meta/index.js",
+      "require": "./dist/meta/index.cjs"
+    },
+    "./styles": "./dist/design-system.css",
+    "./styles.unlayered.css": "./dist/styles.unlayered.css",
+    "./layer-order.css": "./dist/layer-order.css",
+    "./theme-init.js": "./dist/theme-init.js",
+    "./dist/design-system.css": "./dist/design-system.css",
+    "./fonts.css": "./src/styles/fonts.css",
+    "./llms.txt": "./llms.txt"
+  },
+  "files": [
+    "dist",
+    "src/styles/fonts.css",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "llms.txt",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "npm run emit-tokens && vite build --mode library && npm run emit-meta && cp src/styles/layer-order.css dist/layer-order.css && node scripts/emit-unlayered-css.mjs && node scripts/emit-theme-init.mjs && node scripts/emit-component-shims.mjs",
+    "prepare": "husky && npm run build",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "sync-docs": "node scripts/sync-docs.mjs",
+    "sync-docs:check": "node scripts/sync-docs.mjs --check",
+    "emit-tokens": "node scripts/emit-tokens.mjs",
+    "emit-tokens:check": "node scripts/emit-tokens.mjs --check",
+    "emit-meta": "node scripts/emit-meta.mjs",
+    "emit-meta:check": "node scripts/emit-meta.mjs --check",
+    "validate:meta": "node scripts/validate-meta.mjs",
+    "validate:state": "node scripts/validate-state-contract.mjs",
+    "validate:hooks": "node scripts/validate-hooks.mjs",
+    "assemble:meta-schema": "node scripts/assemble-meta-schema-pkg.mjs",
+    "assemble:meta": "node scripts/assemble-meta-pkg.mjs",
+    "assemble:all": "npm run build && npm run assemble:meta-schema && npm run assemble:meta",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run build && changeset publish"
+  },
+  "dependencies": {
+    "@uiw/react-md-editor": "^4.1.0",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.3.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest-axe": "^3.5.9",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
+    "@types/recharts": "^1.8.29",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^2.1.8",
+    "ajv": "^8.20.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "glob": "^10.5.0",
+    "husky": "^9.1.7",
+    "jest-axe": "^10.0.0",
+    "jsdom": "^25.0.1",
+    "lucide-react": "^0.548.0",
+    "postcss": "^8.5.6",
+    "react": "^19.0.0",
+    "react-docgen-typescript": "^2.4.0",
+    "react-dom": "^19.0.0",
+    "rollup-plugin-preserve-directives": "^0.4.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "lucide-react": "^0.548.0 || ^1.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "keywords": [
+    "react",
+    "design-system",
+    "component-library",
+    "components",
+    "ui",
+    "ui-components",
+    "typescript",
+    "css-modules",
+    "design-tokens",
+    "tokens",
+    "oklch",
+    "theming",
+    "dark-mode",
+    "rsc",
+    "react-server-components",
+    "ai-native",
+    "mcp",
+    "lando-labs"
+  ]
+}

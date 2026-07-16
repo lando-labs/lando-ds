@@ -1,0 +1,358 @@
+/**
+ * StepProgress Component Styles
+ *
+ * Stepped progress tracker with horizontal/vertical orientations and
+ * dots/labeled/numbered variants. Token-driven so consumer themes
+ * (e.g. a tea palette) propagate through `--color-primary`,
+ * `--color-error-*`, and the neutral scale.
+ */
+
+/* ============================================================================
+   ROOT
+   ============================================================================ */
+
+.root {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  width: 100%;
+}
+
+.root.orientation-horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.root.orientation-vertical {
+  flex-direction: column;
+  align-items: stretch;
+  width: auto;
+  display: inline-flex;
+}
+
+/* ============================================================================
+   STEP (each <li>)
+   ============================================================================ */
+
+.step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.root.orientation-horizontal .step {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-8);
+}
+
+/* Last step shouldn't stretch — its connector is omitted. */
+.root.orientation-horizontal .step:last-child {
+  flex: 0 0 auto;
+}
+
+.root.orientation-vertical .step {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--spacing-12);
+  padding-bottom: var(--component-padding-md);
+}
+
+.root.orientation-vertical .step:last-child {
+  padding-bottom: 0;
+}
+
+/* ============================================================================
+   MARKER WRAP — holds dot + connector line
+   ============================================================================ */
+
+.markerWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.root.orientation-horizontal .markerWrap {
+  width: 100%;
+  flex-direction: row;
+}
+
+.root.orientation-vertical .markerWrap {
+  flex-direction: column;
+  height: 100%;
+  align-self: stretch;
+}
+
+/* ============================================================================
+   MARKER (the dot/circle)
+   ============================================================================ */
+
+.marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-neutral-300);
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  z-index: 1;
+  transition:
+    background-color var(--duration-normal) var(--easing-ease-out),
+    border-color var(--duration-normal) var(--easing-ease-out),
+    transform var(--duration-normal) var(--easing-ease-out),
+    box-shadow var(--duration-normal) var(--easing-ease-out);
+}
+
+/* Numbered/labeled variants need bigger circles to fit numbers. */
+.variant-numbered .marker,
+.variant-labeled .marker {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.markerNumber {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-on-primary, #ffffff);
+}
+
+/* ============================================================================
+   STATUS STATES
+   ============================================================================ */
+
+/* Upcoming — muted neutral dot */
+.marker[data-status='upcoming'] {
+  background-color: var(--color-neutral-300);
+  border-color: var(--color-neutral-300);
+}
+
+.marker[data-status='upcoming'] .markerNumber {
+  color: var(--color-text-secondary);
+}
+
+/* Completed — filled accent */
+.marker[data-status='completed'] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.marker[data-status='completed'] .markerNumber {
+  color: var(--color-on-primary, #ffffff);
+}
+
+/* Active — outlined ring with filled core, animated pulse */
+.marker[data-status='active'] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgb(var(--color-primary-medium-rgb) / 0.2);
+  animation: stepProgressPulse 1.6s var(--easing-ease-out) infinite;
+}
+
+.marker[data-status='active'] .markerNumber {
+  color: var(--color-on-primary, #ffffff);
+}
+
+/* Error — red ring with light fill */
+.marker[data-status='error'] {
+  background-color: var(--color-error-light);
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 4px rgb(var(--color-error-base-rgb, 239 68 68) / 0.2);
+}
+
+.marker[data-status='error'] .markerNumber {
+  color: var(--color-error-dark);
+}
+
+@keyframes stepProgressPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgb(var(--color-primary-medium-rgb) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgb(var(--color-primary-medium-rgb) / 0.05);
+  }
+}
+
+/* ============================================================================
+   CONNECTOR LINE
+   ============================================================================ */
+
+.connector {
+  display: block;
+  background-color: var(--color-neutral-300);
+  flex: 1 1 auto;
+  transition: background-color var(--duration-normal) var(--easing-ease-out);
+}
+
+.root.orientation-horizontal .connector {
+  height: 2px;
+  width: 100%;
+  margin: 0 var(--spacing-4);
+  align-self: center;
+}
+
+.root.orientation-vertical .connector {
+  width: 2px;
+  flex: 1 1 auto;
+  min-height: var(--spacing-24);
+  margin: var(--spacing-4) 0;
+  align-self: center;
+}
+
+/* Connector states */
+.connector[data-state='filled'] {
+  background-color: var(--color-primary);
+}
+
+.connector[data-state='muted'] {
+  background-color: var(--color-neutral-300);
+  /* Dashed pattern for upcoming */
+  background-image: linear-gradient(
+    to right,
+    var(--color-neutral-300) 50%,
+    transparent 50%
+  );
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  background-color: transparent;
+}
+
+.root.orientation-vertical .connector[data-state='muted'] {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-neutral-300) 50%,
+    transparent 50%
+  );
+  background-size: 2px 8px;
+  background-repeat: repeat-y;
+}
+
+.connector[data-state='error'] {
+  background-color: var(--color-error-base);
+  background-image: none;
+}
+
+/* ============================================================================
+   LABEL
+   ============================================================================ */
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-tight);
+  transition: color var(--duration-normal) var(--easing-ease-out),
+    font-weight var(--duration-normal) var(--easing-ease-out);
+  word-break: break-word;
+}
+
+.root.orientation-horizontal .label {
+  margin-top: var(--spacing-4);
+  max-width: 12ch;
+}
+
+.root.orientation-vertical .label {
+  padding-top: var(--spacing-2);
+  text-align: start;
+  flex: 1 1 auto;
+}
+
+/* Label emphasis per status */
+.step.status-completed .label {
+  color: var(--color-text-primary);
+}
+
+.step.status-active .label {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.step.status-upcoming .label {
+  color: var(--color-text-disabled);
+}
+
+.step.status-error .label {
+  color: var(--color-error-dark);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ============================================================================
+   SCREEN-READER-ONLY LABEL (for variant="dots")
+   ============================================================================ */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .marker,
+  .connector,
+  .label {
+    transition: none;
+  }
+
+  .marker[data-status='active'] {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   DARK MODE
+   ============================================================================ */
+
+[data-theme='dark'] .marker[data-status='upcoming'] {
+  background-color: var(--color-neutral-700, #455a64);
+  border-color: var(--color-neutral-700, #455a64);
+}
+
+[data-theme='dark'] .connector {
+  background-color: var(--color-neutral-700, #455a64);
+}
+
+[data-theme='dark'] .connector[data-state='muted'] {
+  background-color: transparent;
+  background-image: linear-gradient(
+    to right,
+    var(--color-neutral-700, #455a64) 50%,
+    transparent 50%
+  );
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+}
+
+[data-theme='dark'] .root.orientation-vertical .connector[data-state='muted'] {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-neutral-700, #455a64) 50%,
+    transparent 50%
+  );
+  background-size: 2px 8px;
+  background-repeat: repeat-y;
+}

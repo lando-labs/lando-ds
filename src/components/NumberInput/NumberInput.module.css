@@ -1,0 +1,228 @@
+/**
+ * NumberInput Component Styles
+ *
+ * Mirrors Input's visual language (border, focus ring, error state) and
+ * layers in the stepper-button column on the right. Size variants (sm/md/lg)
+ * scale both the input height and the stepper column.
+ *
+ * Tokens only — never raw brand hex (guarded by no-raw-brand-color.test.ts).
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ===== INPUT WRAPPER ===== */
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ===== INPUT ===== */
+
+.input {
+  width: 100%;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: var(--transition-default);
+  /* tabular-nums keeps the value visually anchored as digits change. */
+  font-variant-numeric: tabular-nums;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:hover:not(:disabled):not(:read-only) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * Mirror Input's #38 unified focus-ring: border shift + halo on
+ * :focus-visible ONLY (so mouse-click focus doesn't stack indicators).
+ */
+.input:focus-visible {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.input:disabled {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.input:read-only {
+  background-color: var(--color-surface-hover);
+  cursor: default;
+}
+
+/* ===== SIZE VARIANTS ===== */
+
+.inputWrapper.size-sm .input,
+.input.size-sm {
+  min-height: 2rem;
+  padding: var(--component-padding-2xs) var(--component-padding-sm);
+  font-size: var(--font-size-sm);
+}
+
+.inputWrapper.size-md .input,
+.input.size-md {
+  min-height: 2.5rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-size: var(--font-size-base);
+}
+
+.inputWrapper.size-lg .input,
+.input.size-lg {
+  min-height: 3rem;
+  padding: var(--component-padding-md) var(--component-padding-lg);
+  font-size: var(--font-size-lg);
+}
+
+/* When steppers are present, reserve right padding for them so the
+ * value doesn't slide under the stepper column. */
+.hasSteppers {
+  padding-inline-end: var(--spacing-40);
+}
+
+.size-sm.hasSteppers {
+  padding-inline-end: var(--component-padding-xl);
+}
+
+.size-lg.hasSteppers {
+  padding-inline-end: var(--component-padding-2xl);
+}
+
+/* ===== STEPPERS ===== */
+
+.steppers {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  bottom: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  width: 1.75rem;
+  border-inline-start: 1px solid var(--color-border-default);
+  border-radius: 0 calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.size-sm .steppers {
+  width: 1.5rem;
+}
+
+.size-lg .steppers {
+  width: 2rem;
+}
+
+.stepper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--color-surface);
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-default);
+  /* Keep steppers from stealing focus in the tab order — the spinbutton
+   * input itself is the focusable affordance (ArrowUp/Down work there). */
+  user-select: none;
+}
+
+.stepper:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.stepper:active:not(:disabled) {
+  background-color: var(--color-surface-active);
+}
+
+.stepperUp {
+  border-block-end: 1px solid var(--color-border-default);
+}
+
+.stepper:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.stepper:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== ERROR STATE ===== */
+
+.error {
+  border-color: var(--color-error-base);
+}
+
+.error:hover:not(:disabled) {
+  border-color: var(--color-error-dark);
+}
+
+.error:focus-visible {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+  outline: none;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}

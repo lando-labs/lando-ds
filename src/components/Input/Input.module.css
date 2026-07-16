@@ -1,0 +1,225 @@
+/**
+ * Input Component Styles
+ * Ocean-inspired with smooth focus transitions
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.required {
+  color: var(--color-error-base);
+  margin-inline-start: var(--spacing-4);
+}
+
+/* ===== INPUT WRAPPER ===== */
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* ===== INPUT ===== */
+
+.input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--component-padding-sm) var(--component-padding-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: var(--transition-default);
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:hover:not(:disabled):not(:read-only) {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * #38 — Unified focus-ring: border shift + halo on :focus-visible ONLY.
+ * Previously Input stacked THREE indicators on plain :focus (2px border +
+ * outline from the global :focus-visible fallback + box-shadow halo).
+ * :focus-visible scopes to keyboard focus and `outline: none` suppresses
+ * the global fallback so only ONE treatment applies.
+ */
+.input:focus-visible {
+  border-color: var(--focus-ring-color);
+  box-shadow: var(--focus-ring-shadow);
+  outline: none;
+}
+
+.input:disabled {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.input:read-only {
+  background-color: var(--color-surface-hover);
+  cursor: default;
+}
+
+/* ===== WITH ICONS ===== */
+
+.hasLeftIcon {
+  padding-inline-start: var(--component-padding-2xl);
+}
+
+.hasRightIcon {
+  padding-inline-end: var(--component-padding-2xl);
+}
+
+.leftIcon,
+.rightIcon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.leftIcon {
+  left: var(--spacing-16);
+}
+
+.rightIconGroup {
+  position: absolute;
+  right: var(--spacing-12);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.rightIcon {
+  position: static;
+  transform: none;
+  padding: var(--component-padding-2xs);
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-padding-2xs);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.iconButton:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.iconButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== ERROR STATE ===== */
+
+.error {
+  border-color: var(--color-error-base);
+}
+
+.error:hover:not(:disabled) {
+  border-color: var(--color-error-dark);
+}
+
+.error:focus-visible {
+  border-color: var(--color-error-base);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-base) 20%, transparent);
+  outline: none;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+  min-height: 1.25rem;
+}
+
+.helperWrapper {
+  flex: 1;
+}
+
+.helperText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-snug);
+}
+
+.errorText {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-base);
+  line-height: var(--line-height-snug);
+  font-weight: var(--font-weight-medium);
+}
+
+/*
+ * #43 DS-POLISH-5 — Match Textarea's counter contrast bump for
+ * consistency. --color-text-tertiary is now WCAG-AA-compliant after
+ * #12, but --color-text-secondary is the stronger hierarchy fit for
+ * an at-a-glance numeric indicator.
+ */
+.charCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  line-height: var(--line-height-snug);
+}
+
+/* ===== AUTOFILL STYLES ===== */
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-text-primary);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+[data-theme='dark'] .input:-webkit-autofill,
+[data-theme='dark'] .input:-webkit-autofill:hover,
+[data-theme='dark'] .input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-text-fill-color: var(--color-text-primary);
+}

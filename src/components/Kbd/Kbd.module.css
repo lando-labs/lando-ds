@@ -1,0 +1,40 @@
+/**
+ * Kbd Component Styles
+ * Keyboard-shortcut pill with platform-aware sizing.
+ */
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.size-xs {
+  padding: 0 var(--component-padding-xs);
+  height: 16px;
+  font-size: var(--font-size-2xs);
+  min-width: 16px;
+}
+
+.size-sm {
+  padding: 0 var(--component-padding-xs);
+  height: 20px;
+  font-size: var(--font-size-xs);
+  min-width: 20px;
+}
+
+.size-md {
+  padding: 0 var(--component-padding-sm);
+  height: 24px;
+  font-size: var(--font-size-sm);
+  min-width: 24px;
+}
