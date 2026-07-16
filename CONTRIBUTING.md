@@ -3,6 +3,12 @@
 Thanks for your interest in the Lando Labs Design System. This guide covers
 the essentials for working in the repository.
 
+## Code of conduct
+
+This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md). By
+participating you agree to uphold it; report unacceptable behavior to
+<lando@landolabs.co>.
+
 ## Prerequisites
 
 - Node.js `>=20`
@@ -51,11 +57,23 @@ packed tarball (`examples/consumer-smoke`). Do not pipe these commands through
 Open PRs against `main`. The full gate above must be green. Include a short
 summary of what changed and which issues it closes.
 
+## Maintainers
+
+Lando DS is maintained by [@Lando8604](https://github.com/Lando8604)
+(<lando@landolabs.co>). Pull requests automatically request review via
+[`.github/CODEOWNERS`](./.github/CODEOWNERS).
+
+This is a small team, so calibrate expectations accordingly: a response usually
+takes a few days, and a polite bump on the thread is welcome if something looks
+missed. Changes to the public component API, the design-token contract, or the
+`meta.json` schema get extra scrutiny — they ripple out to every consumer *and*
+to the AI agents grounding on the metadata. For anything large, open an issue to
+discuss the approach before investing in the PR.
+
 ## Security
 
-Please report security concerns responsibly — see [`SECURITY.md`](./SECURITY.md)
-if present, or open a private advisory rather than a public issue for anything
-sensitive.
+Please report security concerns responsibly — see [`SECURITY.md`](./SECURITY.md).
+Open a private advisory rather than a public issue for anything sensitive.
 
 ## License
 

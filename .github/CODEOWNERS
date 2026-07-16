@@ -1,0 +1,11 @@
+# Code owners for Lando DS.
+#
+# Listed owners are automatically requested for review on any pull request
+# touching a matching path. If branch protection enables "Require review from
+# Code Owners", these entries also gate merges.
+#
+# Syntax: https://docs.github.com/articles/about-code-owners
+# Last matching rule wins.
+
+# Default owner for everything in the repository.
+*   @Lando8604
