@@ -7,5 +7,5 @@
 # Syntax: https://docs.github.com/articles/about-code-owners
 # Last matching rule wins.
 
-# Default owner for everything in the repository.
-*   @Lando8604
+# Default owners for everything in the repository.
+*   @Lando8604 @lando-landolabs
