@@ -258,11 +258,23 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
         }
         break
       case 'Escape':
-        e.preventDefault()
-        setIsOpen(false)
-        // Return focus to the combobox trigger so keyboard users don't lose
-        // their place after dismissing the listbox via Escape.
-        selectRef.current?.focus()
+        // Only consume Escape when we actually have something to close.
+        // Gated on `isOpen` (mirrors Combobox/MultiSelect's `if (open)`
+        // pattern) — this handler is permanently attached to the trigger
+        // div regardless of open state, so an unconditional preventDefault()
+        // here would swallow every Escape press while the trigger has
+        // focus, even after the listbox is already closed. Since a Select
+        // opened inside a Modal (#14) is now reachable, that unconditional
+        // swallow would trap the Modal open: its native `<dialog>`
+        // Escape-to-close depends on this keydown reaching completion
+        // un-prevented. See #14 follow-up.
+        if (isOpen) {
+          e.preventDefault()
+          setIsOpen(false)
+          // Return focus to the combobox trigger so keyboard users don't
+          // lose their place after dismissing the listbox via Escape.
+          selectRef.current?.focus()
+        }
         break
       case 'ArrowDown':
         e.preventDefault()

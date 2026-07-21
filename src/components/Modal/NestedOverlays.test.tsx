@@ -189,6 +189,46 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
 
       expect(onChange).toHaveBeenCalledWith('admin')
     })
+
+    // #14 follow-up — the Popover-API migration made Select-in-Modal
+    // reachable for the first time (it was unusable before), which
+    // surfaced a real regression: Select's Escape handler used to call
+    // preventDefault() unconditionally, even when its own listbox was
+    // already closed. That swallowed every Escape press while the trigger
+    // had focus and trapped the Modal open, since the native <dialog>
+    // Escape-to-close mechanism keys off the keydown's defaultPrevented
+    // flag. jsdom doesn't implement that native mechanism, so these
+    // assertions use `fireEvent.keyDown`'s return value (the DOM
+    // `dispatchEvent()` result: `false` once preventDefault() was called,
+    // `true` otherwise) as the trustworthy signal for "would this Escape
+    // have reached the Modal's native close-watcher."
+    it('Escape closes only the listbox when open — consumes the event, Modal stays open (#14 follow-up)', () => {
+      render(<SelectInModal />)
+
+      const trigger = screen.getByRole('combobox')
+      fireEvent.click(trigger)
+      flushRaf()
+      expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+      const notPrevented = fireEvent.keyDown(trigger, { key: 'Escape' })
+
+      expect(notPrevented).toBe(false)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+      // The Modal itself is untouched — still rendered, dialog still present.
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    it('Escape does NOT preventDefault when the listbox is already closed, so it can reach the Modal (#14 follow-up)', () => {
+      render(<SelectInModal />)
+
+      const trigger = screen.getByRole('combobox')
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+      const notPrevented = fireEvent.keyDown(trigger, { key: 'Escape' })
+
+      expect(notPrevented).toBe(true)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
   })
 
   describe('Dropdown inside Modal (#35)', () => {
