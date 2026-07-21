@@ -1,0 +1,18 @@
+{
+  "scm": {
+    "provider": "github",
+    "issueTracker": "github",
+    "releaseCommand": "gh release create"
+  },
+  "closeout": {
+    "typecheck": "npm run typecheck",
+    "lint": "npm run lint",
+    "test": "npx vitest run",
+    "build": "npm run build && npm run validate:meta && npm run validate:state && npm run validate:hooks && npm run sync-docs:check",
+    "skip": ["e2e"],
+    "blockOnMissing": true
+  },
+  "planning": {
+    "sprintCount": 3
+  }
+}

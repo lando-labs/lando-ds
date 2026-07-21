@@ -24,6 +24,12 @@ dist-meta-schema/
 # Claude Code machine-local settings — never commit
 .claude/settings.local.json
 
+# Sprint working files — local-only: kept on disk to generate release notes,
+# never committed. architecture/ (shared project doc) and agents/ stay tracked.
+.claude/sprints/manifests/
+.claude/sprints/plans/
+.claude/sprints/archive/
+
 # IDEs
 .vscode/
 .idea/
