@@ -50,6 +50,7 @@ import React, {
   cloneElement,
 } from 'react'
 import { Portal } from '../Portal'
+import { useModalPortalContainer } from '../Modal/ModalPortalContext'
 import { useClickOutside } from '../../hooks/useClickOutside'
 import { useKeyPress } from '../../hooks/useKeyPress'
 import { useAnchoredPosition } from '../../hooks/useAnchoredPosition'
@@ -233,14 +234,28 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     isVisible
   )
 
-  // Popover API top-layer promotion (#273 step 2). Behind capability detection —
-  // no-op in jsdom and pre-2024 browsers, where the existing JS shim chain
-  // remains the only path. Manual mode (not auto) keeps OUR controlled state
-  // authoritative; the platform only contributes the top-layer paint.
+  // Nearest enclosing OPEN Modal's in-dialog portal container (#14
+  // follow-up — see the long comment at the top of Modal.tsx). Non-null
+  // means: render the popover as a descendant of that Modal's <dialog>
+  // instead of document.body — that's what actually makes it interactive,
+  // not just visible (a document.body-portaled popover is inert-by-ancestry
+  // once the Modal goes showModal(), regardless of top-layer paint order —
+  // verified live in Chromium).
+  const modalPortalContainer = useModalPortalContainer()
+
+  // Popover API top-layer promotion (#273 step 2) — STANDALONE path only.
+  // Behind capability detection — no-op in jsdom and pre-2024 browsers,
+  // where the existing JS shim chain remains the only path. Manual mode (not
+  // auto) keeps OUR controlled state authoritative; the platform only
+  // contributes the top-layer paint. Skipped entirely when nested in an
+  // open Modal (`modalPortalContainer` non-null): the popover is already a
+  // dialog descendant there, exempt from inertness by DOM ancestry — see the
+  // JSX below for why the `popover` attribute itself is also omitted then.
   useEffect(() => {
+    if (modalPortalContainer) return
     if (!supportsPopoverApi()) return
     syncPopoverState(popoverRef.current, isVisible && isReady)
-  }, [isVisible, isReady])
+  }, [isVisible, isReady, modalPortalContainer])
 
   const showPopover = () => {
     if (triggerOn === 'hover') {
@@ -351,7 +366,11 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     <>
       {triggerElement}
       {isVisible && (
-        <Portal>
+        // `container={modalPortalContainer}` — `null` falls through to
+        // Portal's own `container || document.body` default, a no-op for
+        // the standalone case; only changes behavior nested in an open
+        // Modal (#14 follow-up).
+        <Portal container={modalPortalContainer}>
           <div
             ref={setPopoverRef}
             // Consumer passthrough (#423) lands on the popover surface (the
@@ -374,10 +393,11 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
             }}
             data-placement={actualPlacement}
             data-portal-content
-            // Popover API opt-in (#273 step 2). Silently ignored by browsers
-            // without Popover API support; the effect above only calls
-            // showPopover() when supported.
-            popover="manual"
+            // Popover API opt-in (#273 step 2) — STANDALONE path only (see
+            // the useEffect above). Omitted when nested in an open Modal:
+            // the UA stylesheet hides `[popover]:not(:popover-open)` and we
+            // never call showPopover() in that branch.
+            popover={modalPortalContainer ? undefined : 'manual'}
             onMouseEnter={handleContentMouseEnter}
             onMouseLeave={handleContentMouseLeave}
           >

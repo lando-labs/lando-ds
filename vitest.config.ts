@@ -20,7 +20,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts', './vitest.setup.ts'],
     css: true,
-    exclude: ['**/node_modules/**', '**/dist/**', '.claude/**'],
+    // `tests/e2e/**` is the separate Playwright real-browser harness (#14 v2
+    // — see tests/e2e/playwright.config.ts). It uses `@playwright/test`'s
+    // own `test`/`test.describe`, which vitest's default `**/*.spec.ts`
+    // include glob would otherwise try (and fail) to collect as vitest
+    // tests. Run it via `npm run test:e2e`, not `npm test`.
+    exclude: ['**/node_modules/**', '**/dist/**', '.claude/**', 'tests/e2e/**'],
   },
   resolve: {
     alias: {

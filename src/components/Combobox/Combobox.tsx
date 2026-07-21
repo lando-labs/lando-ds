@@ -97,6 +97,7 @@ import React, {
 } from 'react'
 import { Portal } from '../Portal'
 import { Spinner } from '../Spinner'
+import { useModalPortalContainer } from '../Modal/ModalPortalContext'
 import { usePortalPosition } from '../../hooks/usePortalPosition'
 import { supportsPopoverApi, syncPopoverState } from '../../utils/popoverApi'
 import styles from './Combobox.module.css'
@@ -313,18 +314,31 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
     })
 
     // -----------------------------------------------------------------------
-    // Popover API top-layer promotion (#14). Previously the listbox was a
-    // plain Portal + position:fixed + z-index element, which paints UNDER a
-    // native <dialog> Modal + its ::backdrop regardless of z-index (top-layer
-    // stacking cannot be beaten by z-index). Dropdown/Popover already made
-    // this exact move (#273 step 2) — mirrored here so a Combobox opened
-    // inside a Modal is reachable. Behind capability detection: no-op in
-    // jsdom and pre-2024 browsers, where the existing chain is unchanged.
+    // Nearest enclosing OPEN Modal's in-dialog portal container (#14
+    // follow-up — see the long comment at the top of Modal.tsx). Non-null
+    // means: render the listbox as a descendant of that Modal's <dialog>
+    // instead of document.body — that's what actually makes it interactive,
+    // not just visible. See the Portal/popover JSX below.
+    // -----------------------------------------------------------------------
+    const modalPortalContainer = useModalPortalContainer()
+
+    // -----------------------------------------------------------------------
+    // Popover API top-layer promotion (#14) — STANDALONE path only. A
+    // document.body-portaled `popover="manual"` element paints above a
+    // native <dialog> Modal's top layer, but showModal()'s `inert` algorithm
+    // marks every node outside the dialog's own subtree inert regardless of
+    // paint order — verified live in Chromium, the element paints on top but
+    // is click/hover-through. When `modalPortalContainer` is non-null we
+    // instead render as a dialog descendant (exempt from inertness by DOM
+    // ancestry) and skip Popover API promotion entirely — see the JSX below
+    // for why the `popover` attribute itself must also be omitted in that
+    // branch, not just left un-shown.
     // -----------------------------------------------------------------------
     useEffect(() => {
+      if (modalPortalContainer) return
       if (!supportsPopoverApi()) return
       syncPopoverState(listboxRef.current, open && position.isReady)
-    }, [open, position.isReady])
+    }, [open, position.isReady, modalPortalContainer])
 
     // -----------------------------------------------------------------------
     // Outside-click / outside-focus → close. Mirrors Select's pattern with a
@@ -558,7 +572,11 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
         )}
 
         {open && (
-          <Portal>
+          // `container={modalPortalContainer}` — `null` falls through to
+          // Portal's own `container || document.body` default, a no-op for
+          // the standalone case; only changes behavior nested in an open
+          // Modal (#14 follow-up).
+          <Portal container={modalPortalContainer}>
             <ul
               ref={listboxRef}
               id={listboxId}
@@ -575,12 +593,11 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
               }}
               data-portal-content
               data-placement={position.placement}
-              // Popover API opt-in (#14). Silently ignored by browsers
-              // without Popover API support; the effect above only calls
-              // showPopover() where the API exists. "manual" (not "auto")
-              // keeps our controlled `open` state authoritative — see
-              // src/utils/popoverApi.ts for why.
-              popover="manual"
+              // Popover API opt-in (#14) — STANDALONE path only (see the
+              // useEffect above). Omitted when nested in an open Modal: the
+              // UA stylesheet hides `[popover]:not(:popover-open)` and we
+              // never call showPopover() in that branch.
+              popover={modalPortalContainer ? undefined : 'manual'}
             >
               {loading ? (
                 <li className={styles.loading} role="presentation">

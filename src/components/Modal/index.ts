@@ -2,5 +2,5 @@
  * Modal Component Exports
  */
 
-export { Modal } from './Modal'
+export { Modal, useModalPortalContainer } from './Modal'
 export type { ModalProps } from './Modal'

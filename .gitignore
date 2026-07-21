@@ -49,6 +49,11 @@ firebase-debug.*.log
 # Testing
 coverage/
 
+# Playwright e2e output (tests/e2e/playwright.config.ts) — never commit
+test-results/
+playwright-report/
+blob-report/
+
 # Playwright MCP screenshot scratch output — never commit
 .playwright-mcp/
 

@@ -100,6 +100,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "sync-docs": "node scripts/sync-docs.mjs",
     "sync-docs:check": "node scripts/sync-docs.mjs --check",
     "emit-tokens": "node scripts/emit-tokens.mjs",
@@ -126,6 +127,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",

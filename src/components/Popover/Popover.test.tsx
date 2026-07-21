@@ -302,7 +302,7 @@ describe('Popover', () => {
       )
     }
 
-    it('renders Popover content above Modal (z-index > modal)', () => {
+    it('renders Popover content inside the open Modal dialog subtree (#14 v2)', () => {
       render(<PopoverInModal />)
 
       fireEvent.click(screen.getByRole('button', { name: 'Help' }))
@@ -312,18 +312,20 @@ describe('Popover', () => {
       const popoverZ = Number(
         getComputedStyle(popover).getPropertyValue('z-index') || '0'
       )
-      // In jsdom getComputedStyle doesn't resolve CSS var references. We
-      // fall back to asserting that the popover is a direct child of
-      // document.body (portal escape) and that the Modal dialog is also on
-      // document.body. The z-index contract is asserted in
-      // nested-overlays.test.tsx via the tokens file.
       expect(document.body.contains(popover)).toBe(true)
 
-      // Both the modal backdrop and the popover should be portaled to body,
-      // not nested inside each other.
+      // #14 v2 (see Modal.tsx file-top comment / NestedOverlays.test.tsx):
+      // a Popover nested in an OPEN Modal now renders as a DOM DESCENDANT of
+      // that Modal's <dialog> via useModalPortalContainer(), not a
+      // document.body sibling — that's what exempts it from the dialog's
+      // native `inert` subtree in a real browser (the z-index-based
+      // top-layer-escape z-index contract below still holds for the
+      // STANDALONE, non-nested case; see the "standalone" tests elsewhere in
+      // this file and the Dropdown/Popover-in-Modal coverage in
+      // nested-overlays.test.tsx for that path).
       const modalDialog = screen.getByRole('dialog')
       expect(popover.contains(modalDialog)).toBe(false)
-      expect(modalDialog.contains(popover)).toBe(false)
+      expect(modalDialog.contains(popover)).toBe(true)
 
       // The numeric z-index should either be a resolved number or come from
       // the custom property; either way, the class name includes `.visible`
@@ -333,6 +335,12 @@ describe('Popover', () => {
       if (!Number.isNaN(popoverZ) && popoverZ > 0) {
         expect(popoverZ).toBeGreaterThanOrEqual(1100)
       }
+
+      // Nested in an open Modal, the popover does NOT opt into the Popover
+      // API (it's already exempt from inertness by DOM ancestry — see
+      // Popover.tsx). Emitting `popover="manual"` without ever calling
+      // showPopover() would leave it UA-stylesheet-hidden.
+      expect(popover).not.toHaveAttribute('popover')
     })
   })
 })

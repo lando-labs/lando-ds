@@ -16,34 +16,58 @@
  * - Also fixes the related Popover isPositioned race (#37) by migrating Popover
  *   to the shared `usePortalPosition` hook with its rAF retry loop.
  *
- * #14 (v0.58.0) — the z-index tier contract above stopped being sufficient
+ * #14 v1 (v0.58.0) — the z-index tier contract above stopped being sufficient
  * once Modal migrated to a native `<dialog>` + `showModal()` (#273): the
  * dialog's browser-managed TOP LAYER paints above *any* z-index, period.
  * Dropdown and Popover already followed that migration with their own
  * Popover-API opt-in (`popover="manual"` + `showPopover()`, #273 step 2), so
- * they kept working. Select / Combobox / MultiSelect had not, and were
- * unusable inside a Modal (reported by a consumer) until this sprint's fix
- * gave them the same `popover="manual"` opt-in — see
- * `src/utils/popoverApi.ts` and the `[data-theme]`-adjacent comment in
- * `Modal.tsx` for the top-layer-stacking rationale. The `popover="manual"`
- * assertions below are the structural proof of that fix; jsdom does not
- * implement the Popover API's actual top-layer paint, so this is the
- * furthest a jsdom test can verify the mechanism (see
- * `supportsPopoverApi()` — it returns `false` in jsdom, same as any
- * pre-2024 browser, so the *existing* Portal + position:fixed + z-index
- * chain is what actually renders in these tests; the attribute's presence
- * is what proves the browser-side promotion is wired up for browsers that
- * DO support it).
+ * they kept PAINTING correctly. Select / Combobox / MultiSelect had not, and
+ * got the same opt-in in the v1 fix.
+ *
+ * #14 v2 (v0.58.0 close-out, THIS fix) — v1 was visually complete but
+ * functionally incomplete: painting above the dialog via the Popover API is
+ * NOT the same as being interactive. Manual browser testing (Playwright,
+ * real Chromium) found Select/Combobox/MultiSelect/Dropdown/Popover options
+ * could not be hovered or clicked with the mouse inside a Modal — confirmed
+ * for ALL FIVE, not just the Select family, so this was a library-wide latent
+ * bug the v1 fix never actually closed. Root cause: per the HTML spec's
+ * "modal dialogs and inert subtrees" algorithm, `showModal()` marks every
+ * node OUTSIDE the dialog's own flat-tree subtree `inert` — and inert nodes
+ * don't receive pointer events, regardless of paint/top-layer order. A
+ * `popover="manual"` element portaled to `document.body` (a SIBLING of the
+ * dialog, not a descendant) still gets marked inert once the dialog goes
+ * modal; `document.elementsFromPoint()` at the element's own coordinates
+ * skips over it entirely in real Chromium (verified live — see the Modal.tsx
+ * file-top comment for the full diagnosis).
+ *
+ * The v2 fix: `useModalPortalContainer()` (`Modal/ModalPortalContext.ts`)
+ * exposes a DOM node that IS a descendant of the open Modal's `<dialog>` (a
+ * dedicated host div rendered as the dialog's own last child). The five
+ * overlay components render their portaled content THERE instead of
+ * `document.body` when nested in an open Modal — exempt from the inert
+ * subtree by DOM ancestry, no Popover API needed — and fall back to the v1
+ * Popover-API + `document.body` path when standalone (unchanged). This is
+ * jsdom-verifiable (plain DOM insertion, no browser-specific top-layer/inert
+ * behavior required), which is why the assertions below flipped from
+ * "escapes to document.body, NOT nested in dialog" to "nested inside the
+ * dialog subtree." The REAL hit-testing proof — that inert-by-ancestry
+ * actually restores pointer events in a browser that implements `inert` —
+ * is NOT jsdom-verifiable (jsdom doesn't implement modal-dialog inertness at
+ * all) and lives in `tests/e2e/overlays-in-modal.spec.ts` (Playwright,
+ * real Chromium) instead. Do not treat the assertions in this file as proof
+ * of the fix on their own.
  *
  * The tests verify structural and stylistic contract, not visual pixels.
  * jsdom doesn't render CSS, so we assert on:
- *   - portal escape to document.body
+ *   - portal target (document.body for standalone; the Modal's in-dialog
+ *     host — and therefore `dialog.contains(overlay) === true` — when nested
+ *     in an open Modal)
  *   - resolved z-index values via tokens.css (which vitest loads as a module
  *     for this suite via the explicit import below)
  *   - presence of `visible`/`positioned` class on the overlay (confirms the
  *     positioning race didn't regress)
- *   - presence of `popover="manual"` on the overlay root (#14 — proves the
- *     Popover-API opt-in is wired, mirroring Dropdown/Popover's pattern)
+ *   - presence (standalone) / absence (nested-in-Modal) of `popover="manual"`
+ *     on the overlay root
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useState } from 'react'
@@ -114,7 +138,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(options).toHaveLength(4)
     })
 
-    it('portals the listbox to document.body (escapes Modal container)', () => {
+    it('portals the listbox INSIDE the open Modal dialog subtree (#14 v2)', () => {
       render(<SelectInModal />)
 
       fireEvent.click(screen.getByRole('combobox'))
@@ -123,11 +147,15 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       const listbox = screen.getByRole('listbox')
       const dialog = screen.getByRole('dialog')
 
-      // Both are descendants of document.body. Critically, listbox is NOT
-      // nested inside dialog — otherwise it would inherit the modal's
-      // stacking context and be visually clipped / behind.
+      // Both are (transitively) descendants of document.body. Critically,
+      // the listbox IS now nested inside dialog — that's what exempts it
+      // from the dialog's native `inert` subtree once showModal() is active,
+      // which is what actually makes it clickable in a real browser (jsdom
+      // doesn't implement that inertness, so this assertion only proves the
+      // DOM shape, not the pointer-event behavior — see
+      // tests/e2e/overlays-in-modal.spec.ts for that).
       expect(document.body.contains(listbox)).toBe(true)
-      expect(dialog.contains(listbox)).toBe(false)
+      expect(dialog.contains(listbox)).toBe(true)
     })
 
     it('flips to positioned state (no stuck-at-off-screen flash)', () => {
@@ -145,19 +173,19 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(listbox.className).not.toMatch(/\bpositioning\b/)
     })
 
-    // #14 — the listbox must opt into the Popover API (top-layer promotion)
-    // exactly like Dropdown/Popover already do, or it paints under the
-    // dialog's top layer + ::backdrop in real browsers regardless of
-    // z-index. "manual" (not "auto") keeps the controlled isOpen state
-    // authoritative — see src/utils/popoverApi.ts.
-    it('opts into the Popover API (popover="manual") for top-layer promotion (#14)', () => {
+    // #14 v2 — nested in an open Modal, the listbox is a dialog descendant
+    // (exempt from inertness by DOM ancestry) and does NOT opt into the
+    // Popover API: emitting `popover="manual"` without ever calling
+    // showPopover() would leave it UA-stylesheet-hidden
+    // (`[popover]:not(:popover-open) { display: none }`).
+    it('does NOT carry popover="manual" when nested in an open Modal (#14 v2)', () => {
       render(<SelectInModal />)
 
       fireEvent.click(screen.getByRole('combobox'))
       flushRaf()
 
       const listbox = screen.getByRole('listbox')
-      expect(listbox).toHaveAttribute('popover', 'manual')
+      expect(listbox).not.toHaveAttribute('popover')
     })
 
     it('selecting an option fires onChange (listbox is interactable)', () => {
@@ -244,7 +272,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       )
     }
 
-    it('opens and portals menu to document.body', () => {
+    it('opens and portals menu INSIDE the open Modal dialog subtree (#14 v2)', () => {
       render(<DropdownInModal />)
 
       fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
@@ -253,7 +281,16 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       const menu = screen.getByRole('menu')
       const dialog = screen.getByRole('dialog')
       expect(document.body.contains(menu)).toBe(true)
-      expect(dialog.contains(menu)).toBe(false)
+      expect(dialog.contains(menu)).toBe(true)
+    })
+
+    it('does NOT carry popover="manual" when nested in an open Modal (#14 v2)', () => {
+      render(<DropdownInModal />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+      flushRaf()
+
+      expect(screen.getByRole('menu')).not.toHaveAttribute('popover')
     })
 
     it('renders menu items clickable', () => {
@@ -291,7 +328,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(popover.className).toMatch(/visible/)
     })
 
-    it('portals to document.body, not into Modal dialog', () => {
+    it('portals INSIDE the open Modal dialog subtree (#14 v2)', () => {
       render(<PopoverInModal />)
 
       fireEvent.click(screen.getByRole('button', { name: 'Info' }))
@@ -300,7 +337,16 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       const popover = screen.getByRole('tooltip')
       const dialog = screen.getByRole('dialog')
       expect(document.body.contains(popover)).toBe(true)
-      expect(dialog.contains(popover)).toBe(false)
+      expect(dialog.contains(popover)).toBe(true)
+    })
+
+    it('does NOT carry popover="manual" when nested in an open Modal (#14 v2)', () => {
+      render(<PopoverInModal />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Info' }))
+      flushRaf()
+
+      expect(screen.getByRole('tooltip')).not.toHaveAttribute('popover')
     })
   })
 
@@ -336,7 +382,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(options).toHaveLength(3)
     })
 
-    it('portals the listbox to document.body (escapes Modal container)', () => {
+    it('portals the listbox INSIDE the open Modal dialog subtree (#14 v2)', () => {
       render(<ComboboxInModal />)
 
       fireEvent.focus(screen.getByRole('combobox'))
@@ -345,10 +391,8 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       const listbox = screen.getByRole('listbox')
       const dialog = screen.getByRole('dialog')
 
-      // Both are descendants of document.body; listbox is NOT nested inside
-      // dialog — otherwise it would inherit the modal's stacking context.
       expect(document.body.contains(listbox)).toBe(true)
-      expect(dialog.contains(listbox)).toBe(false)
+      expect(dialog.contains(listbox)).toBe(true)
     })
 
     it('flips to positioned state (no stuck-at-off-screen flash)', () => {
@@ -362,16 +406,16 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(listbox.className).not.toMatch(/\bpositioning\b/)
     })
 
-    // #14 — mirrors Select/Dropdown/Popover's Popover-API opt-in so the
-    // listbox is promoted into the top layer in browsers that support it.
-    it('opts into the Popover API (popover="manual") for top-layer promotion (#14)', () => {
+    // #14 v2 — nested in an open Modal, no Popover-API opt-in (see the
+    // Select block above for why).
+    it('does NOT carry popover="manual" when nested in an open Modal (#14 v2)', () => {
       render(<ComboboxInModal />)
 
       fireEvent.focus(screen.getByRole('combobox'))
       flushRaf()
 
       const listbox = screen.getByRole('listbox')
-      expect(listbox).toHaveAttribute('popover', 'manual')
+      expect(listbox).not.toHaveAttribute('popover')
     })
 
     it('selecting an option fires onChange (listbox is interactable)', () => {
@@ -434,7 +478,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(options).toHaveLength(3)
     })
 
-    it('portals the listbox to document.body (escapes Modal container)', () => {
+    it('portals the listbox INSIDE the open Modal dialog subtree (#14 v2)', () => {
       render(<MultiSelectInModal />)
 
       fireEvent.focus(screen.getByRole('combobox'))
@@ -444,7 +488,7 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       const dialog = screen.getByRole('dialog')
 
       expect(document.body.contains(listbox)).toBe(true)
-      expect(dialog.contains(listbox)).toBe(false)
+      expect(dialog.contains(listbox)).toBe(true)
     })
 
     it('flips to positioned state (no stuck-at-off-screen flash)', () => {
@@ -458,16 +502,16 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       expect(listbox.className).not.toMatch(/\bpositioning\b/)
     })
 
-    // #14 — mirrors Select/Dropdown/Popover's Popover-API opt-in so the
-    // listbox is promoted into the top layer in browsers that support it.
-    it('opts into the Popover API (popover="manual") for top-layer promotion (#14)', () => {
+    // #14 v2 — nested in an open Modal, no Popover-API opt-in (see the
+    // Select block above for why).
+    it('does NOT carry popover="manual" when nested in an open Modal (#14 v2)', () => {
       render(<MultiSelectInModal />)
 
       fireEvent.focus(screen.getByRole('combobox'))
       flushRaf()
 
       const listbox = screen.getByRole('listbox')
-      expect(listbox).toHaveAttribute('popover', 'manual')
+      expect(listbox).not.toHaveAttribute('popover')
     })
 
     it('selecting an option fires onChange with the growing array (listbox is interactable)', () => {
@@ -495,6 +539,44 @@ describe('Nested overlays inside Modal (#35, #37, #46)', () => {
       fireEvent.click(screen.getByText('Admin'))
 
       expect(onChange).toHaveBeenCalledWith(['admin'])
+    })
+  })
+
+  describe('Modal closed — overlay falls back to the standalone path (#14 v2)', () => {
+    // A Select rendered as a child of a Modal that is currently CLOSED must
+    // not try to portal into a non-modal, non-top-layer dialog — that would
+    // be pointless (the dialog isn't showModal()'d, so there's no inertness
+    // to route around) and the standalone document.body + Popover-API path
+    // is correct there. `useModalPortalContainer()` returns `null` in this
+    // case (`ModalPortalContext.Provider value={isOpen ? portalHost : null}`
+    // in Modal.tsx) — this test locks that gate in.
+    it('portals to document.body and keeps popover="manual" while the enclosing Modal is closed', () => {
+      function SelectInClosedModal() {
+        const [value, setValue] = useState<string | undefined>(undefined)
+        return (
+          <Modal isOpen={false} onClose={() => {}} title="Closed">
+            <Select
+              options={[{ label: 'Admin', value: 'admin' }]}
+              value={value}
+              onChange={(v) => setValue(v as string)}
+              placeholder="Pick a role"
+            />
+          </Modal>
+        )
+      }
+      render(<SelectInClosedModal />)
+
+      // `{ hidden: true }` — Testing Library's role queries treat everything
+      // inside a `<dialog>` WITHOUT the `open` attribute as inaccessible (per
+      // HTML semantics, a closed dialog isn't rendered). That's correct
+      // a11y behavior, but this test is deliberately exercising the closed-
+      // Modal fallback path, not asserting on accessibility.
+      fireEvent.click(screen.getByRole('combobox', { hidden: true }))
+      flushRaf()
+
+      const listbox = screen.getByRole('listbox', { hidden: true })
+      expect(document.body.contains(listbox)).toBe(true)
+      expect(listbox).toHaveAttribute('popover', 'manual')
     })
   })
 
