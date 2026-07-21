@@ -20,9 +20,17 @@
  * `useFocusTrap` + `useClickOutside` + `useKeyPress`. None of those are needed
  * here — `<dialog>` is Baseline since 2022 and supersedes all four. The
  * `NestedOverlays.test.tsx` regression coverage continues to verify nested
- * overlay stacking; portaled overlays (Dropdown / Select / Popover) inside the
- * dialog still escape to `document.body` and paint above the dialog's
- * top-layer via the z-index tier contract.
+ * overlay stacking; portaled overlays (Dropdown / Popover / Select / Combobox /
+ * MultiSelect) inside the dialog still escape to `document.body` and paint
+ * above this dialog's top-layer — but ONLY because those overlays ALSO opt
+ * into the Popover API (`popover="manual"` + `showPopover()`, see
+ * `src/utils/popoverApi.ts`) and are therefore themselves promoted into the
+ * top layer. Top-layer stacking cannot be beaten by `z-index` alone — a
+ * `position:fixed` + `z-index` overlay with no top-layer promotion of its
+ * own paints UNDER this dialog + its `::backdrop` regardless of how high the
+ * z-index is. (#14 — Select/Combobox/MultiSelect did not opt into the
+ * Popover API prior to v0.58.0 and were unusable inside a Modal until they
+ * did.)
  *
  * @example
  * <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Confirm Action">

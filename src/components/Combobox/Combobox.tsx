@@ -98,6 +98,7 @@ import React, {
 import { Portal } from '../Portal'
 import { Spinner } from '../Spinner'
 import { usePortalPosition } from '../../hooks/usePortalPosition'
+import { supportsPopoverApi, syncPopoverState } from '../../utils/popoverApi'
 import styles from './Combobox.module.css'
 
 // ---------------------------------------------------------------------------
@@ -310,6 +311,20 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
       overlayRef: listboxRef,
       matchTriggerWidth: true,
     })
+
+    // -----------------------------------------------------------------------
+    // Popover API top-layer promotion (#14). Previously the listbox was a
+    // plain Portal + position:fixed + z-index element, which paints UNDER a
+    // native <dialog> Modal + its ::backdrop regardless of z-index (top-layer
+    // stacking cannot be beaten by z-index). Dropdown/Popover already made
+    // this exact move (#273 step 2) — mirrored here so a Combobox opened
+    // inside a Modal is reachable. Behind capability detection: no-op in
+    // jsdom and pre-2024 browsers, where the existing chain is unchanged.
+    // -----------------------------------------------------------------------
+    useEffect(() => {
+      if (!supportsPopoverApi()) return
+      syncPopoverState(listboxRef.current, open && position.isReady)
+    }, [open, position.isReady])
 
     // -----------------------------------------------------------------------
     // Outside-click / outside-focus → close. Mirrors Select's pattern with a
@@ -560,6 +575,12 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
               }}
               data-portal-content
               data-placement={position.placement}
+              // Popover API opt-in (#14). Silently ignored by browsers
+              // without Popover API support; the effect above only calls
+              // showPopover() where the API exists. "manual" (not "auto")
+              // keeps our controlled `open` state authoritative — see
+              // src/utils/popoverApi.ts for why.
+              popover="manual"
             >
               {loading ? (
                 <li className={styles.loading} role="presentation">

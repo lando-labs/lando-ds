@@ -22,6 +22,7 @@ import { Portal } from '../Portal'
 import { Badge } from '../Badge'
 import { usePortalPosition } from '../../hooks/usePortalPosition'
 import { useControllableState } from '../../hooks/useControllableState'
+import { supportsPopoverApi, syncPopoverState } from '../../utils/popoverApi'
 import styles from './Select.module.css'
 
 export interface SelectOption<T = unknown> {
@@ -160,6 +161,19 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
     overlayRef: dropdownRef,
     matchTriggerWidth: true,
   })
+
+  // Popover API top-layer promotion (#14). Previously the dropdown was a
+  // plain Portal + position:fixed + z-index element, which paints UNDER a
+  // native <dialog> Modal + its ::backdrop regardless of z-index (top-layer
+  // stacking cannot be beaten by z-index). Dropdown/Popover already made
+  // this exact move (#273 step 2) — mirrored here so a Select opened inside
+  // a Modal is reachable. Behind capability detection: no-op in jsdom and
+  // pre-2024 browsers, where the existing position:fixed/z-index chain
+  // remains the only (unchanged) behavior.
+  useEffect(() => {
+    if (!supportsPopoverApi()) return
+    syncPopoverState(dropdownRef.current, isOpen && position.isReady)
+  }, [isOpen, position.isReady])
 
   useEffect(() => {
     if (isOpen && searchable && searchInputRef.current) {
@@ -424,6 +438,12 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
             }
             data-portal-content
             data-placement={position.placement}
+            // Popover API opt-in (#14). Silently ignored by browsers without
+            // Popover API support; the effect above only calls
+            // showPopover() where the API exists. "manual" (not "auto")
+            // keeps our controlled isOpen state authoritative — see
+            // src/utils/popoverApi.ts for why.
+            popover="manual"
           >
             {searchable && (
               <div className={styles.searchWrapper}>
