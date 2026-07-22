@@ -31,6 +31,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Portal } from '../Portal'
+import { useModalPortalContainer } from '../Modal/ModalPortalContext'
 import { useClickOutside } from '../../hooks/useClickOutside'
 import { useKeyPress } from '../../hooks/useKeyPress'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
@@ -86,12 +87,19 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(function
   })
   const isPositioned = position.isReady
 
+  // Ignore clicks on the trigger itself (#14 v3): without this, an open
+  // trigger's mousedown fires this hook's outside-click callback (closing),
+  // and the trigger's own onClick then re-fires toggleDropdown() against the
+  // post-close render (re-opening) — net effect: the menu never closes on a
+  // second trigger click. The trigger's onClick is the single source of
+  // truth for trigger clicks; this hook only needs to own clicks elsewhere.
   useClickOutside(
     dropdownRef,
     () => {
       setIsOpen(false)
     },
-    isOpen
+    isOpen,
+    [triggerRef]
   )
 
   useKeyPress(
@@ -104,15 +112,30 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(function
 
   useFocusTrap(dropdownRef, isOpen)
 
-  // Promote the menu into the top layer via the Popover API when supported.
-  // Behind capability detection — jsdom and pre-2024 browsers don't implement
-  // showPopover/hidePopover, in which case we fall through to the existing JS
-  // shim chain (no behavioral change). Re-runs on `isPositioned` because the
-  // ref doesn't exist until after the Portal mounts and the position settles.
+  // Nearest enclosing OPEN Modal's in-dialog portal container (#14
+  // follow-up — see the long comment at the top of Modal.tsx). Non-null
+  // means: render the menu as a descendant of that Modal's <dialog> instead
+  // of document.body — that's what actually makes it interactive, not just
+  // visible (a document.body-portaled popover is inert-by-ancestry once the
+  // Modal goes showModal(), regardless of top-layer paint order — verified
+  // live in Chromium).
+  const modalPortalContainer = useModalPortalContainer()
+
+  // Promote the menu into the top layer via the Popover API when supported —
+  // STANDALONE path only. Behind capability detection — jsdom and pre-2024
+  // browsers don't implement showPopover/hidePopover, in which case we fall
+  // through to the existing JS shim chain (no behavioral change). Re-runs on
+  // `isPositioned` because the ref doesn't exist until after the Portal
+  // mounts and the position settles. Skipped entirely when nested in an open
+  // Modal (`modalPortalContainer` non-null): the menu is already a dialog
+  // descendant there, so it's exempt from inertness by DOM ancestry and
+  // doesn't need top-layer promotion — see the JSX below for why the
+  // `popover` attribute itself is also omitted in that branch.
   useEffect(() => {
+    if (modalPortalContainer) return
     if (!supportsPopoverApi()) return
     syncPopoverState(dropdownRef.current, isOpen && isPositioned)
-  }, [isOpen, isPositioned])
+  }, [isOpen, isPositioned, modalPortalContainer])
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen)
@@ -148,7 +171,11 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(function
       </div>
 
       {isOpen && (
-        <Portal>
+        // `container={modalPortalContainer}` — `null` falls through to
+        // Portal's own `container || document.body` default, a no-op for
+        // the standalone case; only changes behavior nested in an open
+        // Modal (#14 follow-up).
+        <Portal container={modalPortalContainer}>
           <div
             ref={dropdownRef}
             className={dropdownClasses}
@@ -171,11 +198,11 @@ export const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(function
             }}
             data-placement={position.placement}
             data-portal-content
-            // Popover API opt-in (#273 step 2). The attribute is silently
-            // ignored by browsers without Popover API support, so it's safe to
-            // always emit; the useEffect above only calls showPopover() where
-            // the API exists.
-            popover="manual"
+            // Popover API opt-in (#273 step 2) — STANDALONE path only (see
+            // the useEffect above). Omitted when nested in an open Modal:
+            // the UA stylesheet hides `[popover]:not(:popover-open)` and we
+            // never call showPopover() in that branch.
+            popover={modalPortalContainer ? undefined : 'manual'}
             role="menu"
             aria-orientation="vertical"
           >

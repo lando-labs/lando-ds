@@ -11,6 +11,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { axe } from 'jest-axe'
 import { Button } from './Button'
+import { resolveTokenHex } from '../../test/contrast-helpers'
+import { contrastRatio, AA_NORMAL, AA_LARGE } from '../../tokens/contrast'
 
 describe('Button', () => {
   it('renders children correctly', () => {
@@ -328,6 +330,51 @@ describe('Button', () => {
       )
       expect(unmountWarning).toBeUndefined()
       errorSpy.mockRestore()
+    })
+  })
+
+  // #9 — outline variant resting-state contrast. jsdom does not resolve
+  // `@layer` order or reliably evaluate `color-mix()`/`oklch()` custom-
+  // property cascades, so this asserts against the REAL tokens.css values
+  // (parsed by `resolveTokenHex`, the same approach `chrome-contrast.test.ts`
+  // (#288) established) rather than rendering + `getComputedStyle`. Mirrors
+  // Button.module.css's `.outline` rules exactly: the plain rule for light,
+  // the `[data-theme='dark'] .outline` override (added by this fix) for dark.
+  describe('outline variant contrast (#9)', () => {
+    it('dark border clears SC 1.4.11 (≥3:1 non-text contrast) against the surface', () => {
+      // [data-theme='dark'] .outline { border-color: var(--color-border-emphasis) }
+      const border = resolveTokenHex('--color-border-emphasis', 'dark')
+      const surface = resolveTokenHex('--color-surface', 'dark')
+      // Measured 4.15:1 (was 1.78:1 via --color-border-default pre-fix).
+      expect(contrastRatio(border, surface)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('dark label clears SC 1.4.3 (≥4.5:1 text contrast) against the surface', () => {
+      // [data-theme='dark'] .outline { color: var(--color-primary-base) }
+      const label = resolveTokenHex('--color-primary-base', 'dark')
+      const surface = resolveTokenHex('--color-surface', 'dark')
+      // Measured 4.81:1 (was 2.96:1 via bare --color-primary pre-fix).
+      expect(contrastRatio(label, surface)).toBeGreaterThanOrEqual(AA_NORMAL)
+    })
+
+    it('light theme resting tokens are untouched by the dark-mode fix (regression lock)', () => {
+      // The fix added ONLY a `[data-theme='dark'] .outline` override; the base
+      // `.outline` rule (border-color: var(--color-border-default), color:
+      // var(--color-primary)) that light mode renders through is unmodified.
+      // This locks the current measured values so a future change to those
+      // two tokens — or an accidental dark-scoped leak into the light rule —
+      // shows up here. (Label already clears AA_NORMAL at 6.00:1; the neutral
+      // border is a decorative-hairline-style token elsewhere in the DS and
+      // is intentionally NOT asserted against an AA threshold by this test —
+      // that pre-existing light-mode border contrast is a separate, out-of-
+      // scope question from #9, which is specifically the dark-theme
+      // regression this fix addresses.)
+      const border = resolveTokenHex('--color-border-default', 'light')
+      const label = resolveTokenHex('--color-primary', 'light')
+      const surface = resolveTokenHex('--color-surface', 'light')
+      expect(contrastRatio(border, surface)).toBeCloseTo(1.525, 2)
+      expect(contrastRatio(label, surface)).toBeCloseTo(6.005, 2)
+      expect(contrastRatio(label, surface)).toBeGreaterThanOrEqual(AA_NORMAL)
     })
   })
 })

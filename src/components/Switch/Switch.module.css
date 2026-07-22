@@ -198,12 +198,35 @@
 */
 
 /* Dark mode adjustments */
+/*
+ * #12 — off-state (unchecked) track was bound to --color-surface-elevated,
+ * which in dark mode sits at ~card-surface lightness (oklch 0.26 vs
+ * --color-surface's 0.21) — track + thumb + surrounding surface read as one
+ * value (measured well under the SC 1.4.11 3:1 floor). Fixed by pointing at
+ * --color-border-emphasis (src/styles/tokens.css), a dedicated dark-only
+ * neutral rung shared with Button outline's dark-border fix (#9) — both need
+ * a neutral that pops off a dark surface at ≥3:1. Measures 4.15:1 vs
+ * --color-surface and 3.64:1 vs --color-surface-elevated (the card-nested
+ * case) in dark, comfortably clearing 3:1 against both.
+ */
 [data-theme='dark'] .track {
-  background-color: var(--color-surface-elevated);
+  background-color: var(--color-border-emphasis);
 }
 
-[data-theme='dark'] .switch:hover:not(:disabled) ~ .track {
-  background-color: var(--color-surface-hover);
+/*
+ * :not(:checked) added alongside the #12 fix above: this selector and
+ * `.switch:checked:hover:not(:disabled) ~ .track` (checked-state hover,
+ * declared earlier in this file) previously tied in specificity, so this
+ * dark rule — being later in source order — silently won even while
+ * checked, painting the ON track with the OFF-track hover color. Scoping
+ * this rule to the unchecked case is what the selector always intended;
+ * checked+hover in dark now correctly falls through to the primary-hover
+ * rule. The hover fill itself steps UP from the new resting
+ * --color-border-emphasis via color-mix (5.36:1 vs --color-surface) so
+ * hover still reads as "more prominent," not a dip.
+ */
+[data-theme='dark'] .switch:hover:not(:disabled):not(:checked) ~ .track {
+  background-color: color-mix(in oklab, var(--color-border-emphasis), white 15%);
 }
 
 [data-theme='dark'] .thumb {

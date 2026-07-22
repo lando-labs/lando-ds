@@ -23,6 +23,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { Switch } from './Switch'
+import { resolveTokenHex } from '../../test/contrast-helpers'
+import { contrastRatio, AA_LARGE } from '../../tokens/contrast'
 
 describe('Switch', () => {
   it('renders with label', () => {
@@ -114,5 +116,59 @@ describe('Switch', () => {
   it('has no a11y violations (axe)', async () => {
     const { container } = render(<Switch label="Enable experimental features" />)
     expect(await axe(container)).toHaveNoViolations()
+  })
+
+  // #12 — off-state (unchecked) track contrast. Reuses the shared
+  // `resolveTokenHex` helper from Button's #9 fix (jsdom does not resolve
+  // `@layer` order or reliably evaluate `color-mix()`/`oklch()` custom-
+  // property cascades, so this asserts against the REAL tokens.css values
+  // rather than rendering + `getComputedStyle`). Mirrors Switch.module.css's
+  // `[data-theme='dark'] .track` / `.thumb` rules exactly.
+  describe('off-track contrast (#12)', () => {
+    it('dark off-track clears SC 1.4.11 (≥3:1) against the page surface', () => {
+      // [data-theme='dark'] .track { background-color: var(--color-border-emphasis) }
+      const track = resolveTokenHex('--color-border-emphasis', 'dark')
+      const surface = resolveTokenHex('--color-surface', 'dark')
+      // Measured 4.15:1 (was 1.14:1 via --color-surface-elevated pre-fix —
+      // track and page surface were nearly indistinguishable).
+      expect(contrastRatio(track, surface)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('dark off-track clears ≥3:1 against an elevated/card surface (the nested case)', () => {
+      // Switch is commonly nested in a Card, which paints --color-surface-elevated
+      // rather than the page --color-surface — the acceptance criteria calls
+      // this out explicitly as the surface the track must still pop off of.
+      const track = resolveTokenHex('--color-border-emphasis', 'dark')
+      const elevated = resolveTokenHex('--color-surface-elevated', 'dark')
+      // Measured 3.64:1.
+      expect(contrastRatio(track, elevated)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('dark thumb is distinguishable from the off-track (≥3:1)', () => {
+      // .thumb { background-color: var(--color-surface) } in BOTH themes —
+      // the thumb intentionally matches the page surface and relies on the
+      // track color (not its own) to read as a separate shape. Once the
+      // track clears AA_LARGE against --color-surface (asserted above), the
+      // thumb — being literally --color-surface — necessarily clears the
+      // same ratio against the track.
+      const track = resolveTokenHex('--color-border-emphasis', 'dark')
+      const thumb = resolveTokenHex('--color-surface', 'dark')
+      expect(contrastRatio(thumb, track)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('light mode and the checked/on-state track are untouched by the fix (regression lock)', () => {
+      // The fix only changed the [data-theme='dark'] `.track` (unchecked)
+      // background and its hover step; light mode's `.track` rule
+      // (background: var(--color-border-default)) and the checked/on-state
+      // rule (background: var(--color-primary), in both themes) are
+      // unmodified source.
+      const lightTrack = resolveTokenHex('--color-border-default', 'light')
+      const lightSurface = resolveTokenHex('--color-surface', 'light')
+      // Locks the current measured light off-track value — not asserted
+      // against an AA threshold here since #12 is scoped to the dark-theme
+      // regression; this only guards against an accidental leak of the
+      // dark-mode fix into the light rule.
+      expect(contrastRatio(lightTrack, lightSurface)).toBeCloseTo(1.525, 2)
+    })
   })
 })

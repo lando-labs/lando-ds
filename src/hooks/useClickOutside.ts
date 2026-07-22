@@ -11,6 +11,15 @@
  * @example
  * const dropdownRef = useRef<HTMLDivElement>(null)
  * useClickOutside(dropdownRef, () => setIsOpen(false))
+ *
+ * @example
+ * // Toggle triggers (Dropdown/Popover): pass the trigger's own ref via
+ * // `ignoreRefs` so the trigger's click doesn't ALSO get treated as an
+ * // "outside" click. Without this, a click on an open trigger both (a)
+ * // closes via this hook's `mousedown` listener and (b) re-opens via the
+ * // trigger's own `onClick` toggle — a double-fire that nets "stays open"
+ * // (#14 v3).
+ * useClickOutside(dropdownRef, () => setIsOpen(false), isOpen, [triggerRef])
  */
 
 import { useEffect } from 'react'
@@ -18,7 +27,8 @@ import { useEffect } from 'react'
 export function useClickOutside(
   ref: React.RefObject<HTMLElement | null>,
   callback: (event: MouseEvent | TouchEvent) => void,
-  isActive: boolean = true
+  isActive: boolean = true,
+  ignoreRefs: React.RefObject<HTMLElement | null>[] = []
 ) {
   useEffect(() => {
     if (!isActive) return
@@ -28,6 +38,13 @@ export function useClickOutside(
 
       // Don't trigger if clicking inside the ref element
       if (ref.current && ref.current.contains(target)) {
+        return
+      }
+
+      // Don't trigger if clicking inside one of the caller's ignored elements
+      // (typically the trigger that opens/toggles the overlay this hook is
+      // dismissing — see the toggle-trigger example above).
+      if (ignoreRefs.some((ignoreRef) => ignoreRef.current && ignoreRef.current.contains(target))) {
         return
       }
 
@@ -64,5 +81,5 @@ export function useClickOutside(
       document.removeEventListener('mousedown', handleClick)
       document.removeEventListener('touchstart', handleClick)
     }
-  }, [ref, callback, isActive])
+  }, [ref, callback, isActive, ignoreRefs])
 }

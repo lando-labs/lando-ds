@@ -210,3 +210,61 @@ jobs:
       - name: next build (RSC proof)
         run: npx next build
         working-directory: ./examples/next-app-router
+
+  # Real-browser overlay e2e suite (#14 v2/v3, tests/e2e/overlays-in-modal.spec.ts).
+  # Covers behavior jsdom cannot model at all — e.g. a <dialog> opened via
+  # showModal() marking everything outside its subtree `inert`, which blocks
+  # pointer events regardless of paint order — so it runs Playwright against a
+  # real Chromium against the example app's dev server (which consumes the
+  # freshly built dist/ via the `file:../..` dependency).
+  #
+  # Kept as its own job (rather than folded into the `test` job above) so the
+  # one-time Chromium + OS dependency install doesn't slow down the primary
+  # typecheck/lint/test/build gate that runs on every push.
+  e2e-overlays:
+    name: Overlay e2e (Playwright)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Playwright's Chromium browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build library
+        run: npm run build
+
+      # The example app consumes the library via a `file:../..` dependency
+      # with no lockfile committed (same reasoning as the rsc-build job
+      # above: CI re-packs/rebuilds dist/ every run, so a pinned lockfile
+      # would EINTEGRITY). It needs its own install to materialize the
+      # node_modules symlink against the dist/ just built above.
+      - name: Install example app dependencies
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
+        working-directory: ./examples/next-app-router
+
+      - name: Run overlay e2e suite
+        run: npm run test:e2e
+
+      # Traces for failed runs (trace: 'retain-on-failure' in
+      # tests/e2e/playwright.config.ts) — upload so a failure is debuggable
+      # from the Actions UI without needing a local repro.
+      - name: Upload Playwright traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

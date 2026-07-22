@@ -20,8 +20,10 @@
 import React, { useState, useRef, useEffect, useId } from 'react'
 import { Portal } from '../Portal'
 import { Badge } from '../Badge'
+import { useModalPortalContainer } from '../Modal/ModalPortalContext'
 import { usePortalPosition } from '../../hooks/usePortalPosition'
 import { useControllableState } from '../../hooks/useControllableState'
+import { supportsPopoverApi, syncPopoverState } from '../../utils/popoverApi'
 import styles from './Select.module.css'
 
 export interface SelectOption<T = unknown> {
@@ -161,6 +163,40 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
     matchTriggerWidth: true,
   })
 
+  // Nearest enclosing OPEN Modal's in-dialog portal container, or `null`
+  // (#14 follow-up — see the long comment at the top of Modal.tsx). Non-null
+  // means: render the dropdown as a descendant of that Modal's <dialog>
+  // instead of document.body, which is what actually makes it interactive —
+  // see below.
+  const modalPortalContainer = useModalPortalContainer()
+
+  // Popover API top-layer promotion (#14) — STANDALONE path only. Previously
+  // the dropdown was a plain Portal + position:fixed + z-index element, which
+  // paints UNDER a native <dialog> Modal + its ::backdrop regardless of
+  // z-index (top-layer stacking cannot be beaten by z-index). That's still
+  // true and still fixed by Popover API promotion for the case this Select
+  // is NOT nested inside one of our own open Modals (e.g. an ancestor
+  // z-index/stacking-context trap in a consumer's own layout).
+  //
+  // #14 follow-up: promoting into the top layer is NOT enough when nested in
+  // an open Modal — a document.body-portaled popover is a SIBLING of the
+  // dialog, and showModal()'s native `inert` algorithm marks every node
+  // outside the dialog's own subtree inert, which blocks pointer events
+  // regardless of paint order (verified live in Chromium: the element paints
+  // on top but document.elementsFromPoint() skips it entirely). When
+  // `modalPortalContainer` is non-null we instead render as a DOM descendant
+  // of that Modal's dialog (see the `<Portal container>` below), which
+  // exempts us from inertness by ancestry — no top-layer promotion needed,
+  // so we skip it here and don't emit `popover="manual"` in that branch
+  // either (see the JSX below): a `popover` attribute with `showPopover()`
+  // never called would leave the element UA-stylesheet-hidden
+  // (`[popover]:not(:popover-open) { display: none }`).
+  useEffect(() => {
+    if (modalPortalContainer) return
+    if (!supportsPopoverApi()) return
+    syncPopoverState(dropdownRef.current, isOpen && position.isReady)
+  }, [isOpen, position.isReady, modalPortalContainer])
+
   useEffect(() => {
     if (isOpen && searchable && searchInputRef.current) {
       searchInputRef.current.focus()
@@ -244,11 +280,23 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
         }
         break
       case 'Escape':
-        e.preventDefault()
-        setIsOpen(false)
-        // Return focus to the combobox trigger so keyboard users don't lose
-        // their place after dismissing the listbox via Escape.
-        selectRef.current?.focus()
+        // Only consume Escape when we actually have something to close.
+        // Gated on `isOpen` (mirrors Combobox/MultiSelect's `if (open)`
+        // pattern) — this handler is permanently attached to the trigger
+        // div regardless of open state, so an unconditional preventDefault()
+        // here would swallow every Escape press while the trigger has
+        // focus, even after the listbox is already closed. Since a Select
+        // opened inside a Modal (#14) is now reachable, that unconditional
+        // swallow would trap the Modal open: its native `<dialog>`
+        // Escape-to-close depends on this keydown reaching completion
+        // un-prevented. See #14 follow-up.
+        if (isOpen) {
+          e.preventDefault()
+          setIsOpen(false)
+          // Return focus to the combobox trigger so keyboard users don't
+          // lose their place after dismissing the listbox via Escape.
+          selectRef.current?.focus()
+        }
         break
       case 'ArrowDown':
         e.preventDefault()
@@ -404,7 +452,11 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
       )}
 
       {isOpen && (
-        <Portal>
+        // `container={modalPortalContainer}` — `null` falls through to
+        // Portal's own `container || document.body` default (see
+        // Portal.tsx), so this is a no-op for the standalone case and only
+        // changes behavior when nested in an open Modal (#14 follow-up).
+        <Portal container={modalPortalContainer}>
           <div
             ref={dropdownRef}
             className={`${styles.dropdown} ${position.isReady ? styles.positioned : styles.positioning}`}
@@ -424,6 +476,12 @@ export const Select = <T = unknown,>(props: SelectProps<T>) => {
             }
             data-portal-content
             data-placement={position.placement}
+            // Popover API opt-in (#14) — STANDALONE path only (see the
+            // useEffect above). Omitted entirely when nested in an open
+            // Modal: the UA stylesheet hides `[popover]:not(:popover-open)`,
+            // and we never call showPopover() in that branch, so leaving the
+            // attribute on would hide the dropdown outright.
+            popover={modalPortalContainer ? undefined : 'manual'}
           >
             {searchable && (
               <div className={styles.searchWrapper}>

@@ -309,6 +309,17 @@
   flex-shrink: 0;
 }
 
+/* ===== In-dialog portal host (#14 follow-up) =====
+ * See the long comment at the top of Modal.tsx. `display: contents` removes
+ * this div from box generation entirely — it doesn't affect `.dialog`'s
+ * layout, and `position:fixed` descendants portaled here skip straight to
+ * `.dialog` for their containing block, matching the coordinate math
+ * `usePortalPosition` already computes (viewport-relative, because
+ * `.dialog`'s own box IS the viewport rect — see Modal.tsx). */
+.portalHost {
+  display: contents;
+}
+
 /* Responsive adjustments */
 /* #270 — modal goes full-bleed when its available space is narrow. The dialog
  * IS the container host; `.modal` and `.header`/`.body`/`.footer` are all

@@ -298,6 +298,17 @@
   --color-border-subtle: var(--color-neutral-200);
   --color-border-default: var(--color-neutral-300);
   --color-border-strong: var(--color-neutral-400);
+  /*
+   * #9 / #12 — dedicated "pops off a dark surface" rung for components that
+   * paint a neutral border/fill directly on --color-surface (Button outline
+   * resting border, Switch off-state track). In LIGHT mode this is an
+   * identity alias — --color-border-strong already clears AA here (9.53:1
+   * measured for Button's outline border) — so light is unaffected. The dark
+   * override below is the actual fix: --color-border-strong itself measures
+   * only ~2.96:1 vs --color-surface in dark (just under the SC 1.4.11 3:1
+   * floor), too close to trust as the "strong" rung for this purpose.
+   */
+  --color-border-emphasis: var(--color-border-strong);
 
   /*
    * #39 — semantic surface tokens for disabled interactive controls.
@@ -827,6 +838,15 @@
   --color-border-subtle: oklch(0.31 0.005 250);   /* matches surface-hover */
   --color-border-default: oklch(0.38 0.008 250);
   --color-border-strong: oklch(0.5 0.012 250);
+  /*
+   * #9 / #12 — see the :root definition above for why this rung exists
+   * separately from --color-border-strong. oklch(0.58 0.012 250) is the same
+   * neutral hue/chroma as --color-border-strong, lightened just enough to
+   * clear 3:1 against BOTH --color-surface (4.15:1) and --color-surface-elevated
+   * (3.64:1) — --color-border-strong itself only reaches 2.96:1 / 2.60:1
+   * against those two backgrounds respectively.
+   */
+  --color-border-emphasis: oklch(0.58 0.012 250);
 
   /* Disabled control tokens (#39) — dark-mode analogs.
    * v0.36.0 OSS-prep (#421): re-anchored to neutral so the disabled state

@@ -300,6 +300,64 @@ describe('Select', () => {
     })
   })
 
+  // #14 follow-up — a Select rendered inside a Modal (see
+  // NestedOverlays.test.tsx for the full nested-Modal scenario) is now
+  // reachable via the Popover-API migration, which surfaced a real bug: the
+  // Escape handler was unconditionally calling preventDefault(), even when
+  // the listbox was already closed. That swallowed every Escape press while
+  // the trigger had focus and trapped a parent Modal open, because the
+  // native <dialog> Escape-to-close mechanism keys off the keydown event's
+  // defaultPrevented flag. Gate the handler on `isOpen` — only consume
+  // Escape when there's actually a listbox to close.
+  //
+  // `fireEvent.keyDown` returns the boolean `element.dispatchEvent()`
+  // returns: `false` once some handler called `preventDefault()` on the
+  // (cancelable) event, `true` if nothing did. That return value is the
+  // trustworthy, harness-agnostic signal for "was this Escape consumed" —
+  // jsdom doesn't implement the native <dialog> Escape-to-close mechanism
+  // itself, so asserting on Modal closure directly isn't meaningful here.
+  describe('Escape key handling (#14 follow-up)', () => {
+    it('closes the listbox on Escape and consumes the event (isOpen: true)', async () => {
+      render(<Select options={manyOptions} onChange={() => {}} />)
+      const combobox = screen.getByRole('combobox')
+      fireEvent.click(combobox)
+      await screen.findByRole('listbox')
+
+      const notPrevented = fireEvent.keyDown(combobox, { key: 'Escape' })
+
+      expect(notPrevented).toBe(false)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+      expect(combobox.getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('does NOT preventDefault on Escape when the listbox is already closed (isOpen: false)', () => {
+      render(<Select options={manyOptions} onChange={() => {}} />)
+      const combobox = screen.getByRole('combobox')
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+      // Listbox was never opened — Escape must be a no-op here so it can
+      // bubble un-prevented to a parent Modal's native Escape-to-close.
+      const notPrevented = fireEvent.keyDown(combobox, { key: 'Escape' })
+
+      expect(notPrevented).toBe(true)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
+
+    it('re-arms after closing: a second Escape (post-close) is not prevented', async () => {
+      render(<Select options={manyOptions} onChange={() => {}} />)
+      const combobox = screen.getByRole('combobox')
+      fireEvent.click(combobox)
+      await screen.findByRole('listbox')
+
+      // First Escape: consumes the event, closes the listbox.
+      expect(fireEvent.keyDown(combobox, { key: 'Escape' })).toBe(false)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+      // Second Escape: listbox is already closed — must NOT be prevented.
+      expect(fireEvent.keyDown(combobox, { key: 'Escape' })).toBe(true)
+    })
+  })
+
   // #423 — full-customizability contract: consumer `style` + arbitrary
   // rest props land on the visual root, and the internal a11y contract
   // (role="combobox") is NOT clobbered by a consumer-supplied `role`.

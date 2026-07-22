@@ -4198,78 +4198,128 @@ See `src/styles/tokens.css` for the canonical definitions, and
 
 ### Nested Overlay Contract
 
-**The rule:** overlays opened from INSIDE a Modal render ABOVE the Modal
-backdrop, not behind it. This covers `Dropdown`, `Select`, `Popover`, and
-`Tooltip` children of a `Modal`.
+**The rule:** overlays opened from INSIDE a Modal must render ABOVE the
+Modal backdrop AND be genuinely clickable/hoverable there — not just
+painted on top. This covers `Dropdown`, `Select`, `Combobox`, `MultiSelect`,
+and `Popover` children of a `Modal`. (`Tooltip` does not portal-nest inside
+`Modal` content today; if you add that capability, apply this contract.)
 
-#### Background (why this section exists)
+This contract has gone through three generations as Modal's own
+implementation changed underneath it. Read the "history" subsections if
+you're debugging an old regression; read **"Implementation requirements"**
+if you're authoring a new overlay today — that section reflects the CURRENT
+(v2) contract only.
+
+#### v0 history — the z-index tier (pre-v0.4.1, superseded)
 
 Prior to v0.4.1 the z-index scale placed `--z-index-dropdown` (1000) BELOW
-`--z-index-modal` (1100). Standalone this looked sensible: if a loose
-Dropdown and a Modal opened at the same time, the Modal would cover the
-Dropdown. In practice, though, the common combination is a form Modal that
-CONTAINS a `<Select>` or `<Dropdown>` — and there, the Modal's backdrop
-painted above the portaled overlay, hiding it entirely. Users saw the caret
-rotate and nothing else. See issues #35, #37, #46 for the three
-user-facing symptoms this caused.
+`--z-index-modal` (1100), so a Modal's backdrop painted above a nested
+Dropdown/Select, hiding it entirely (issues #35, #37, #46). The fix raised
+the overlay tiers (`dropdown`, `popover`, `tooltip`, `toast`) above `modal`
+in the z-index scale. This worked because, at the time, Modal was a
+JS-shimmed `position: fixed` + z-index overlay itself — ordinary CSS
+stacking-context rules governed everything, so raising a z-index number was
+sufficient.
 
-#### The fix
+#### v1 history — native `<dialog>` breaks pure z-index (#273, #14 v1, superseded)
 
-As of v0.4.1 the overlay tiers (`dropdown`, `popover`, `tooltip`, `toast`)
-all sit ABOVE `modal`. An overlay portalled to `document.body` from inside a
-Modal will always paint above the backdrop:
+Modal migrated to a native `<dialog>` + `showModal()` (#273): the dialog's
+browser-managed TOP LAYER paints above *any* z-index, full stop — no
+z-index value, however large, beats an un-promoted `position:fixed` sibling
+against a modal `<dialog>`. Dropdown and Popover adopted the Popover API
+(`popover="manual"` + `showPopover()`) to get their OWN top-layer promotion
+and kept working; Select/Combobox/MultiSelect had not and were unusable
+inside a Modal until #14 v1 gave them the same opt-in. See
+`src/utils/popoverApi.ts`.
 
-```
-  toast        1400
-  tooltip      1300
-  popover      1200
-  dropdown     1100   ← (was 1000, now above modal)
-  modal        1000   ← (was 1100)
-  drawer       1000
-  overlay      900    ← (backdrop / scrim tier)
-  fixed        200
-  sticky       100
-```
+#### v2 (CURRENT) — Popover API promotion paints correctly but isn't interactive (#14 v2)
 
-This trade-off is deliberate: a loose Dropdown opened alongside a standalone
-Modal will now render on top of the Modal, but that combination is rare —
-Modals are focus-trapped and own the active interaction surface. The common
-case is the nested one, and this contract makes that work.
+The v1 fix was visually complete but functionally incomplete: real-browser
+testing (Playwright, Chromium) found that Select/Combobox/MultiSelect/
+Dropdown/Popover options COULD NOT be hovered or clicked with the mouse
+inside a Modal, despite painting correctly above it. Root cause: per the
+HTML spec's "modal dialogs and inert subtrees" algorithm, `showModal()`
+marks every node OUTSIDE the dialog's own flat-tree subtree `inert` — and
+inert nodes don't receive pointer events, regardless of paint/top-layer
+order. A `popover="manual"` element portaled to `document.body` (a SIBLING
+of the dialog, not a descendant) is still marked inert once the dialog goes
+modal; `document.elementsFromPoint()` at the element's own coordinates skips
+over it entirely in real Chromium.
 
-#### Implementation requirements
+**The v2 fix:** `useModalPortalContainer()`
+(`src/components/Modal/ModalPortalContext.ts`) exposes a DOM node that IS a
+descendant of the nearest OPEN Modal's `<dialog>` (a dedicated host div
+rendered as the dialog's own last child, `display: contents`, sibling to
+`.modal`). Overlay components render their portaled content THERE instead
+of `document.body` when nested in an open Modal — exempt from the inert
+subtree by DOM ancestry, no Popover API needed for that case — and fall back
+to the v1 Popover-API + `document.body` path when standalone (`null`
+container). See the long comment at the top of `src/components/Modal/Modal.tsx`
+for the full diagnosis, and `tests/e2e/overlays-in-modal.spec.ts` for the
+real-browser regression proof (jsdom does not implement modal-dialog
+inertness at all, so this class of bug is NOT jsdom-verifiable — do not
+trust an all-green `npm test` alone as proof an overlay-in-Modal fix works).
 
-If you're authoring a new overlay component, you MUST:
+#### Implementation requirements (v2 — authoring a new overlay today)
 
-1. **Render via `<Portal>`**, so the overlay appends to `document.body` and
-   escapes the Modal's stacking context.
-2. **Assign a z-index from the overlay tier** — `dropdown`, `popover`, or
-   `tooltip` — NEVER below `--z-index-modal`. Hardcoded numeric values will
-   be flagged in review.
-3. **Use the shared `usePortalPosition` hook** (or mirror its rAF-retry
+If you're authoring a new overlay component that a consumer might nest
+inside `<Modal>`, you MUST:
+
+1. **Call `useModalPortalContainer()`** (`src/components/Modal/ModalPortalContext.ts`)
+   and pass its result as `<Portal container={modalPortalContainer}>`.
+   `Portal`'s `container || document.body` fallback makes `null` a no-op for
+   the standalone case — you don't need to branch the `<Portal>` call itself.
+2. **Skip Popover API promotion when `modalPortalContainer` is non-null.**
+   Gate both the `showPopover()`/`hidePopover()` effect AND the `popover`
+   attribute itself on `modalPortalContainer == null` — emitting
+   `popover="manual"` without ever calling `showPopover()` leaves the
+   element UA-stylesheet-hidden (`[popover]:not(:popover-open) { display:
+   none }`).
+3. **Still assign a z-index from the overlay tier** (`dropdown`, `popover`,
+   or `tooltip`, never a hardcoded number) for the standalone path — the
+   in-dialog path relies on DOM order (later sibling of `.modal` paints on
+   top) plus `.dialog { overflow: visible }`, not z-index, but the token
+   doesn't hurt and keeps the CSS Module consistent between both paths.
+4. **Use the shared `usePortalPosition` hook** (or mirror its rAF-retry
    pattern for non-vertical axes) so positioning doesn't race with the
-   Portal's own `useEffect` mount. This is specifically the source of
-   regression #37 — a bespoke single-rAF implementation can get stuck at
-   `isPositioned = false` and leave the overlay at opacity 0 forever.
-4. **Set `visibility: hidden` until `isReady`** from the hook. Overlays
+   Portal's own `useEffect` mount (#37). Its `position:fixed`,
+   viewport-relative `getBoundingClientRect()` math needs NO adjustment for
+   the in-dialog path — `.dialog`'s own box is pinned exactly to the
+   viewport (verified empirically), so it's still the correct containing
+   block reference even though it also happens to be the CSS containing
+   block for `position:fixed` descendants (non-`none` `transform` on
+   `.dialog[open]`). See the Modal.tsx file-top comment if you need the full
+   chain of reasoning.
+5. **Set `visibility: hidden` until `isReady`** from the hook. Overlays
    initialize at `(-9999, -9999)` by contract; rendering them at that
    position before the `visibility: hidden` flip causes a flash.
 
 #### Tested scenarios (regression coverage)
 
-The following scenarios are pinned by `src/components/Modal/NestedOverlays.test.tsx`:
+Structural/DOM-shape coverage is pinned by
+`src/components/Modal/NestedOverlays.test.tsx` (vitest/jsdom):
 
-- [x] `<Select>` inside `<Modal>` — options render, portal to
-      `document.body`, listbox gets `positioned` class, selection fires
-      `onChange`. (#46)
-- [x] `<Dropdown>` inside `<Modal>` — menu portals to `document.body`,
-      menu items are present. (#35)
-- [x] `<Popover>` inside `<Modal>` — overlay mounts with `visible` class
-      (no `isPositioned` race), portals to `document.body`, is not nested
-      inside the dialog. (#35, #37)
-- [x] Standalone `Dropdown` / `Select` / `Popover` outside Modal — no
-      regressions in the ordinary case.
+- [x] `<Select>` / `<Combobox>` / `<MultiSelect>` inside `<Modal>` — options
+      render, listbox is a DESCENDANT of the dialog (not document.body
+      sibling) while the Modal is open, gets `positioned` class, selection
+      fires `onChange`, does NOT carry `popover="manual"`. (#46, #14 v2)
+- [x] `<Dropdown>` / `<Popover>` inside `<Modal>` — same: menu/popover is a
+      dialog descendant while open, does NOT carry `popover="manual"`. (#35, #14 v2)
+- [x] Enclosing Modal CLOSED — overlay falls back to the standalone
+      document.body + `popover="manual"` path. (#14 v2)
+- [x] Standalone `Dropdown` / `Select` / `Combobox` / `MultiSelect` /
+      `Popover` outside any Modal — document.body portal, `popover="manual"`
+      preserved, no regression from the v2 change.
 
-And by `src/styles/tokens.test.ts`:
+jsdom cannot verify actual pointer-event delivery (it doesn't implement
+modal-dialog inertness at all), so the REAL hit-testing proof — that a
+real click/hover lands on the option, not the dialog content underneath —
+lives in `tests/e2e/overlays-in-modal.spec.ts` (Playwright, real Chromium;
+see that file and `tests/e2e/playwright.config.ts` for how to run it). Treat
+the two suites as complementary, not redundant: jsdom pins the DOM/attribute
+contract, Playwright pins the thing jsdom structurally cannot model.
+
+And by `src/styles/tokens.test.ts` (still governs the STANDALONE path):
 
 - [x] `dropdown > modal`
 - [x] `popover > modal`
@@ -4278,22 +4328,33 @@ And by `src/styles/tokens.test.ts`:
 
 #### Troubleshooting a new overlay-in-Modal bug
 
-If you add a new overlay and it doesn't show up inside a Modal:
+If you add a new overlay and it doesn't show up — or doesn't respond to
+clicks — inside a Modal:
 
 1. **Open DevTools and inspect the overlay element.**
    - Is it in the DOM at all? If no → it's a render-level bug, not a
      stacking bug. Verify the trigger is firing and `isOpen` becomes true.
-2. **Is it a child of `<body>` or of the Modal's portal?**
-   - Must be a child of `<body>`. If it's nested inside the Modal's portal,
-     you're not using `<Portal>` or you passed a custom `container`
-     inherited from the Modal. Remove the custom container.
-3. **Check `getComputedStyle(el).zIndex`.**
-   - Must be >= 1100 (the current modal value). If not, your stylesheet is
-     pinning a numeric value or referencing a wrong token.
-4. **Check the overlay's bounding rect.**
+2. **Is it a descendant of the Modal's `<dialog>` while the Modal is open?**
+   - It should be (v2 contract) — check you're calling
+     `useModalPortalContainer()` and passing it to `<Portal container>`. If
+     it's still a `document.body` sibling of an OPEN dialog, real clicks
+     will silently miss it (native `inert`), even though it visually paints
+     fine — this is exactly the bug #14 v2 fixed. Don't rely on visual
+     inspection alone; test with a real click/hover, or reproduce with
+     Playwright (`tests/e2e/overlays-in-modal.spec.ts` as a template).
+3. **Did you leave `popover="manual"` on the element while nested in an open
+   Modal?** If `showPopover()` is never called in that branch (correctly
+   skipped per the v2 contract), the bare attribute triggers the UA
+   stylesheet's `[popover]:not(:popover-open) { display: none }` and hides
+   the overlay outright. Gate the attribute the same way you gate the
+   `showPopover()` effect.
+4. **Check `getComputedStyle(el).zIndex`** for the STANDALONE case only. Must
+   be >= 1100 (the current modal value). Irrelevant for the in-dialog path
+   (DOM order + `overflow: visible` does the work there, not z-index).
+5. **Check the overlay's bounding rect.**
    - If it's `(0, 0, 0, 0)` then `getBoundingClientRect` ran before the
      element mounted — this is the #37 race. Use `usePortalPosition`.
-5. **Check the overlay's `visibility` + `opacity`.**
+6. **Check the overlay's `visibility` + `opacity`.**
    - If `visibility: hidden` / `opacity: 0` after several frames, the
      `isPositioned` flag never flipped. Investigate whether `triggerRef`
      and `overlayRef` are both attached.

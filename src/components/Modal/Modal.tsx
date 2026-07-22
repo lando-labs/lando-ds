@@ -18,11 +18,49 @@
  *
  * Migration note (#273): the previous JS-shimmed implementation used Portal +
  * `useFocusTrap` + `useClickOutside` + `useKeyPress`. None of those are needed
- * here — `<dialog>` is Baseline since 2022 and supersedes all four. The
- * `NestedOverlays.test.tsx` regression coverage continues to verify nested
- * overlay stacking; portaled overlays (Dropdown / Select / Popover) inside the
- * dialog still escape to `document.body` and paint above the dialog's
- * top-layer via the z-index tier contract.
+ * here — `<dialog>` is Baseline since 2022 and supersedes all four.
+ *
+ * #14 follow-up (v0.58.0 close-out) — top-layer PAINT is not the whole story.
+ * The original #14 fix promoted Dropdown/Popover/Select/Combobox/MultiSelect
+ * into the top layer via the Popover API (`popover="manual"` + `showPopover()`,
+ * see `src/utils/popoverApi.ts`) so they'd paint above this dialog + its
+ * `::backdrop`. That's necessary but not sufficient: per the HTML spec's
+ * "modal dialogs and inert subtrees" algorithm
+ * (https://html.spec.whatwg.org/multipage/interactive-elements.html#modal-dialogs-and-inert-subtrees),
+ * `showModal()` marks every node NOT in the dialog's own flat-tree subtree as
+ * `inert` — and inert nodes don't receive pointer events, REGARDLESS of paint
+ * order. A `popover="manual"` element portaled to `document.body` (a SIBLING
+ * of this dialog, not a descendant) still gets marked inert once this dialog
+ * goes modal. It paints on top (top-layer promotion is real) but is
+ * click-through and hover-through — verified live in Chromium: `showPopover()`
+ * flips `:popover-open` and the element paints correctly, but
+ * `document.elementsFromPoint()` at the element's own coordinates skips over
+ * it entirely, landing on whatever's underneath in the dialog's subtree.
+ *
+ * The fix: `ModalPortalContext` below exposes a DOM node that IS a descendant
+ * of this `<dialog>` (a dedicated host div rendered as the dialog's last
+ * child, sibling to `.modal`) while this Modal is open. Overlay components
+ * that consume `useModalPortalContainer()` render their portaled content
+ * there instead of `document.body` when they find a live container — which
+ * exempts them from the inert subtree by DOM ancestry, no Popover API
+ * required. They fall back to Popover API + `document.body` when not nested
+ * in an open Modal (unchanged standalone behavior). See the per-component
+ * comments in Select/Combobox/MultiSelect/Dropdown/Popover for the consumer
+ * side of this contract, and `NestedOverlays.test.tsx` for the regression
+ * coverage (plus `tests/e2e/overlays-in-modal.spec.ts` for the real-browser
+ * hit-testing proof jsdom can't provide).
+ *
+ * Why the host div's `position:fixed` math still lines up with the viewport:
+ * `.dialog` is `position:fixed; inset:0` — its border box is pinned exactly
+ * to the viewport (verified empirically: `getBoundingClientRect()` reports
+ * `{x:0, y:0, width:innerWidth, height:innerHeight}`). `.dialog[open]` also
+ * carries a (non-`none`, even at rest: `scale(1) translateY(0)`) `transform`
+ * for its enter/exit animation, which per CSS spec makes it the containing
+ * block for `position:fixed` descendants — but because that containing block
+ * IS the viewport rect, `usePortalPosition`'s existing viewport-relative
+ * `getBoundingClientRect()` math needs no adjustment for the in-dialog path.
+ * The host div itself is `display: contents` (see Modal.module.css) so it
+ * contributes no box of its own and doesn't disturb this chain.
  *
  * @example
  * <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Confirm Action">
@@ -30,8 +68,20 @@
  * </Modal>
  */
 
-import React, { useRef, useEffect, useId } from 'react'
+import React, { useRef, useState, useEffect, useId } from 'react'
 import styles from './Modal.module.css'
+import { ModalPortalContext, useModalPortalContainer } from './ModalPortalContext'
+
+// Re-exported so `Modal/index.ts` keeps a single public surface (`Modal`,
+// `ModalProps`, `useModalPortalContainer`). Not part of the `src/hooks`
+// public/hooks-contract surface — mirrors `useFormContext` (`Form/Form.tsx`),
+// a component-local context consumed via deep import by other component
+// families (`Field.tsx` imports it the same way). Select/Combobox/
+// MultiSelect/Dropdown/Popover import the hook from `./ModalPortalContext`
+// directly (not from this file) to avoid pulling Modal's CSS Module and
+// `forwardRef` component body into their own bundle chunk — see the doc
+// comment in `ModalPortalContext.ts`.
+export { useModalPortalContainer }
 
 export interface ModalProps
   extends Omit<React.HTMLAttributes<HTMLDialogElement>, 'title'> {
@@ -93,6 +143,14 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(function Mo
 ) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+
+  // In-dialog portal host (#14 follow-up — see the file-top comment). A
+  // dedicated, styling-inert (`display: contents`) div rendered as the
+  // dialog's own last child. `useState` (not a plain ref) because nested
+  // overlay components need to RE-RENDER once this node exists — a ref alone
+  // wouldn't notify `ModalPortalContext` consumers that a container just
+  // became available.
+  const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null)
 
   // Merge external ref with internal dialogRef. Consumers ref the dialog root
   // (typed HTMLDialogElement to reflect the native element they now receive —
@@ -285,6 +343,18 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(function Mo
       // implicit-aria computed tree) see the same value real browsers compute.
       aria-modal="true"
     >
+      {/*
+       * #14 follow-up — wraps header/body/footer so any nested overlay
+       * (Select/Combobox/MultiSelect/Dropdown/Popover, directly used or
+       * composed inside consumer content) can find this Modal's in-dialog
+       * portal host via `useModalPortalContainer()`. `portalHost` is `null`
+       * until the host div below has mounted, which correctly reports "no
+       * container yet" for the first render or two — those components fall
+       * back to the standalone document.body + Popover API path until it
+       * flips non-null, matching how `usePortalPosition`'s own isReady gate
+       * already handles first-paint races.
+       */}
+      <ModalPortalContext.Provider value={isOpen ? portalHost : null}>
       <div className={modalClasses}>
         {(title || showCloseButton) && (
           <div className={styles.header}>
@@ -330,6 +400,21 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(function Mo
 
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>
+      </ModalPortalContext.Provider>
+
+      {/*
+       * In-dialog portal host (#14 follow-up) — a dedicated last child of
+       * `<dialog>`, sibling to `.modal` (NOT a descendant of it, so `.modal`'s
+       * `overflow: hidden` never clips anything rendered here). `display:
+       * contents` (Modal.module.css) means it contributes no box of its own;
+       * position:fixed descendants resolve their containing block against
+       * `<dialog>` itself (see the file-top comment for why that's still
+       * viewport-correct). Always rendered (not gated on `isOpen`) so the ref
+       * callback fires and `portalHost` state is populated before the first
+       * open — `ModalPortalContext.Provider` above is what actually gates
+       * exposure to `null` while closed.
+       */}
+      <div ref={setPortalHost} className={styles.portalHost} data-modal-portal-host />
     </dialog>
   )
 })
