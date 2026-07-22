@@ -6,24 +6,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const exampleAppDir = path.resolve(__dirname, '../../examples/next-app-router')
 
 /**
- * Real-browser regression harness (#14 v2).
+ * Real-browser regression harness (#14 v2/v3).
  *
- * Why this exists: the fix in this sprint (overlay popups genuinely
- * interactive inside a Modal, not just painted above it) depends on browser
- * behavior jsdom does not implement at all — a `<dialog>` opened via
- * `showModal()` marks everything outside its own subtree `inert`, which
- * blocks pointer events regardless of paint/top-layer order. vitest+jsdom
- * (`npm test`) can verify DOM shape and attribute presence, but it CANNOT
- * verify that a real click or hover actually reaches an element — which is
- * exactly the class of bug that shipped broken in the v1 attempt at #14. See
- * the long comment at the top of `src/components/Modal/Modal.tsx`.
+ * Why this exists: overlay behavior this sprint (overlay popups genuinely
+ * interactive inside a Modal, not just painted above it; click-trigger
+ * toggle not double-firing open/close) depends on browser behavior jsdom
+ * does not implement at all — e.g. a `<dialog>` opened via `showModal()`
+ * marks everything outside its own subtree `inert`, which blocks pointer
+ * events regardless of paint/top-layer order. vitest+jsdom (`npm test`) can
+ * verify DOM shape and attribute presence, but it CANNOT verify that a real
+ * click or hover actually reaches an element — which is exactly the class of
+ * bug that shipped broken in the v1 attempt at #14. See the long comment at
+ * the top of `src/components/Modal/Modal.tsx`.
  *
- * This is a MINIMAL, deliberately separate harness — not wired into
- * `npm test` / the CI `test.yml` gate. Rationale: it drives a full Next.js
- * dev server consuming the built `dist/` (via the `file:` symlink in
- * `examples/next-app-router`), which is slower and has different flake
- * characteristics than the jsdom suite; CI wiring (browser install caching,
- * timeout tuning) is a deliberate follow-up, not bundled into this fix.
+ * This is a MINIMAL, deliberately separate harness from `npm test` — it
+ * drives a full Next.js dev server consuming the built `dist/` (via the
+ * `file:` symlink in `examples/next-app-router`), which is slower and has
+ * different flake characteristics than the jsdom suite, so it stays a
+ * dedicated `npm run test:e2e` rather than folding into vitest. It IS wired
+ * into the CI PR gate as its own job (`e2e-overlays` in `.github/workflows/test.yml`)
+ * so it can't regress silently between manual runs.
  *
  * Run locally from the repo root:
  *   npm run build                        # dist/ must be fresh — the example
