@@ -102,9 +102,12 @@ useEventListener('keydown', (e) => { if (e.key === 'Escape') close() })
 useEventListener('click', onClick, buttonRef)
 ```
 
-### `useClickOutside(ref, callback, isActive?)`
+### `useClickOutside(ref, callback, isActive?, ignoreRefs?)`
 Fires when a click or touch lands outside the referenced element. Used by the
-DS's own overlays.
+DS's own overlays. `ignoreRefs` (default `[]`) excludes additional elements —
+e.g. a toggle trigger — from counting as "outside," so a trigger's own click
+isn't double-counted as both a dismissal and a re-open (Dropdown, click-mode
+Popover).
 
 ### `useHover<T>()`
 ```tsx

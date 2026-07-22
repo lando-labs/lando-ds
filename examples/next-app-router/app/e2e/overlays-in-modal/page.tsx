@@ -49,12 +49,25 @@ export default function OverlaysInModalFixture() {
     <main style={{ padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
       <Stack gap="lg">
         {/* Standalone controls (outside the Modal) — regression guard that
-            the fix doesn't touch the non-nested path. */}
+            the fix doesn't touch the non-nested path. Also exercised by the
+            click-trigger toggle coverage (#14 v3, tests/e2e/overlays-in-modal.spec.ts) —
+            keep these two alongside the Modal-nested ones below. */}
         <Dropdown trigger={<Button variant="outline">Standalone Dropdown</Button>}>
           <DropdownItem onClick={() => setLastAction('standalone-dropdown-item')}>
             Standalone Item
           </DropdownItem>
         </Dropdown>
+
+        <Popover
+          triggerOn="click"
+          placement="bottom"
+          content={
+            <button onClick={() => setLastAction('standalone-popover-item')}>
+              Standalone popover action
+            </button>
+          }
+          trigger={<Button variant="outline">Standalone Popover</Button>}
+        />
 
         <Button variant="primary" onClick={() => setOpen(true)}>
           Open Modal

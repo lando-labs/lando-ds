@@ -211,7 +211,13 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
     offset
   )
 
-  // Close on outside click (for click mode)
+  // Close on outside click (for click mode). Ignores clicks on the trigger
+  // itself (#14 v3): without this, an open trigger's mousedown fires this
+  // hook's outside-click callback (closing), and the trigger's own onClick
+  // then re-fires showPopover()'s toggle against the post-close render
+  // (re-opening) — net effect: click-mode Popover never closes on a second
+  // trigger click. The trigger's onClick is the single source of truth for
+  // trigger clicks; this hook only needs to own clicks elsewhere.
   useClickOutside(
     popoverRef,
     () => {
@@ -219,7 +225,8 @@ export const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(function P
         setIsVisible(false)
       }
     },
-    isVisible && triggerOn === 'click'
+    isVisible && triggerOn === 'click',
+    [triggerRef]
   )
 
   // Close on Escape key.

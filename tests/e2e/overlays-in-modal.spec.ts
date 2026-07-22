@@ -148,3 +148,90 @@ test.describe('Standalone overlays (outside any Modal) — no regression', () =>
     await expect(page.getByTestId('last-action')).toHaveText('standalone-dropdown-item')
   })
 })
+
+test.describe('Click-trigger toggle closes reliably (#14 v3)', () => {
+  /**
+   * Root cause: `useClickOutside`'s document-level `mousedown` listener
+   * didn't exclude the trigger element, so clicking an OPEN trigger fired
+   * both the outside-click dismissal (close) AND the trigger's own onClick
+   * toggle (re-open) for the same physical click — net effect: the overlay
+   * never closed on a second trigger click. Fixed by having
+   * `useClickOutside` ignore the trigger via its new `ignoreRefs` param, so
+   * the trigger's onClick is the sole source of truth for trigger clicks.
+   *
+   * These assert the full open -> click trigger -> closed cycle, standalone
+   * (no Modal) — the case the bug report reproduced in.
+   */
+
+  test('Dropdown: clicking an open trigger closes the menu (does not re-open)', async ({
+    page,
+  }) => {
+    await page.goto(FIXTURE_URL)
+
+    const trigger = page.getByRole('button', { name: 'Standalone Dropdown' })
+
+    await trigger.click()
+    const menu = page.getByRole('menu')
+    await expect(menu).toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+    await trigger.click()
+    await expect(menu).not.toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+    // A third click still re-opens — this is a toggle, not a one-way latch.
+    await trigger.click()
+    await expect(menu).toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  test('Popover (triggerOn="click"): clicking an open trigger closes the content (does not re-open)', async ({
+    page,
+  }) => {
+    await page.goto(FIXTURE_URL)
+
+    const trigger = page.getByRole('button', { name: 'Standalone Popover', exact: true })
+    const content = page.getByRole('button', { name: 'Standalone popover action' })
+
+    await trigger.click()
+    await expect(content).toBeVisible()
+
+    await trigger.click()
+    await expect(content).not.toBeVisible()
+
+    await trigger.click()
+    await expect(content).toBeVisible()
+  })
+
+  test('Dropdown inside a Modal: clicking an open trigger still closes the menu', async ({
+    page,
+  }) => {
+    await page.goto(FIXTURE_URL)
+    await openModal(page)
+
+    const trigger = page.getByRole('dialog').getByRole('button', { name: 'Actions' })
+    const menu = page.getByRole('menu')
+
+    await trigger.click()
+    await expect(menu).toBeVisible()
+
+    await trigger.click()
+    await expect(menu).not.toBeVisible()
+  })
+
+  test('Popover inside a Modal: clicking an open trigger still closes the content', async ({
+    page,
+  }) => {
+    await page.goto(FIXTURE_URL)
+    await openModal(page)
+
+    const trigger = page.getByRole('dialog').getByRole('button', { name: 'Info' })
+    const content = page.getByRole('button', { name: 'Popover action' })
+
+    await trigger.click()
+    await expect(content).toBeVisible()
+
+    await trigger.click()
+    await expect(content).not.toBeVisible()
+  })
+})
