@@ -115,7 +115,8 @@
     "assemble:all": "npm run build && npm run assemble:meta-schema && npm run assemble:meta",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "npm run build && changeset publish"
+    "release": "npm run build && changeset publish",
+    "release:next": "node scripts/release-next.mjs"
   },
   "dependencies": {
     "@uiw/react-md-editor": "^4.1.0",
