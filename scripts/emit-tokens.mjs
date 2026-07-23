@@ -165,7 +165,13 @@ const identity = {
 // neutral-550 (#12 — WCAG AA text tier) is a CSS-only extra rung inserted between
 // neutral-500 and neutral-600. colors.ts has no 550; carry it here so the emitted
 // neutral ramp keeps it (and its inline rationale comment).
-const NEUTRAL_550 = ['550', '#5C6F78']
+//
+// #4 — darkened from #5C6F78 (4.79:1 on white, but only 4.24:1 on
+// --color-surface-hover, the darkest default light-mode surface) so
+// --color-text-tertiary clears WCAG AA (>=4.5:1) on every default light-mode
+// surface. Worst case now 4.78:1 (surface-hover). See
+// src/tokens/chrome-contrast.test.ts.
+const NEUTRAL_550 = ['550', '#54676F']
 
 /* ------------------------------------------------------------------ */
 /* 3. Render helpers.                                                  */
@@ -322,7 +328,7 @@ for (const [key, hex] of neutral) {
   L.push(`  --color-neutral-${key}: ${oklch(hex)};`)
   if (key === '500') {
     L.push(
-      `  --color-neutral-${NEUTRAL_550[0]}: ${oklch(NEUTRAL_550[1])}; /* #12 — WCAG AA text tier (4.58:1 on #FFFFFF) */`,
+      `  --color-neutral-${NEUTRAL_550[0]}: ${oklch(NEUTRAL_550[1])}; /* #12/#4 — WCAG AA text tier (4.78:1 on --color-surface-hover, the worst default light-mode surface) */`,
     )
   }
 }

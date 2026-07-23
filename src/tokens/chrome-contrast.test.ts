@@ -229,31 +229,31 @@ const PRIMARIES: Array<[string, string]> = [
 ]
 
 /**
- * Pre-existing sub-AA-normal pairs in the DEFAULT theme — NOT caused by the tint
- * (the tint actually RAISES them). Held to AA-large (3:1) so the harness keeps
- * guarding them from catastrophe without retroactively failing the shipped
- * default. Both tracked for a dedicated fix (see task in the sprint manifest);
- * fixing them changes default text colors, so they don't ride a tinted-chrome PR.
+ * #4 — RESOLVED. This allowlist used to hold 8 default-theme text/surface
+ * pairs to the AA-large (3:1) floor instead of the real AA-normal (4.5:1)
+ * bar — 6 genuine sub-AA pairs (light `text-secondary` on all 4 light
+ * surfaces down to 3.53:1; light `text-tertiary` on `surface-hover` at
+ * 4.24:1; light-tinted `text-secondary` on `surface-hover`) plus 2 dark-mode
+ * entries that were already stale (the v0.36.0 OSS-prep neutral-chrome
+ * migration had already lifted `text-tertiary` on dark `surface-hover` to
+ * 8.59:1 untinted / 5.49:1 tinted — the allowlist just hadn't been told).
  *
- *  - `text-secondary` == `neutral-600` (#607D8B): sub-AA on every light surface
- *    (≤4.37:1 on white, down to ~3.5:1 on surface-hover). The #12 work lifted
- *    *tertiary* to neutral-550/4.58:1 but left secondary on neutral-600. The tint
- *    darkens it (helps), but on `surface-hover` it still lands ~4.1:1 < AA.
- *  - `text-tertiary` on the HOVER surface is pre-existing in BOTH themes:
- *    neutral-550 on neutral-200 ≈ 4.24:1 (light); ocean.light on ocean.dark
- *    ≈ 3.41:1 (dark). Tint-independent — the hover surface is just darker/closer
- *    to the helper-text tier than the AA margin allows.
+ * The 6 genuine failures are fixed at the token rung (not here): `neutral-600`
+ * (`--color-text-secondary`) and `neutral-550` (`--color-text-tertiary`, the
+ * dedicated #12 AA rung) were both darkened just enough to clear 4.5:1 against
+ * `--color-surface-hover` — the darkest of the four default light-mode
+ * surfaces, and therefore the binding constraint for every other surface too.
+ * See `src/tokens/colors.ts` (`neutral.600`) and `scripts/emit-tokens.mjs`
+ * (`NEUTRAL_550`) for the exact values and measured ratios.
+ *
+ * This Set is now intentionally EMPTY — every TEXT_PAIRS combination below
+ * is held to the real AA_NORMAL bar with no exemptions. Kept as a named,
+ * reusable mechanism (not deleted outright) in case a future default-theme
+ * rung needs the same "tracked exception, not silently passing" treatment —
+ * but per #4's acceptance criteria, an entry here should be a last resort,
+ * not a substitute for fixing the token.
  */
-const BASELINE_SUB_AA = new Set([
-  'light · untinted|--color-text-secondary|--color-background',
-  'light · untinted|--color-text-secondary|--color-surface',
-  'light · untinted|--color-text-secondary|--color-surface-elevated',
-  'light · untinted|--color-text-secondary|--color-surface-hover',
-  'light · tinted|--color-text-secondary|--color-surface-hover',
-  'light · untinted|--color-text-tertiary|--color-surface-hover',
-  'dark · untinted|--color-text-tertiary|--color-surface-hover',
-  'dark · tinted|--color-text-tertiary|--color-surface-hover',
-])
+const BASELINE_SUB_AA = new Set<string>([])
 
 // Full matrix: every text tier × every surface it can render on, INCLUDING
 // surface-hover (hovered list rows / menu items carry secondary + tertiary text,
@@ -294,6 +294,35 @@ describe('brand-tinted chrome holds WCAG AA (#288)', () => {
       dark!.get('--color-text-secondary'),
       'default-dark text-secondary must be the base value, not the prefers-contrast override',
     ).toBe('var(--color-neutral-200)')
+  })
+
+  /**
+   * #4 — regression lock on the exact fix, independent of the parametrized
+   * matrix below (which now also covers these pairs at the real AA_NORMAL
+   * bar via the now-empty `BASELINE_SUB_AA`). Locks the measured ratios so a
+   * future token change that quietly re-introduces the sub-AA gap on the
+   * WORST default light-mode surface (`--color-surface-hover`) fails loudly
+   * here with the exact before/after numbers, rather than just a generic
+   * "≥ 4.5" matrix failure.
+   */
+  it('#4 — text-secondary/tertiary clear AA on --color-surface-hover, the worst default light surface', () => {
+    const map = SCENARIOS['light · untinted'].map
+    const oceanDefault = PRIMARIES[0]
+    if (!oceanDefault) throw new Error('PRIMARIES[0] (ocean default) missing')
+    const [, primary] = oceanDefault
+    const hover = resolveHex('--color-surface-hover', map, primary)
+
+    const secondary = resolveHex('--color-text-secondary', map, primary)
+    const secondaryRatio = contrastRatio(secondary, hover)
+    // Was 3.53:1 (sub-AA) via neutral-600 = #607D8B pre-fix.
+    expect(secondaryRatio).toBeGreaterThanOrEqual(AA_NORMAL)
+    expect(secondaryRatio).toBeCloseTo(4.78, 1)
+
+    const tertiary = resolveHex('--color-text-tertiary', map, primary)
+    const tertiaryRatio = contrastRatio(tertiary, hover)
+    // Was 4.24:1 (sub-AA) via neutral-550 = #5C6F78 pre-fix.
+    expect(tertiaryRatio).toBeGreaterThanOrEqual(AA_NORMAL)
+    expect(tertiaryRatio).toBeCloseTo(4.78, 1)
   })
 
   for (const [scenarioName, scenario] of Object.entries(SCENARIOS)) {
