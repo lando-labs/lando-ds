@@ -152,6 +152,7 @@ jobs:
     permissions:
       id-token: write # OIDC token for npm trusted publishing (+ provenance)
       contents: read
+      pull-requests: read # @changesets/changelog-github resolves commit→PR→author
 
     steps:
       - name: Checkout repository
@@ -190,3 +191,7 @@ jobs:
         run: npm run release:next
         env:
           NPM_CONFIG_PROVENANCE: 'true'
+          # `changeset version --snapshot` (inside release:next) regenerates the
+          # CHANGELOG via @changesets/changelog-github, which throws without a
+          # GitHub token even though the snapshot output is discarded.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
