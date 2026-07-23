@@ -6,8 +6,13 @@ name: Release (public npm)
 # On every push to `main` the changesets action either:
 #   - opens/updates a "Version Packages" PR aggregating pending changesets, OR
 #   - if that PR was just merged (no changesets left), runs `npm run release`
-#     to publish to public npmjs.org WITH PROVENANCE, then creates the GitHub
-#     Release + git tag.
+#     to publish `@lando-labs/lando-ds` to public npmjs.org WITH PROVENANCE,
+#     then creates the GitHub Release + git tag. A follow-on step then assembles
+#     and publishes `@lando-labs/lando-ds-meta` (gated on a real publish).
+#
+# Auth is npm OIDC TRUSTED PUBLISHING (no long-lived token): both packages have
+# a trusted publisher on npmjs.com pointing at this workflow (`release.yml`).
+# Requires `id-token: write` (below) and npm >= 11.5.1 (upgraded in a step).
 #
 # The `release` job is guarded by
 #     if: github.repository == 'lando-labs/lando-ds'
@@ -54,6 +59,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
+      # OIDC trusted publishing needs npm >= 11.5.1. Node 20 ships npm 10.x, so
+      # upgrade the global npm before it publishes. (npm 11 supports node ^20.17.)
+      - name: Upgrade npm (OIDC trusted publishing needs >= 11.5.1)
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
@@ -76,16 +86,30 @@ jobs:
           createGithubReleases: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          # npm auth. `setup-node` wrote an .npmrc referencing NODE_AUTH_TOKEN;
-          # NPM_TOKEN covers the changesets action's own .npmrc fallback path.
-          # NOTE: this npm account has 2FA-on-publish, so NPM_TOKEN must be an
-          # npm AUTOMATION token — automation tokens bypass the OTP prompt.
-          # ALTERNATIVE: npm trusted publishing (OIDC) removes the need for a
-          # long-lived token entirely.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Emit build provenance. Requires a public repo + id-token: write.
+          # npm auth is via OIDC TRUSTED PUBLISHING — no long-lived token.
+          # `@lando-labs/lando-ds` has a trusted publisher configured on npmjs.com
+          # (GitHub Actions → lando-labs/lando-ds → workflow `release.yml`), so
+          # `npm publish` (run by `changeset publish`) mints a short-lived OIDC
+          # token from the `id-token: write` permission above. No NPM_TOKEN needed.
+          # Provenance attestations are emitted automatically under trusted
+          # publishing; the explicit flag below is belt-and-suspenders.
           NPM_CONFIG_PROVENANCE: 'true'
           # Token for @changesets/changelog-github to link PRs/commits/authors
           # while generating CHANGELOG.md during `changeset version`.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The meta artifact package (@lando-labs/lando-ds-meta) is assembled from
+      # the just-built dist/ (its version === the DS version) and published
+      # SEPARATELY — it is not a changeset-managed package. Gate on a real
+      # publish having happened so this only fires when a version actually
+      # shipped (not on the "open Version Packages PR" runs). It has its own
+      # trusted publisher (also → release.yml), so the same OIDC job can publish
+      # it; dist-meta/package.json already sets access: public. Provenance is
+      # emitted automatically.
+      - name: Publish the meta artifact package (@lando-labs/lando-ds-meta)
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          npm run assemble:meta
+          npm publish ./dist-meta
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
