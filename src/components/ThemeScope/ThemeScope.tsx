@@ -59,6 +59,24 @@
  * same chokepoint the runtime `applyTheme` uses. React writes the style object
  * property-by-property (no `cssText` re-parse), so the #323 single-value sink
  * shape is preserved. `ThemeScope.test.tsx` pins the no-re-parsing-sink guard.
+ *
+ * ## Tonal-ramp / interaction-state re-derivation (#11)
+ *
+ * `src/styles/tokens.css` derives `--color-primary-hover` / `-active` /
+ * `-disabled` and the full `-lightest…-darkest` ramp (same for `secondary`,
+ * plus the `error`/`danger` state tints) from their base role token via
+ * `color-mix()` — but only declares those formulas on `:root`. A `var()`
+ * inside a declaration resolves at the DECLARING element's scope, so a
+ * `ThemeScope` wrapper that overrides `--color-primary` does not, by itself,
+ * cause `--color-primary-hover` to recompute — it inherits `:root`'s already-
+ * resolved value. `computeThemeAttrs(mode, theme, preset, tintChrome, true)`
+ * re-declares those same formulas (as literal `color-mix()` STRINGS, mirrored
+ * in `../../utils/colorDerivation.ts`) inline on THIS wrapper, so they
+ * recompute against the scope's own (possibly overridden) base token — the
+ * scope opts in via the 5th `computeThemeAttrs` argument below. The root
+ * `ThemeProvider`/`applyTheme` path does not pass it: `:root`'s real CSS rule
+ * already covers `document.documentElement` directly, so root behavior is
+ * unchanged.
  */
 
 import React from 'react'
@@ -114,11 +132,19 @@ export const ThemeScope = React.forwardRef<HTMLDivElement, ThemeScopeProps>(func
   // writes. `tintChrome` is intentionally not exposed on ThemeScope: it's a
   // root-only chrome attribute gating page-level chrome tokens; a scoped
   // re-tint of chrome inside an island doesn't make sense.
+  //
+  // #11 — `deriveScopedTokens: true` re-declares the tonal-ramp +
+  // interaction-state `color-mix()` formulas on THIS wrapper (see
+  // `colorDerivation.ts`). Without it, `--color-primary-hover` and friends
+  // silently keep resolving `:root`'s default primary/secondary/error even
+  // when this scope overrides the base role — the `:root`-only CSS rule in
+  // tokens.css can never match a non-root element.
   const { attributes, vars, colorScheme } = computeThemeAttrs(
     resolvedMode,
     productTheme,
     preset,
     false,
+    true,
   )
 
   // Merge order (matches the historical effect behavior):

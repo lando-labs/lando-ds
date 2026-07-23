@@ -134,6 +134,101 @@ describe('ThemeScope — basic scoped application', () => {
   })
 })
 
+describe('ThemeScope — scoped ramp/state re-derivation (#11)', () => {
+  it('a scoped --color-primary override propagates to --color-primary-hover within the scope', () => {
+    render(
+      <ThemeScope
+        theme={{ name: 'violet', tokens: { color: { primary: '#7C3AED' } } }}
+        mode="light"
+        data-testid="scope"
+      >
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // The base override lands as expected.
+    expect(wrapper.style.getPropertyValue('--color-primary')).toBe('#7C3AED')
+    // The DERIVED hover/active/ramp tokens must be re-declared on the scope
+    // as color-mix() formulas referencing THIS element's --color-primary —
+    // not left absent (and therefore silently inherited from :root's
+    // default primary) as they were before #11.
+    expect(wrapper.style.getPropertyValue('--color-primary-hover')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 22%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-active')).toBe(
+      'color-mix(in oklab, var(--color-primary), black 18%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-lightest')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 90%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-darkest')).toBe(
+      'color-mix(in oklab, var(--color-primary), black 52.5%)',
+    )
+  })
+
+  it('re-derives the secondary and error/danger state tints too', () => {
+    render(
+      <ThemeScope
+        theme={{
+          name: 'custom',
+          tokens: { color: { secondary: '#059669', error: '#DC2626' } },
+        }}
+        mode="light"
+        data-testid="scope"
+      >
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    expect(wrapper.style.getPropertyValue('--color-secondary-hover')).toBe(
+      'color-mix(in oklab, var(--color-secondary), white 18%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-error-active')).toBe(
+      'color-mix(in oklab, var(--color-error), black 38%)',
+    )
+    // danger mirrors error via a same-element var() reference.
+    expect(wrapper.style.getPropertyValue('--color-danger-active')).toBe(
+      'var(--color-error-active)',
+    )
+  })
+
+  it('uses the dark-mode-tuned --color-primary-base formula when the scope mode is dark', () => {
+    render(
+      <ThemeScope theme={THEME_A} mode="dark" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // Mirrors the [data-theme="dark"] override in tokens.css (#73) — heavier
+    // white-mix than the light-mode formula — so a dark ThemeScope island
+    // doesn't regress the WCAG-AA fix that selector already gave it via
+    // ordinary cascade (data-theme is a plain attribute selector, not
+    // :root-scoped, so it already matched the wrapper before this fix).
+    expect(wrapper.style.getPropertyValue('--color-primary-base')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 30%)',
+    )
+  })
+
+  it('a scope with no theme prop still carries the (identity-preserving) derived formulas', () => {
+    // No base override at all: the formulas resolve via var(--color-primary)
+    // inheriting :root's value, same as before — proves emitting them
+    // unconditionally is a no-op when nothing is themed.
+    render(
+      <ThemeScope mode="light" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    expect(wrapper.style.getPropertyValue('--color-primary-hover')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 22%)',
+    )
+  })
+})
+
 describe('ThemeScope — multi-scope coexistence', () => {
   it('two sibling scopes apply different themes independently', () => {
     render(
