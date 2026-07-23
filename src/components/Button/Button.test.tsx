@@ -354,7 +354,8 @@ describe('Button', () => {
       // [data-theme='dark'] .outline { color: var(--color-primary-base) }
       const label = resolveTokenHex('--color-primary-base', 'dark')
       const surface = resolveTokenHex('--color-surface', 'dark')
-      // Measured 4.81:1 (was 2.96:1 via bare --color-primary pre-fix).
+      // Measured 5.50:1 (was 2.96:1 via bare --color-primary pre-#9; 4.81:1
+      // after #9's 23%-white-mix, before #73 bumped it to 30%).
       expect(contrastRatio(label, surface)).toBeGreaterThanOrEqual(AA_NORMAL)
     })
 
@@ -368,6 +369,31 @@ describe('Button', () => {
       // acceptance criteria's own quoted 1.53:1 failure).
       expect(contrastRatio(border, surface)).toBeGreaterThanOrEqual(AA_LARGE)
       expect(contrastRatio(border, pageBg)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('#73 — dark label clears SC 1.4.3 (≥4.5:1) against the elevated surface too', () => {
+      // The #9 fix only checked --color-surface. --color-surface-elevated is
+      // both a Card interior (outline buttons inside cards are a common
+      // composition) and the background [data-theme='dark'] .outline:hover
+      // paints as the button fill — and the same label measured only 4.19:1
+      // there, under the 4.5:1 floor. Fixed by nudging --color-primary-base's
+      // dark-only white-mix from 23% to 30% (src/styles/tokens.css).
+      const label = resolveTokenHex('--color-primary-base', 'dark')
+      const elevated = resolveTokenHex('--color-surface-elevated', 'dark')
+      const ratio = contrastRatio(label, elevated)
+      // Was 4.19:1 (sub-AA) pre-fix.
+      expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL)
+      expect(ratio).toBeCloseTo(4.83, 1)
+    })
+
+    it('#73 — border-emphasis (border) is untouched by the primary-base nudge', () => {
+      // Regression lock: the #73 fix only touches --color-primary-base, not
+      // --color-border-emphasis. Locks #9's original border numbers.
+      const border = resolveTokenHex('--color-border-emphasis', 'dark')
+      const surface = resolveTokenHex('--color-surface', 'dark')
+      const elevated = resolveTokenHex('--color-surface-elevated', 'dark')
+      expect(contrastRatio(border, surface)).toBeCloseTo(4.15, 1)
+      expect(contrastRatio(border, elevated)).toBeCloseTo(3.64, 1)
     })
 
     it('light label clears SC 1.4.3 (≥4.5:1 text contrast) against the surface — untouched by #71', () => {

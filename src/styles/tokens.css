@@ -871,6 +871,27 @@
    */
   --color-border-emphasis: oklch(0.58 0.012 250);
 
+  /*
+   * #73 — dark-only override of --color-primary-base. The default (:root)
+   * derivation `color-mix(in oklab, var(--color-primary), white 23%)` is what
+   * #9 used for the Button outline-variant dark label, measured 4.78:1
+   * against --color-surface at the time. That number held for --color-surface
+   * but not for --color-surface-elevated (a Card interior, and also the paint
+   * the dark outline :hover/:active rules use as the button fill) — only
+   * 4.19:1 there, under the SC 1.4.3 4.5:1 floor. Bumping the white-mix
+   * fraction from 23% to 30% (still expressed as color-mix so a consumer
+   * re-skin via --color-primary keeps tracking it, not a literal color)
+   * lightens just enough to clear 4.5:1 on BOTH surfaces: 5.50:1 vs
+   * --color-surface, 4.83:1 vs --color-surface-elevated. Scoped to dark only
+   * — the light `.outline` rule reads --color-primary directly, not
+   * -base, so light mode is unaffected. Consumers of --color-primary-base in
+   * dark mode besides Button (Modal, Markdown, CodeBlock, etc.) get the same
+   * lightening; none of those were reported failing, so this is a superset
+   * fix at the shared token rung rather than a Button-only patch — see the
+   * #73 PR description for the trade-off.
+   */
+  --color-primary-base: color-mix(in oklab, var(--color-primary), white 30%);
+
   /* Disabled control tokens (#39) — dark-mode analogs.
    * v0.36.0 OSS-prep (#421): re-anchored to neutral so the disabled state
    * matches the new neutral dark chrome (ΔE preserved within JND). */

@@ -193,11 +193,23 @@
  * color:
  *   - color → --color-primary-base, the existing 23%-white-mixed brand-ramp
  *     rung (same derivation family as --color-primary-hover/-active).
- *     Measures 4.76:1 vs --color-surface in dark (was 3.13:1).
+ *     Measured 4.76:1 vs --color-surface in dark at the time (was 3.13:1) —
+ *     the mix % has since moved to 30% under #73 below; see that note for
+ *     the current numbers.
  *   - border-color → --color-border-emphasis, a dark-tuned neutral rung
  *     (see src/styles/tokens.css) shared with Switch's off-track fix (#12) —
  *     both need a neutral that pops off a dark surface at ≥3:1. Measures
  *     4.15:1 vs --color-surface in dark (was 1.88:1 via --color-border-default).
+ *
+ * #73 — the #9 fix passed vs --color-surface (4.78:1 as later re-measured)
+ * but --color-surface-elevated is both a Card interior AND the background
+ * the :hover/:active rules below paint as the button fill — and there the
+ * same label only reached 4.19:1, under the 4.5:1 floor. Fixed by nudging
+ * --color-primary-base itself (dark-only override in tokens.css, white-mix
+ * 23% -> 30%) rather than patching Button alone, since every dark-mode
+ * consumer of that token faces the same surface. Now 5.50:1 vs --color-surface,
+ * 4.83:1 vs --color-surface-elevated. --color-border-emphasis (border, and
+ * the light theme) is untouched by this change.
  */
 [data-theme='dark'] .outline {
   color: var(--color-primary-base);
