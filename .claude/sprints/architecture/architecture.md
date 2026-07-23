@@ -1,7 +1,7 @@
 # Architecture — Lando DS
 
-> **Last Updated**: 2026-07-15
-> **Reflects**: `v0.57.0`
+> **Last Updated**: 2026-07-22
+> **Reflects**: `v0.58.0`
 > **Maintained by**: the vibecoding-sprint skill (source of truth for sprint planning). Update after each sprint if feature areas shift.
 
 ## Overview
@@ -52,7 +52,7 @@ Each area is a logical grouping for sprint planning; issues should map to one. A
 |---|---|
 | **Primary files** | `src/components/{Modal,Drawer,Toast,Tooltip,Tabs,Accordion,Dropdown,Popover,CommandPalette,Collapsible,Portal,Slot}/*` |
 | **Role** | Portalled overlays + interactive disclosure |
-| **Notes** | Client-only; share Portal + positioning machinery (`usePortalPosition`) |
+| **Notes** | Client-only; share Portal + positioning machinery (`usePortalPosition`). **Nested-overlay contract** (`ModalPortalContext`, v0.58.0): a `Modal` opened via `<dialog>.showModal()` marks everything *outside* its subtree `inert`, so a body-portalled overlay paints on top but receives no pointer events. Select/Combobox/MultiSelect/Dropdown/Popover therefore render into a `display:contents` host **inside** the open Modal's dialog (`useModalPortalContainer`) when nested, and fall back to the Popover-API + `document.body` path when standalone. Real-browser behavior (top-layer hit-testing, inertness) is guarded by the Playwright e2e suite (`tests/e2e/`), not jsdom. |
 
 ### Navigation & Chrome (14)
 | Field | Value |
@@ -123,3 +123,4 @@ For global issues that span features, group by discipline.
 | Date | Version | Changes |
 |---|---|---|
 | 2026-07-15 | `v0.57.0` | Architecture doc authored for the public repository — current feature areas, contracts, and build pipeline. See `CHANGELOG.md` for the full version history. |
+| 2026-07-22 | `v0.58.0` | Sprint 1 (visible defects). Added the **nested-overlay contract** (`ModalPortalContext`) to Overlay & Interactive — overlays render inside the open Modal's dialog to escape `showModal()` inertness. New **testing surface**: a real-browser **Playwright e2e suite** (`tests/e2e/`, `npm run test:e2e`, `e2e-overlays` CI job) for top-layer/inertness behavior jsdom can't model. `useClickOutside` gained an `ignoreRefs` param (trigger-toggle fix). Contrast fixes to Button `outline` + Switch (dark) via a new `--color-border-emphasis` token. No change to the component count (127) or feature-area structure. |

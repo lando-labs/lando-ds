@@ -5,7 +5,7 @@ Releases are managed with [Changesets](https://github.com/changesets/changesets)
 - **`latest`** — stable releases (`0.58.0`, `0.59.0`, …). What `npm install @lando-labs/lando-ds` gets.
 - **`next`** — prereleases (`0.59.0-next-<datetime>`). Opt-in via `npm install @lando-labs/lando-ds@next`.
 
-> **Publishing is currently manual.** The CI publish path in `.github/workflows/release.yml` is wired for a `NPM_TOKEN` secret that is not yet configured, so a maintainer with npm publish rights publishes by hand (as was done for `v0.57.0` and `v0.58.0`). Manually-published builds have **no provenance attestations** — those appear once CI publishing (automation token or OIDC) is set up. Until then, expect the release workflow to fail at the publish step on merges to `main`; that failure is benign.
+> **Publishing is automated via npm OIDC trusted publishing.** Both `@lando-labs/lando-ds` and `@lando-labs/lando-ds-meta` have a trusted publisher on npmjs.com pointing at `.github/workflows/release.yml`, so CI publishes with a short-lived OIDC token (no long-lived `NPM_TOKEN`) and emits provenance attestations automatically. `v0.57.0`/`v0.58.0` were hand-published *before* this was configured, so they carry no attestations; releases from `v0.59.0` on are CI-published with provenance. The manual steps below remain valid as a fallback.
 
 Every change that should appear in a release needs a changeset:
 
@@ -58,6 +58,14 @@ Snapshot behavior is configured under `snapshot` in [`.changeset/config.json`](.
 
 ---
 
-## Once CI publishing is configured
+## CI publishing (OIDC trusted publishing)
 
-Add an npm **automation** token as the `NPM_TOKEN` repo secret (bypasses 2FA-on-publish), *or* set up npm **trusted publishing (OIDC)** for the package (no long-lived token; the workflow already requests `id-token: write` and sets `NPM_CONFIG_PROVENANCE`). Then the stable flow above becomes fully automatic on merge — build → publish (with provenance) → tag → GitHub Release — and only the changeset authoring stays manual.
+Configured. Merging the "Version Packages" PR runs `.github/workflows/release.yml`, which:
+
+1. upgrades npm to ≥ 11.5.1 (OIDC support),
+2. runs `npm run release` → publishes `@lando-labs/lando-ds` to `latest` with provenance (short-lived OIDC token, no `NPM_TOKEN`), creates the git tag + GitHub Release, then
+3. (gated on a real publish) assembles and publishes `@lando-labs/lando-ds-meta` the same way.
+
+So only **changeset authoring** and **merging the two PRs** stay manual. If OIDC ever fails, the manual `latest`/meta steps above are the fallback.
+
+**To change or add a trusted publisher** (npmjs.com → package → Settings → Trusted Publisher): GitHub Actions → `lando-labs/lando-ds` → workflow filename **`release.yml`** (exact match — `.yml`, not `.yaml`) → allowed action **npm publish** → no environment. The `next` prerelease channel is manual and unaffected.
