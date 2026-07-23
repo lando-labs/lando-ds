@@ -90,7 +90,7 @@ jobs:
           # `@lando-labs/lando-ds` has a trusted publisher configured on npmjs.com
           # (GitHub Actions → lando-labs/lando-ds → workflow `release.yml`), so
           # `npm publish` (run by `changeset publish`) mints a short-lived OIDC
-          # token from the `id-token: write` permission above. No NPM_TOKEN needed.
+          # token from the `id-token: write` permission above.
           # Provenance attestations are emitted automatically under trusted
           # publishing; the explicit flag below is belt-and-suspenders.
           NPM_CONFIG_PROVENANCE: 'true'
