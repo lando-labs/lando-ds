@@ -39,13 +39,25 @@
 
 /* ===== TRACK ===== */
 
+/*
+ * #72 — off-state (unchecked) track was bound to --color-border-default,
+ * which measures only 1.53:1 vs --color-surface in light mode (well under
+ * the SC 1.4.11 3:1 floor) — the white thumb relied solely on its box-shadow
+ * to read as a separate shape. Fixed the same way #12 fixed the dark-theme
+ * equivalent: point background-color at --color-border-emphasis
+ * (src/styles/tokens.css), which now carries a light-tuned value clearing
+ * 3.61:1 vs --color-surface / 3.45:1 vs --color-neutral-50. The thumb is
+ * literally --color-surface (white), so once the track clears AA_LARGE
+ * against --color-surface the thumb necessarily clears the same ratio
+ * against the track — no longer dependent on the shadow alone.
+ */
 .track {
   position: relative;
   display: flex;
   align-items: center;
   flex-shrink: 0;
   border-radius: var(--radius-full);
-  background-color: var(--color-border-default);
+  background-color: var(--color-border-emphasis);
   transition: background-color var(--duration-normal) var(--easing-wave);
 }
 
@@ -68,9 +80,21 @@
   padding: 0.1875rem;
 }
 
-/* Hover state */
+/*
+ * Hover state — side effect of #72: hover previously stepped from resting
+ * --color-border-default (1.53:1) UP to --color-border-strong (1.91:1), i.e.
+ * darker/more prominent than resting. Now that resting is
+ * --color-border-emphasis (3.61:1, darker than --color-border-strong's
+ * 1.91:1), leaving hover on --color-border-strong would make hover LIGHTER
+ * than resting — a visible inversion of the "hover is more prominent"
+ * convention. Steps hover further from the new resting rung instead, mixing
+ * toward black (mirrors the dark override below, which mixes the same
+ * resting token toward white for the equivalent reason — dark needs lighter
+ * to read as more prominent against a dark surface). Measures 5.32:1 vs
+ * --color-surface in light (was 1.91:1 via --color-border-strong).
+ */
 .switch:hover:not(:disabled) ~ .track {
-  background-color: var(--color-border-strong);
+  background-color: color-mix(in oklab, var(--color-border-emphasis), black 15%);
 }
 
 /* Focus state — unified --focus-ring-* tokens (#38) */
@@ -203,11 +227,13 @@
  * which in dark mode sits at ~card-surface lightness (oklch 0.26 vs
  * --color-surface's 0.21) — track + thumb + surrounding surface read as one
  * value (measured well under the SC 1.4.11 3:1 floor). Fixed by pointing at
- * --color-border-emphasis (src/styles/tokens.css), a dedicated dark-only
- * neutral rung shared with Button outline's dark-border fix (#9) — both need
- * a neutral that pops off a dark surface at ≥3:1. Measures 4.15:1 vs
- * --color-surface and 3.64:1 vs --color-surface-elevated (the card-nested
- * case) in dark, comfortably clearing 3:1 against both.
+ * --color-border-emphasis (src/styles/tokens.css), a dedicated "pops off the
+ * surface at rest" neutral rung shared with Button outline's border fix
+ * (#9 dark / #71 light) — both need a neutral that pops off the surface at
+ * ≥3:1. Measures 4.15:1 vs --color-surface and 3.64:1 vs
+ * --color-surface-elevated (the card-nested case) in dark, comfortably
+ * clearing 3:1 against both. (The light-mode equivalent, #72, is fixed at
+ * the base `.track` rule above — see its comment there.)
  */
 [data-theme='dark'] .track {
   background-color: var(--color-border-emphasis);

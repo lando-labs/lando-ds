@@ -166,23 +166,35 @@
   transform: translateY(0);
 }
 
+/*
+ * #71 — LIGHT-theme RESTING border also fails WCAG SC 1.4.11. The
+ * --color-border-default rung measures only 1.53:1 vs --color-surface (the
+ * #9 comment below this one previously claimed 9.53:1 for the light border —
+ * that number was a transposed mis-measurement, see #71) and 1.39:1 vs
+ * --color-neutral-50, both well under the 3:1 non-text floor. Fixed the same
+ * way #9 fixed the dark-theme equivalent: point border-color at
+ * --color-border-emphasis (src/styles/tokens.css), which now carries a
+ * light-tuned value clearing ≥3:1 against every surface this border sits on.
+ * Label color is untouched — --color-primary already measures 6.00:1 in
+ * light (see the regression-lock test in Button.test.tsx).
+ */
 .outline {
   background-color: transparent;
   color: var(--color-primary);
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--color-border-emphasis);
 }
 
 /*
- * #9 — dark-theme RESTING state fails WCAG AA. Light theme already clears AA
- * via the two tokens above directly (border 9.53:1, label 5.74:1 vs
- * --color-surface, measured). In dark, the same two tokens measure border
- * 1.88:1 (need ≥3:1, SC 1.4.11) and label 3.13:1 (need ≥4.5:1, SC 1.4.3) —
- * only :hover/:active carried dark overrides below; resting did not. Fixed
- * at the token level, not with a hard-coded color:
+ * #9 — dark-theme RESTING state fails WCAG AA. In dark, the base rule above
+ * (before this override) measured border 1.88:1 (need ≥3:1, SC 1.4.11) and
+ * label 3.13:1 (need ≥4.5:1, SC 1.4.3) via --color-border-default /
+ * --color-primary respectively — only :hover/:active carried dark overrides
+ * below; resting did not. Fixed at the token level, not with a hard-coded
+ * color:
  *   - color → --color-primary-base, the existing 23%-white-mixed brand-ramp
  *     rung (same derivation family as --color-primary-hover/-active).
  *     Measures 4.76:1 vs --color-surface in dark (was 3.13:1).
- *   - border-color → --color-border-emphasis, a new dark-only neutral rung
+ *   - border-color → --color-border-emphasis, a dark-tuned neutral rung
  *     (see src/styles/tokens.css) shared with Switch's off-track fix (#12) —
  *     both need a neutral that pops off a dark surface at ≥3:1. Measures
  *     4.15:1 vs --color-surface in dark (was 1.88:1 via --color-border-default).
