@@ -299,16 +299,28 @@
   --color-border-default: var(--color-neutral-300);
   --color-border-strong: var(--color-neutral-400);
   /*
-   * #9 / #12 — dedicated "pops off a dark surface" rung for components that
-   * paint a neutral border/fill directly on --color-surface (Button outline
-   * resting border, Switch off-state track). In LIGHT mode this is an
-   * identity alias — --color-border-strong already clears AA here (9.53:1
-   * measured for Button's outline border) — so light is unaffected. The dark
-   * override below is the actual fix: --color-border-strong itself measures
-   * only ~2.96:1 vs --color-surface in dark (just under the SC 1.4.11 3:1
-   * floor), too close to trust as the "strong" rung for this purpose.
+   * #9 / #12 / #71 / #72 — dedicated "pops off the surface at rest" rung for
+   * components that paint a neutral border/fill directly on --color-surface
+   * (Button outline resting border, Switch off-state track).
+   *
+   * #71/#72 (Sprint 2 audit): the #9/#12 comment previously here claimed this
+   * was an identity alias to --color-border-strong because that rung measured
+   * "9.53:1" in light — that number was a transposed mis-measurement (see
+   * #71). The real value is ~1.91:1 vs --color-surface, well under the SC
+   * 1.4.11 3:1 floor, so the identity alias was NOT actually a fix — Button's
+   * outline border and Switch's off-track were both still failing at 1.53:1
+   * (they read --color-border-default directly, not this token, which is the
+   * root cause #71/#72 fixed alongside adding the override below).
+   *
+   * oklch(0.62 0.0184 229.07) is the same neutral hue/chroma as
+   * --color-border-strong (--color-neutral-400), darkened just enough to
+   * clear 3:1 against every surface this rung is asked to sit on:
+   *   3.61:1 vs --color-surface (white)
+   *   3.45:1 vs --color-neutral-50 (the default page background)
+   *   3.29:1 vs --color-surface-elevated (the card-nested case)
+   * The dark override below (introduced in Sprint 1 for #9/#12) is unchanged.
    */
-  --color-border-emphasis: var(--color-border-strong);
+  --color-border-emphasis: oklch(0.62 0.0184 229.07);
 
   /*
    * #39 — semantic surface tokens for disabled interactive controls.

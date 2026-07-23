@@ -118,13 +118,13 @@ describe('Switch', () => {
     expect(await axe(container)).toHaveNoViolations()
   })
 
-  // #12 — off-state (unchecked) track contrast. Reuses the shared
+  // #12 / #72 — off-state (unchecked) track contrast. Reuses the shared
   // `resolveTokenHex` helper from Button's #9 fix (jsdom does not resolve
   // `@layer` order or reliably evaluate `color-mix()`/`oklch()` custom-
   // property cascades, so this asserts against the REAL tokens.css values
   // rather than rendering + `getComputedStyle`). Mirrors Switch.module.css's
-  // `[data-theme='dark'] .track` / `.thumb` rules exactly.
-  describe('off-track contrast (#12)', () => {
+  // `.track` (base, fixed by #72) and `[data-theme='dark'] .track` (#12) rules.
+  describe('off-track contrast (#12, #72)', () => {
     it('dark off-track clears SC 1.4.11 (≥3:1) against the page surface', () => {
       // [data-theme='dark'] .track { background-color: var(--color-border-emphasis) }
       const track = resolveTokenHex('--color-border-emphasis', 'dark')
@@ -156,19 +156,51 @@ describe('Switch', () => {
       expect(contrastRatio(thumb, track)).toBeGreaterThanOrEqual(AA_LARGE)
     })
 
-    it('light mode and the checked/on-state track are untouched by the fix (regression lock)', () => {
-      // The fix only changed the [data-theme='dark'] `.track` (unchecked)
-      // background and its hover step; light mode's `.track` rule
-      // (background: var(--color-border-default)) and the checked/on-state
-      // rule (background: var(--color-primary), in both themes) are
-      // unmodified source.
-      const lightTrack = resolveTokenHex('--color-border-default', 'light')
+    it('#72 — light off-track clears SC 1.4.11 (≥3:1) against the page surface and page background', () => {
+      // .track { background-color: var(--color-border-emphasis) } (light default)
+      const track = resolveTokenHex('--color-border-emphasis', 'light')
+      const surface = resolveTokenHex('--color-surface', 'light')
+      const pageBg = resolveTokenHex('--color-neutral-50', 'light')
+      // Measured 3.61:1 vs --color-surface, 3.45:1 vs --color-neutral-50
+      // (was 1.525:1 / 1.457:1 via --color-border-default pre-fix — the
+      // acceptance criteria's own quoted 1.53:1 failure).
+      expect(contrastRatio(track, surface)).toBeGreaterThanOrEqual(AA_LARGE)
+      expect(contrastRatio(track, pageBg)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('#72 — light off-track clears ≥3:1 against an elevated/card surface (the nested case)', () => {
+      const track = resolveTokenHex('--color-border-emphasis', 'light')
+      const elevated = resolveTokenHex('--color-surface-elevated', 'light')
+      // Measured 3.29:1.
+      expect(contrastRatio(track, elevated)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('#72 — light thumb is distinguishable from the off-track (≥3:1), not relying solely on the shadow', () => {
+      // .thumb { background-color: var(--color-surface) } in BOTH themes —
+      // once the track clears AA_LARGE against --color-surface (asserted
+      // above), the thumb — being literally --color-surface — necessarily
+      // clears the same ratio against the track, independent of box-shadow.
+      const track = resolveTokenHex('--color-border-emphasis', 'light')
+      const thumb = resolveTokenHex('--color-surface', 'light')
+      expect(contrastRatio(thumb, track)).toBeGreaterThanOrEqual(AA_LARGE)
+    })
+
+    it('checked/on-state track is untouched by #12/#72 (regression lock)', () => {
+      // The fixes only changed the OFF-state `.track` background (base rule
+      // for #72, the `[data-theme='dark']` override for #12) and the
+      // (light) hover step's source token; the checked/on-state rule
+      // (background: var(--color-primary), in both themes) is unmodified.
+      // Locks the current measured on-state values — guards against an
+      // accidental leak of the off-track fixes into the checked rule. Not
+      // asserted against an AA threshold: on-state contrast (light 6.00:1,
+      // dark 2.96:1) is a separate, out-of-scope question from #12/#72,
+      // which are specifically about the OFF-state track.
+      const onTrackLight = resolveTokenHex('--color-primary', 'light')
+      const onTrackDark = resolveTokenHex('--color-primary', 'dark')
       const lightSurface = resolveTokenHex('--color-surface', 'light')
-      // Locks the current measured light off-track value — not asserted
-      // against an AA threshold here since #12 is scoped to the dark-theme
-      // regression; this only guards against an accidental leak of the
-      // dark-mode fix into the light rule.
-      expect(contrastRatio(lightTrack, lightSurface)).toBeCloseTo(1.525, 2)
+      const darkSurface = resolveTokenHex('--color-surface', 'dark')
+      expect(contrastRatio(onTrackLight, lightSurface)).toBeCloseTo(6.005, 2)
+      expect(contrastRatio(onTrackDark, darkSurface)).toBeCloseTo(2.956, 2)
     })
   })
 })
