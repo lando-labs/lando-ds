@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.58.1
+
+### Patch Changes
+
+- [#81](https://github.com/lando-labs/lando-ds/pull/81) [`072568d`](https://github.com/lando-labs/lando-ds/commit/072568db2b15f6b77d6a768e1cdf52b727bb86c9) Thanks [@Lando8604](https://github.com/Lando8604)! - Fix two default-theme WCAG AA contrast gaps at the token rung, both discovered during the Sprint 2 theming-AA audit.
+
+  - **Default chrome text tiers now guarantee AA.** `--color-text-secondary` and `--color-text-tertiary` previously dropped below the 4.5:1 SC 1.4.3 floor on some default light-mode surfaces — worst case `text-secondary` at 3.53:1 and `text-tertiary` at 4.24:1, both against `--color-surface-hover`. The underlying rungs (`neutral-600` and the dedicated `neutral-550` AA tier) are darkened just enough to clear 4.5:1 against every default surface (`--color-background` / `--color-surface` / `--color-surface-elevated` / `--color-surface-hover`), in both untinted and brand-tinted chrome. The corresponding `BASELINE_SUB_AA` exemptions in `src/tokens/chrome-contrast.test.ts` (which held these pairs to the lower 3:1 bar) are deleted, not relaxed — dark mode was already clear and two stale dark-mode entries are removed along with it. ([#4](https://github.com/lando-labs/lando-ds/issues/4))
+  - **`Button variant="outline"` dark label now clears AA on card/elevated surfaces too.** The Sprint 1 fix ([#9](https://github.com/lando-labs/lando-ds/issues/9)) verified the dark outline label against `--color-surface` (4.78:1) but not `--color-surface-elevated` — a `Card` interior, and also the background the dark `:hover`/`:active` rules paint as the button fill — where it measured only 4.19:1, under the 4.5:1 floor. `--color-primary-base`'s dark-only white-mix is nudged from 23% to 30%, now 5.50:1 vs `--color-surface` and 4.83:1 vs `--color-surface-elevated`. Scoped to dark mode only; the border rung and light theme are unchanged. ([#73](https://github.com/lando-labs/lando-ds/issues/73))
+
+- [#79](https://github.com/lando-labs/lando-ds/pull/79) [`2d38725`](https://github.com/lando-labs/lando-ds/commit/2d38725904cf4da7e171684e50a9708b5b264cfe) Thanks [@Lando8604](https://github.com/Lando8604)! - Fix WCAG SC 1.4.11 (non-text contrast) failures in the light theme, the light-mode counterpart to Sprint 1's dark-only fixes.
+
+  - **`Button variant="outline"`** resting border now clears ≥3:1 in light mode (was 1.53:1 vs `--color-surface`, 1.39:1 vs `--color-neutral-50`) — measured 3.61:1 / 3.45:1. Dark theme ([#9](https://github.com/lando-labs/lando-ds/issues/9)) unchanged. ([#71](https://github.com/lando-labs/lando-ds/issues/71))
+  - **`Switch`** off-state track now clears ≥3:1 in light mode (was 1.53:1 vs `--color-surface`) — measured 3.61:1, with the white thumb now distinguishable from the track by color, not just its box-shadow. `Switch`'s light-mode hover step was also re-tuned (mixing further toward black from the new resting color) so hover stays visually more prominent than resting, matching the pre-existing dark-mode convention. Dark theme ([#12](https://github.com/lando-labs/lando-ds/issues/12)) and the on/checked state are unchanged. ([#72](https://github.com/lando-labs/lando-ds/issues/72))
+
+  Both share a root cause: `--color-border-emphasis` (`src/styles/tokens.css`) identity-aliased `--color-border-strong` in light mode, and the comment on that alias claimed the un-fixed rung already cleared AA at "9.53:1" — a transposed mis-measurement (the real value is ~1.91:1). `--color-border-emphasis` now carries a light-tuned `oklch(0.62 0.0184 229.07)` value (same hue/chroma as `--color-border-strong`, darkened to clear 3:1 against `--color-surface`, `--color-neutral-50`, and `--color-surface-elevated`), and both components' light-mode rules now read that token instead of `--color-border-default` directly — mirroring how the dark-mode fixes already worked. `--color-border-default` itself is untouched, so the many other components reading that rung are unaffected.
+
 ## 0.58.0
 
 ### Minor Changes

@@ -118,8 +118,8 @@
   --color-neutral-300: oklch(0.8601 0.0172 236.73);
   --color-neutral-400: oklch(0.7928 0.0184 229.07);
   --color-neutral-500: oklch(0.7064 0.0268 229.31);
-  --color-neutral-550: oklch(0.5294 0.0267 228.16); /* #12 — WCAG AA text tier (4.58:1 on #FFFFFF) */
-  --color-neutral-600: oklch(0.5724 0.0397 229.02);
+  --color-neutral-550: oklch(0.5011 0.0262 225.3); /* #12/#4 — WCAG AA text tier (4.78:1 on --color-surface-hover, the worst default light-mode surface) */
+  --color-neutral-600: oklch(0.5006 0.0397 230.16);
   --color-neutral-700: oklch(0.4541 0.0304 228.62);
   --color-neutral-800: oklch(0.3873 0.0245 229.79);
   --color-neutral-900: oklch(0.3087 0.0195 229.78);
@@ -279,11 +279,22 @@
   --color-surface-hover: var(--color-neutral-200);
 
   --color-text-primary: var(--color-neutral-800);
+  /*
+   * #4 — neutral-600 darkened (#607D8B -> #4C6876) so text-secondary clears
+   * WCAG AA normal-text contrast (>=4.5:1) on EVERY default light-mode
+   * surface it renders on — background/surface/surface-elevated/
+   * surface-hover — not just the easiest ones. Worst case (surface-hover)
+   * was 3.53:1; now 4.78:1. This is a guarantee-by-construction fix: the
+   * corresponding `BASELINE_SUB_AA` exemptions in
+   * src/tokens/chrome-contrast.test.ts have been deleted, not relaxed.
+   */
   --color-text-secondary: var(--color-neutral-600);
   /*
-   * #12 — tertiary bumped from neutral-500 (#90A4AE, 2.6:1) to neutral-550
-   * (#5C6F78, 4.58:1) to clear WCAG AA normal-text contrast on white/#F8FAFB
-   * surfaces. Used for placeholders, helper copy, and non-emphasized labels.
+   * #12/#4 — tertiary bumped from neutral-500 (#90A4AE, 2.6:1) to neutral-550,
+   * then (#4) darkened again (#5C6F78 -> #54676F) once the surface-hover
+   * pairing was added to the contrast harness and found sub-AA there (4.24:1).
+   * Worst case (surface-hover) is now 4.78:1. Used for placeholders, helper
+   * copy, and non-emphasized labels.
    */
   --color-text-tertiary: var(--color-neutral-550);
   /*
@@ -859,6 +870,27 @@
    * against those two backgrounds respectively.
    */
   --color-border-emphasis: oklch(0.58 0.012 250);
+
+  /*
+   * #73 — dark-only override of --color-primary-base. The default (:root)
+   * derivation `color-mix(in oklab, var(--color-primary), white 23%)` is what
+   * #9 used for the Button outline-variant dark label, measured 4.78:1
+   * against --color-surface at the time. That number held for --color-surface
+   * but not for --color-surface-elevated (a Card interior, and also the paint
+   * the dark outline :hover/:active rules use as the button fill) — only
+   * 4.19:1 there, under the SC 1.4.3 4.5:1 floor. Bumping the white-mix
+   * fraction from 23% to 30% (still expressed as color-mix so a consumer
+   * re-skin via --color-primary keeps tracking it, not a literal color)
+   * lightens just enough to clear 4.5:1 on BOTH surfaces: 5.50:1 vs
+   * --color-surface, 4.83:1 vs --color-surface-elevated. Scoped to dark only
+   * — the light `.outline` rule reads --color-primary directly, not
+   * -base, so light mode is unaffected. Consumers of --color-primary-base in
+   * dark mode besides Button (Modal, Markdown, CodeBlock, etc.) get the same
+   * lightening; none of those were reported failing, so this is a superset
+   * fix at the shared token rung rather than a Button-only patch — see the
+   * #73 PR description for the trade-off.
+   */
+  --color-primary-base: color-mix(in oklab, var(--color-primary), white 30%);
 
   /* Disabled control tokens (#39) — dark-mode analogs.
    * v0.36.0 OSS-prep (#421): re-anchored to neutral so the disabled state

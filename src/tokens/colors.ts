@@ -50,7 +50,12 @@ export const colors = {
     300: '#C7D3DB',         // Disabled backgrounds
     400: '#B0BEC5',         // Disabled text, placeholder
     500: '#90A4AE',         // Secondary text
-    600: '#607D8B',         // Body text (light mode)
+    // #4 — darkened from #607D8B (4.37:1 on white, sub-AA down to 3.53:1 on
+    // --color-surface-hover) so --color-text-secondary clears WCAG AA
+    // (>=4.5:1) on EVERY default light-mode surface it renders on, including
+    // the darkest one (surface-hover). Worst case now 4.78:1. See
+    // src/tokens/chrome-contrast.test.ts.
+    600: '#4C6876',         // Body text (light mode) — WCAG AA text tier
     700: '#455A64',         // Headings (light mode)
     800: '#37474F',         // Dark text
     900: '#263238',         // Darkest text

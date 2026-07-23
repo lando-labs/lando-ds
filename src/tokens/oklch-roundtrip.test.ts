@@ -117,7 +117,7 @@ if (!neutralRamp) throw new Error('sourceRamps.neutral missing — neutral ramp 
 neutralRamp.splice(
   neutralRamp.findIndex(([k]) => k === '500') + 1,
   0,
-  ['550', '#5C6F78'],
+  ['550', '#54676F'],
 )
 
 const tokensCss = readFileSync(TOKENS_CSS, 'utf8')
