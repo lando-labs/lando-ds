@@ -33,28 +33,25 @@ npx changeset            # pick bump level, write a summary → commits a .md un
    gh release create vX.Y.Z --title "vX.Y.Z — …" --verify-tag --latest --notes "…"
    ```
 
-## Prerelease (`next`)
+## Prerelease (`next`) — automatic on every merge
 
-Cut an opt-in preview from a branch that has **pending (unreleased) changesets** — e.g. to let a consumer try a sprint before it goes stable. Requires the same npm login as above.
-
-```bash
-npm run release:next
-```
-
-This (see [`scripts/release-next.mjs`](../scripts/release-next.mjs)):
-
-1. builds a fresh `dist/`,
-2. stamps an ephemeral **calculated** version like `0.59.0-next-<datetime>` from the pending changesets,
-3. publishes it to the **`next`** dist-tag with **no git tag**, and
-4. **restores the working tree** — the version bump and consumed changesets are never committed.
-
-So `main` stays at its stable version, the changesets survive for the eventual stable release, and the stable pipeline is completely untouched. Consumers opt in with:
+**`next` publishes itself.** Every merge to `main` that carries a changeset triggers the `publish-next` job in `release.yml`, which stamps a calculated snapshot (e.g. `0.59.0-next-<datetime>` from the pending changesets) and publishes it to the **`next`** dist-tag with provenance (OIDC — same trusted publisher). So `@lando-labs/lando-ds@next` always tracks the bleeding edge of `main`:
 
 ```bash
 npm install @lando-labs/lando-ds@next
 ```
 
-Snapshot behavior is configured under `snapshot` in [`.changeset/config.json`](../.changeset/config.json) (`useCalculatedVersion: true` so the version reflects the real upcoming release rather than `0.0.0`).
+The job runs only when the release job did **not** cut a stable release — i.e. a normal feature merge that opened/updated the Version Packages PR. When the Version Packages PR itself merges, that's the `latest` promotion and the `next` job is skipped, so a version is never double-published to both tags. `main` is never mutated (the snapshot bump + consumed changesets are restored in the CI checkout). Snapshot format is set under `snapshot` in [`.changeset/config.json`](../.changeset/config.json).
+
+### Manual `next` publish (ad-hoc)
+
+The same snapshot can be cut by hand from any branch with pending changesets (requires an npm login) — useful for a local preview before merging:
+
+```bash
+npm run release:next
+```
+
+See [`scripts/release-next.mjs`](../scripts/release-next.mjs): build → snapshot-version → publish to `next` (no git tag) → restore the tree.
 
 ---
 
@@ -68,4 +65,4 @@ Configured. Merging the "Version Packages" PR runs `.github/workflows/release.ym
 
 So only **changeset authoring** and **merging the two PRs** stay manual. If OIDC ever fails, the manual `latest`/meta steps above are the fallback.
 
-**To change or add a trusted publisher** (npmjs.com → package → Settings → Trusted Publisher): GitHub Actions → `lando-labs/lando-ds` → workflow filename **`release.yml`** (exact match — `.yml`, not `.yaml`) → allowed action **npm publish** → no environment. The `next` prerelease channel is manual and unaffected.
+**To change or add a trusted publisher** (npmjs.com → package → Settings → Trusted Publisher): GitHub Actions → `lando-labs/lando-ds` → workflow filename **`release.yml`** (exact match — `.yml`, not `.yaml`) → allowed action **npm publish** → no environment. The same trusted publisher authorizes both the stable `latest` publish and the automatic `next` snapshots (both run from `release.yml`).

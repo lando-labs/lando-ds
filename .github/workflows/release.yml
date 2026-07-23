@@ -1,20 +1,28 @@
 name: Release (public npm)
 
 # ---------------------------------------------------------------------------
-# Public-npm release pipeline (Changesets).
+# Public-npm release pipeline (Changesets). Two channels:
 #
-# On every push to `main` the changesets action either:
-#   - opens/updates a "Version Packages" PR aggregating pending changesets, OR
-#   - if that PR was just merged (no changesets left), runs `npm run release`
-#     to publish `@lando-labs/lando-ds` to public npmjs.org WITH PROVENANCE,
-#     then creates the GitHub Release + git tag. A follow-on step then assembles
-#     and publishes `@lando-labs/lando-ds-meta` (gated on a real publish).
+#   `next`   — EVERY merge to main that carries a changeset publishes a snapshot
+#              prerelease (0.X.Y-next-<datetime>) to the `next` dist-tag, so
+#              `npm i @lando-labs/lando-ds@next` tracks the bleeding edge.
+#              Handled by the `publish-next` job.
+#   `latest` — stable. Only cut when the "Version Packages" PR is merged, which
+#              runs `npm run release` to publish `@lando-labs/lando-ds` (+ the
+#              `@lando-labs/lando-ds-meta` artifact) to `latest` WITH PROVENANCE,
+#              then creates the GitHub Release + git tag. Handled by `release`.
 #
-# Auth is npm OIDC TRUSTED PUBLISHING (no long-lived token): both packages have
-# a trusted publisher on npmjs.com pointing at this workflow (`release.yml`).
-# Requires `id-token: write` (below) and npm >= 11.5.1 (upgraded in a step).
+# So on each push to main the changesets action either:
+#   - opens/updates the "Version Packages" PR (→ `release` has nothing to
+#     publish; `publish-next` cuts a `next` snapshot), OR
+#   - publishes the stable release (Version Packages PR was merged → `release`
+#     publishes `latest`; `publish-next` is skipped so nothing double-publishes).
 #
-# The `release` job is guarded by
+# Auth is npm OIDC TRUSTED PUBLISHING (no long-lived token): the packages have a
+# trusted publisher on npmjs.com pointing at this workflow (`release.yml`).
+# Requires `id-token: write` and npm >= 11.5.1 (upgraded in a step).
+#
+# The `release`/`publish-next` jobs are guarded by
 #     if: github.repository == 'lando-labs/lando-ds'
 # so forks never publish — only this repository can.
 # ---------------------------------------------------------------------------
@@ -36,6 +44,13 @@ jobs:
     # Only this repository publishes — forks evaluate the guard to false and
     # skip the job. Do not remove or weaken it.
     if: github.repository == 'lando-labs/lando-ds'
+
+    # Surfaced to the `publish-next` job below so it can tell a stable release
+    # (Version Packages PR merged → `published: true`) from a feature merge that
+    # left changesets pending (→ publish a `next` snapshot instead).
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
 
     permissions:
       contents: write # commit version bump, push git tags, create GitHub Releases
@@ -113,5 +128,59 @@ jobs:
         run: |
           npm run assemble:meta
           npm publish ./dist-meta
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
+
+  # ---------------------------------------------------------------------------
+  # Prerelease channel: publish a `next` snapshot on EVERY merge to main that
+  # carries a changeset — so `npm i @lando-labs/lando-ds@next` always tracks the
+  # bleeding edge. Stable `latest` is only cut when the Version Packages PR is
+  # merged (handled by the `release` job above).
+  #
+  # Runs ONLY when the release job did NOT publish a stable version but DID see
+  # pending changesets — i.e. a normal feature merge that opened/updated the
+  # Version Packages PR. When the Version Packages PR itself merges, the release
+  # job publishes to `latest` (`published: true`) and this job is skipped, so a
+  # version is never double-published to both tags.
+  #
+  # `npm run release:next` (scripts/release-next.mjs) builds, stamps a calculated
+  # snapshot version (e.g. 0.59.0-next-<datetime>), publishes it to the `next`
+  # dist-tag with no git tag, then restores the tree. Auth is the SAME OIDC
+  # trusted publisher (this is still release.yml); provenance is emitted.
+  # ---------------------------------------------------------------------------
+  publish-next:
+    name: Publish snapshot to the `next` tag
+    needs: release
+    if: >-
+      github.repository == 'lando-labs/lando-ds' &&
+      needs.release.outputs.published != 'true' &&
+      needs.release.outputs.hasChangesets == 'true'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # OIDC token for npm trusted publishing (+ provenance)
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Upgrade npm (OIDC trusted publishing needs >= 11.5.1)
+        run: npm install -g "npm@^11.5.1"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish snapshot to the `next` dist-tag
+        run: npm run release:next
         env:
           NPM_CONFIG_PROVENANCE: 'true'
