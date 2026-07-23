@@ -1,8 +1,0 @@
----
-"@lando-labs/lando-ds": patch
----
-
-Fix two default-theme WCAG AA contrast gaps at the token rung, both discovered during the Sprint 2 theming-AA audit.
-
-- **Default chrome text tiers now guarantee AA.** `--color-text-secondary` and `--color-text-tertiary` previously dropped below the 4.5:1 SC 1.4.3 floor on some default light-mode surfaces — worst case `text-secondary` at 3.53:1 and `text-tertiary` at 4.24:1, both against `--color-surface-hover`. The underlying rungs (`neutral-600` and the dedicated `neutral-550` AA tier) are darkened just enough to clear 4.5:1 against every default surface (`--color-background` / `--color-surface` / `--color-surface-elevated` / `--color-surface-hover`), in both untinted and brand-tinted chrome. The corresponding `BASELINE_SUB_AA` exemptions in `src/tokens/chrome-contrast.test.ts` (which held these pairs to the lower 3:1 bar) are deleted, not relaxed — dark mode was already clear and two stale dark-mode entries are removed along with it. ([#4](https://github.com/lando-labs/lando-ds/issues/4))
-- **`Button variant="outline"` dark label now clears AA on card/elevated surfaces too.** The Sprint 1 fix (#9) verified the dark outline label against `--color-surface` (4.78:1) but not `--color-surface-elevated` — a `Card` interior, and also the background the dark `:hover`/`:active` rules paint as the button fill — where it measured only 4.19:1, under the 4.5:1 floor. `--color-primary-base`'s dark-only white-mix is nudged from 23% to 30%, now 5.50:1 vs `--color-surface` and 4.83:1 vs `--color-surface-elevated`. Scoped to dark mode only; the border rung and light theme are unchanged. ([#73](https://github.com/lando-labs/lando-ds/issues/73))
