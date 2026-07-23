@@ -51,6 +51,7 @@ default (the default is brand-neutral, no preset).
 
 **Colors**:
 - Primary: `#6366F1` (Indigo-500)
+- On-primary text: `#000000` (black — Indigo-500 vs white is 4.47:1, just under AA; see [`onPrimary`](#onprimary--keeping-button-variantprimary-at-wcag-aa))
 - Accent: `#8B5CF6` (Violet-500)
 - Personality: Sophisticated, creative, mysterious
 
@@ -61,6 +62,7 @@ default (the default is brand-neutral, no preset).
 
 **Colors**:
 - Primary: `#F97316` (Orange-500)
+- On-primary text: `#000000` (black — Orange-500 vs white is 2.80:1)
 - Accent: `#F59E0B` (Amber-500)
 - Personality: Warm, energetic, optimistic
 
@@ -71,6 +73,7 @@ default (the default is brand-neutral, no preset).
 
 **Colors**:
 - Primary: `#10B981` (Emerald-500)
+- On-primary text: `#000000` (black — Emerald-500 vs white is 2.54:1)
 - Accent: `#14B8A6` (Teal-500)
 - Personality: Natural, balanced, growth-oriented
 
@@ -81,6 +84,7 @@ default (the default is brand-neutral, no preset).
 
 **Colors**:
 - Primary: `#EC4899` (Pink-500)
+- On-primary text: `#000000` (black — Pink-500 vs white is 3.53:1)
 - Accent: `#F43F5E` (Rose-500)
 - Personality: Elegant, warm, welcoming
 
@@ -157,6 +161,18 @@ export const customTheme: ThemePreset = {
     primaryHover: '#FF7851',   // Hover state
     primaryActive: '#E54623',  // Active/pressed state
 
+    // Optional (but check it!): text/icon color on a `primary`-filled
+    // surface. Omitting this inherits the global white default
+    // (`--color-on-primary: var(--color-neutral-white)`), which only holds
+    // WCAG AA if `primary` is dark/saturated enough (>= ~4.5:1 against
+    // white). Compute both before shipping:
+    //   contrastRatio(primary, '#FFFFFF')  // white text (the default)
+    //   contrastRatio(primary, '#000000')  // black text
+    // and set `onPrimary` to whichever (or neither, if both already pass)
+    // clears AA_NORMAL. See `theme-preset-contrast.test.ts`, which fails CI
+    // for any preset whose primary/on-primary pair doesn't clear AA (#10).
+    onPrimary: '#000000',
+
     // Optional: Accent colors
     accent: '#33C4FF',
     accentLight: '#70D9FF',
@@ -202,7 +218,7 @@ export {
 
 ### Color Selection Principles
 
-1. **Maintain Contrast**: Ensure primary colors meet WCAG AA contrast requirements (4.5:1 for text)
+1. **Maintain Contrast**: Ensure `primary` clears WCAG AA (4.5:1) against its **resolved** `--color-on-primary` — the inherited white default if you don't set `onPrimary`, or your explicit override if you do (#10). Don't assume white text works just because it's the default.
 2. **Brand Harmony**: New presets should feel cohesive with the rest of the preset family
 3. **State Progression**: Hover should be lighter, active should be darker than primary
 4. **Semantic Consistency**: Success = green, Error = red, Warning = amber/orange
@@ -231,6 +247,7 @@ When a theme preset is applied, these CSS variables are overridden:
 --color-primary          /* Main brand color */
 --color-primary-hover    /* Hover state */
 --color-primary-active   /* Active/pressed state */
+--color-on-primary       /* Text/icon color on a primary-filled surface (optional — see below) */
 --color-accent           /* Accent color */
 --color-accent-light     /* Light accent */
 --color-accent-dark      /* Dark accent */
@@ -239,6 +256,50 @@ When a theme preset is applied, these CSS variables are overridden:
 --color-error-base       /* Error color (optional) */
 --color-info-base        /* Info color (optional) */
 ```
+
+### `onPrimary` — keeping Button `variant="primary"` at WCAG AA
+
+`--color-on-primary` (the text/icon color rendered on a `primary`-filled
+surface — Button `variant="primary"`, and anywhere else the token is
+consumed) is declared **once, globally**, in `tokens.css`
+(`var(--color-neutral-white)`). A preset only overrides it via
+`colors.onPrimary` when its `primary` doesn't already clear WCAG AA (4.5:1)
+against that white default — omitting the field inherits it unchanged.
+
+Four of the six shipped presets need it (#10 — audited with the DS's own
+`contrastRatio()` / `AA_NORMAL` from `src/tokens/contrast.ts`):
+
+| preset | `primary` | vs white (default) | resolved `onPrimary` | vs resolved |
+| --- | --- | --- | --- | --- |
+| `lando` | `#1B7FA8` | 4.52 ✅ | *(inherited: white)* | 4.52 ✅ |
+| `slate` | `#64748B` | 4.76 ✅ | *(inherited: white)* | 4.76 ✅ |
+| `midnight` | `#6366F1` | 4.47 ❌ | `#000000` | 4.70 ✅ |
+| `sunset` | `#F97316` | 2.80 ❌ | `#000000` | 7.49 ✅ |
+| `forest` | `#10B981` | 2.54 ❌ | `#000000` | 8.28 ✅ |
+| `rose` | `#EC4899` | 3.53 ❌ | `#000000` | 5.95 ✅ |
+
+Every failing preset is fixed by switching to black text (`#000000` —
+the same value as `--color-neutral-black`), not by picking a new brand
+color: an orange/green/pink button with near-black text is a legitimate
+design, not a compromise. `midnight` is the interesting case — indigo is
+close enough to the AA floor that a softer "ink" tone (e.g. `#0F1419`)
+*doesn't* clear it (4.14:1); only true black does (4.70:1).
+
+`lando` and `slate` already clear AA against the inherited white default
+and are left as-is — no `onPrimary` override, and (for `lando`) no change
+to the documented historical `primary` hex, to avoid touching a value
+several other places in the codebase assert exact parity with. `lando`'s
+margin (4.52 vs. the 4.5 floor) is real but slim; a follow-up could widen
+it by nudging `primary` a fraction darker in OKLCH if the margin becomes a
+problem in practice, but that wasn't judged worth the parity break for
+this fix.
+
+This is enforced by a guard test — `src/tokens/theme-preset-contrast.test.ts`
+loops over every `themePresets` entry and asserts `primary` vs. its
+resolved `onPrimary` (explicit or inherited) clears `AA_NORMAL`, plus the
+brand-neutral default (no preset). A new preset that skips `onPrimary`
+while shipping a `primary` lighter than ~4.5:1 against white will fail
+this test.
 
 ### Data Attributes
 

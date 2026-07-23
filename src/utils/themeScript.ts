@@ -69,6 +69,12 @@ export function presetColorVars(presetId: string): Record<string, string> {
   if (colors.primary) vars['--color-primary'] = colors.primary
   if (colors.primaryHover) vars['--color-primary-hover'] = colors.primaryHover
   if (colors.primaryActive) vars['--color-primary-active'] = colors.primaryActive
+  // #10: text/icon color on a `primary`-filled surface (Button
+  // variant="primary" and friends). Only presets whose `primary` doesn't
+  // clear WCAG AA against the global white default set this; omitted →
+  // inherits `--color-on-primary: var(--color-neutral-white)` from
+  // tokens.css, unchanged.
+  if (colors.onPrimary) vars['--color-on-primary'] = colors.onPrimary
   // v0.36.0 OSS-prep (#421): secondary brand base drives the --color-secondary-*
   // shade ramp + hover/active/disabled tints via the OKLCH derivation layer.
   if (colors.secondary) vars['--color-secondary'] = colors.secondary
