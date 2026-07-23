@@ -4,28 +4,44 @@
  */
 
 /*
- * CASCADE LAYER ORDER (#267) — declare ONCE, FIRST, before any @import.
+ * CASCADE LAYER ORDER (#267, #13) — declare ONCE, FIRST, before any @import.
  *
  * This single statement fixes the precedence of every DS layer up front, so
  * ordering is deterministic no matter what order the underlying rules land in
  * the bundle:
  *
- *   ll.reset    → browser-default resets (lowest priority)
+ *   app-reset   → consumer resets that must sit BELOW every DS layer (opt-in;
+ *                 empty unless the consumer writes `@layer app-reset { … }`)
+ *   ll.reset    → browser-default resets
  *   ll.tokens   → design-token custom properties (:root / [data-theme])
  *   ll.base     → opinionated, token-driven base element styling
  *   ll.components → every *.module.css (auto-wrapped at build time)
  *   ll.utilities → DS utility classes (.container, .sr-only, …) (highest DS layer)
+ *   app         → consumer overrides that must beat every DS layer while
+ *                 staying beatable by the consumer's own unlayered CSS
+ *                 (opt-in; empty unless the consumer writes `@layer app { … }`)
  *
  * CRITICAL: a consumer's UNLAYERED CSS outranks ALL named layers above. That is
  * the whole point — consumers override DS components with a plain class and no
  * `!important`. See README "Customizing & overriding styles" and
  * reference/css-layers.md.
  *
+ * `app-reset` and `app` are declared here (not just in the separate opt-in
+ * `layer-order.css` primer) so that `@layer app { … }` reliably outranks
+ * `ll.components` as soon as a consumer imports THIS stylesheet — no separate
+ * primer import required for the override contract to hold (issue #13: the
+ * old statement only named the five `ll.*` layers, so `app`'s position was
+ * only guaranteed when a consumer remembered to import `layer-order.css`
+ * first; forgetting it failed silently). The primer still exists for
+ * consumers who need `app`'s position fixed BEFORE this stylesheet loads at
+ * all (e.g. hand-rolled critical CSS) — importing both is a harmless no-op,
+ * since re-declaring already-positioned layers does not move them.
+ *
  * A bare `@layer name, name;` statement is permitted before `@import` per spec;
  * keeping it here (and first) guarantees the order statement is emitted ahead of
  * the imported token/global/component CSS in the bundled output.
  */
-@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
 
 @import './tokens.css';
 @import './global.css';

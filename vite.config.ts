@@ -19,8 +19,11 @@ const pkg = JSON.parse(
  *
  * Wraps the compiled output of every `*.module.css` file in
  * `@layer ll.components { … }`. With the layer ORDER declared first in the
- * bundle (`@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;`
- * prepended to src/styles/index.css), this guarantees:
+ * bundle (`@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components,
+ * ll.utilities, app;` prepended to src/styles/index.css — #13 added the
+ * consumer-opt-in `app-reset`/`app` slots to that statement so a consumer's
+ * `@layer app { … }` reliably outranks `ll.components` without a separate
+ * primer import), this guarantees:
  *
  *   - DS component rules live in the LOW-priority `ll.components` layer, so a
  *     consumer's *unlayered* CSS (e.g. `.foo { background: red }` on a
