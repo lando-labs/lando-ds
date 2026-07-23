@@ -31,6 +31,21 @@ export interface ThemePreset {
     primaryActive?: string
 
     /**
+     * Text/icon color rendered ON a `primary`-filled surface (Button
+     * `variant="primary"`, and anywhere else `--color-on-primary` is
+     * consumed). #10: `--color-on-primary` is declared exactly once,
+     * globally, in `tokens.css` (`var(--color-neutral-white)`) — a preset
+     * that swaps `primary` for something lighter than ~4.5:1 against white
+     * has no way to express a conforming replacement without this field.
+     * Only set this when the preset's `primary` doesn't already clear WCAG
+     * AA (4.5:1) against the global white default; omitting it inherits
+     * that default. See `theme-preset-contrast.test.ts`, which asserts
+     * every shipped preset's `primary` vs. its resolved `onPrimary` (or the
+     * inherited default) clears AA — the guard for this field existing.
+     */
+    onPrimary?: string
+
+    /**
      * Secondary brand base. Mirror of `primary` for the supporting ramp —
      * `--color-secondary-*` shade derivations + state tints (hover/active/
      * disabled) all re-skin automatically when this single token moves.
@@ -83,6 +98,11 @@ export const landoTheme: ThemePreset = {
   name: 'Lando',
   description: 'Historical Lando ocean+teal palette (pre-v0.36.0 default)',
   colors: {
+    // #10: ocean-medium vs the global white `--color-on-primary` default is
+    // 4.52:1 — clears AA (>= 4.5:1), no `onPrimary` override needed. Left as
+    // the documented historical exact value (see class doc) rather than
+    // nudged for a wider margin — see the #10 PR description for the
+    // trade-off.
     primary: '#1B7FA8',      // ocean-medium
     secondary: '#2DBFBF',    // teal-base — drives the secondary ramp
     accent: '#2BA3D4',       // ocean-base
@@ -120,6 +140,11 @@ export const midnightTheme: ThemePreset = {
   description: 'Deep purples and indigos for sophisticated interfaces',
   colors: {
     primary: '#6366F1',      // Indigo-500
+    // #10: Indigo-500 vs white is 4.47:1 — just under the 4.5 AA floor, and
+    // dark-navy "ink" text (~#0F1419) only reaches 4.14:1 (still short).
+    // Pure black (== --color-neutral-black) is the only lever that clears
+    // AA here, at 4.70:1.
+    onPrimary: '#000000',
     accent: '#8B5CF6',        // Violet-500
     accentLight: '#A78BFA',   // Violet-400
     accentDark: '#7C3AED',    // Violet-600
@@ -138,6 +163,9 @@ export const sunsetTheme: ThemePreset = {
   description: 'Warm corals and oranges for vibrant, energetic feel',
   colors: {
     primary: '#F97316',      // Orange-500
+    // #10: Orange-500 vs white is only 2.80:1. Black text clears AA
+    // comfortably at 7.49:1.
+    onPrimary: '#000000',
     accent: '#F59E0B',        // Amber-500
     accentLight: '#FCD34D',   // Amber-300
     accentDark: '#D97706',    // Amber-600
@@ -156,6 +184,9 @@ export const forestTheme: ThemePreset = {
   description: 'Rich greens and emeralds for natural, calming interfaces',
   colors: {
     primary: '#10B981',      // Emerald-500
+    // #10: Emerald-500 vs white is only 2.54:1. Black text clears AA
+    // comfortably at 8.28:1.
+    onPrimary: '#000000',
     accent: '#14B8A6',        // Teal-500
     accentLight: '#5EEAD4',   // Teal-300
     accentDark: '#0D9488',    // Teal-600
@@ -174,6 +205,9 @@ export const roseTheme: ThemePreset = {
   description: 'Soft pinks and magentas for elegant, welcoming interfaces',
   colors: {
     primary: '#EC4899',      // Pink-500
+    // #10: Pink-500 vs white is only 3.53:1. Black text clears AA
+    // comfortably at 5.95:1.
+    onPrimary: '#000000',
     accent: '#F43F5E',        // Rose-500
     accentLight: '#FB7185',   // Rose-400
     accentDark: '#E11D48',    // Rose-600
@@ -191,6 +225,8 @@ export const slateTheme: ThemePreset = {
   name: 'Slate',
   description: 'Cool grays and subtle blues for professional, minimal feel',
   colors: {
+    // #10: Slate-500 vs the global white `--color-on-primary` default is
+    // 4.76:1 — clears AA, no override needed.
     primary: '#64748B',      // Slate-500
     accent: '#0EA5E9',        // Sky-500
     accentLight: '#38BDF8',   // Sky-400
