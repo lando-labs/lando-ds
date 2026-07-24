@@ -134,6 +134,101 @@ describe('ThemeScope — basic scoped application', () => {
   })
 })
 
+describe('ThemeScope — scoped ramp/state re-derivation (#11)', () => {
+  it('a scoped --color-primary override propagates to --color-primary-hover within the scope', () => {
+    render(
+      <ThemeScope
+        theme={{ name: 'violet', tokens: { color: { primary: '#7C3AED' } } }}
+        mode="light"
+        data-testid="scope"
+      >
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // The base override lands as expected.
+    expect(wrapper.style.getPropertyValue('--color-primary')).toBe('#7C3AED')
+    // The DERIVED hover/active/ramp tokens must be re-declared on the scope
+    // as color-mix() formulas referencing THIS element's --color-primary —
+    // not left absent (and therefore silently inherited from :root's
+    // default primary) as they were before #11.
+    expect(wrapper.style.getPropertyValue('--color-primary-hover')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 22%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-active')).toBe(
+      'color-mix(in oklab, var(--color-primary), black 18%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-lightest')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 90%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-primary-darkest')).toBe(
+      'color-mix(in oklab, var(--color-primary), black 52.5%)',
+    )
+  })
+
+  it('re-derives the secondary and error/danger state tints too', () => {
+    render(
+      <ThemeScope
+        theme={{
+          name: 'custom',
+          tokens: { color: { secondary: '#059669', error: '#DC2626' } },
+        }}
+        mode="light"
+        data-testid="scope"
+      >
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    expect(wrapper.style.getPropertyValue('--color-secondary-hover')).toBe(
+      'color-mix(in oklab, var(--color-secondary), white 18%)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-error-active')).toBe(
+      'color-mix(in oklab, var(--color-error), black 38%)',
+    )
+    // danger mirrors error via a same-element var() reference.
+    expect(wrapper.style.getPropertyValue('--color-danger-active')).toBe(
+      'var(--color-error-active)',
+    )
+  })
+
+  it('uses the dark-mode-tuned --color-primary-base formula when the scope mode is dark', () => {
+    render(
+      <ThemeScope theme={THEME_A} mode="dark" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // Mirrors the [data-theme="dark"] override in tokens.css (#73) — heavier
+    // white-mix than the light-mode formula — so a dark ThemeScope island
+    // doesn't regress the WCAG-AA fix that selector already gave it via
+    // ordinary cascade (data-theme is a plain attribute selector, not
+    // :root-scoped, so it already matched the wrapper before this fix).
+    expect(wrapper.style.getPropertyValue('--color-primary-base')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 30%)',
+    )
+  })
+
+  it('a scope with no theme prop still carries the (identity-preserving) derived formulas', () => {
+    // No base override at all: the formulas resolve via var(--color-primary)
+    // inheriting :root's value, same as before — proves emitting them
+    // unconditionally is a no-op when nothing is themed.
+    render(
+      <ThemeScope mode="light" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    expect(wrapper.style.getPropertyValue('--color-primary-hover')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 22%)',
+    )
+  })
+})
+
 describe('ThemeScope — multi-scope coexistence', () => {
   it('two sibling scopes apply different themes independently', () => {
     render(
@@ -582,6 +677,134 @@ describe('ThemeScope — hydration parity (#428)', () => {
     const wrapper = container.querySelector('[data-testid="scope"]') as HTMLDivElement
     expect(wrapper.getAttribute('data-theme')).toBe('dark')
     expect(wrapper.style.getPropertyValue('--color-brand-x')).toBe('#FF0000')
+
+    act(() => {
+      root.unmount()
+    })
+    container.remove()
+  })
+})
+
+/* ------------------------------------------------------------------ *
+ *  Issue #501 — inherited `system`-mode SSR guard
+ *
+ *  Fast, deterministic companion to the real-browser proof in
+ *  tests/e2e/themescope-hydration.spec.ts (that Playwright suite is the
+ *  authoritative regression test — jsdom cannot fully reproduce a true
+ *  window-undefined server render, since jsdom's `window` always exists).
+ *  This jsdom test instead pins the GATING LOGIC directly: the placeholder
+ *  render matches SSR byte-for-byte (so hydrateRoot logs no mismatch), and
+ *  the scope's own post-mount effect — not a same-value no-op — settles the
+ *  DOM to the real (mocked) OS preference. See the "Inherited-mode SSR
+ *  guard (#501)" doc block in ThemeScope.tsx for the full mechanism.
+ * ------------------------------------------------------------------ */
+
+describe('ThemeScope — inherited-mode SSR guard (#501)', () => {
+  it('a no-mode scope under a system-mode provider hydrates warning-free, then settles to the real OS preference', () => {
+    const originalMatchMedia = window.matchMedia
+    // Simulate a dark-preferring OS. Real Node SSR never reaches this mock
+    // (no `window` at all); the point is to prove the CLIENT settles here
+    // without ever having warned during hydration.
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+
+    const tree = (
+      <ThemeProvider disableStorage>
+        <ThemeScope data-testid="scope">
+          <div>child</div>
+        </ThemeScope>
+      </ThemeProvider>
+    )
+
+    // 1. Server render — no effects. The placeholder guard hardcodes the
+    //    same 'light' fallback a real window-less server would produce, so
+    //    this stays 'light' regardless of jsdom's (mocked-dark) `window`.
+    const html = renderToString(tree)
+    expect(html).toContain('data-theme="light"')
+    expect(html).toContain('color-scheme:light')
+
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.appendChild(container)
+
+    const onRecoverableError = vi.fn()
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let root: ReturnType<typeof hydrateRoot>
+    act(() => {
+      root = hydrateRoot(container, tree, { onRecoverableError })
+    })
+
+    const hydrationWarnings = consoleError.mock.calls.filter(
+      ([msg]) =>
+        typeof msg === 'string' &&
+        /hydrat|did not match|didn't match|server render|server html/i.test(msg),
+    )
+    consoleError.mockRestore()
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(hydrationWarnings).toEqual([])
+
+    // 2. Post-mount correction: the scope's own effect (flushed inside the
+    //    `act` above) settles the DOM to the REAL OS preference — pinning
+    //    that this is a genuine repatch, not the "stuck forever on light" bug.
+    const wrapper = container.querySelector('[data-testid="scope"]') as HTMLDivElement
+    expect(wrapper.getAttribute('data-theme')).toBe('dark')
+    expect(wrapper.style.colorScheme).toBe('dark')
+    // The #11 dark-mode-tuned formula, not the light one — pins that the
+    // settled correction recomputes derived tokens too, not just data-theme.
+    expect(wrapper.style.getPropertyValue('--color-primary-base')).toBe(
+      'color-mix(in oklab, var(--color-primary), white 30%)',
+    )
+
+    act(() => {
+      root.unmount()
+    })
+    container.remove()
+    window.matchMedia = originalMatchMedia
+  })
+
+  it('an explicit mode prop skips the placeholder entirely — correct dark from first paint under a system-mode provider', () => {
+    const tree = (
+      <ThemeProvider disableStorage>
+        <ThemeScope mode="dark" data-testid="scope">
+          <div>child</div>
+        </ThemeScope>
+      </ThemeProvider>
+    )
+
+    const html = renderToString(tree)
+    expect(html).toContain('data-theme="dark"')
+
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.appendChild(container)
+
+    const onRecoverableError = vi.fn()
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let root: ReturnType<typeof hydrateRoot>
+    act(() => {
+      root = hydrateRoot(container, tree, { onRecoverableError })
+    })
+    const hydrationWarnings = consoleError.mock.calls.filter(
+      ([msg]) =>
+        typeof msg === 'string' &&
+        /hydrat|did not match|didn't match|server render|server html/i.test(msg),
+    )
+    consoleError.mockRestore()
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(hydrationWarnings).toEqual([])
+
+    const wrapper = container.querySelector('[data-testid="scope"]') as HTMLDivElement
+    expect(wrapper.getAttribute('data-theme')).toBe('dark')
 
     act(() => {
       root.unmount()

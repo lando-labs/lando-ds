@@ -35,6 +35,9 @@ import {
   presetColorVars,
   type ThemeScriptOptions,
 } from './themeScript'
+// #11 — the scoped ramp/interaction-state re-derivation ThemeScope needs.
+// See colorDerivation.ts for why this can't just live in tokens.css alone.
+import { getScopedDerivedColorVars } from './colorDerivation'
 
 export { themeScript, themeScriptPath, presetColorVars }
 export type { ThemeScriptOptions }
@@ -569,6 +572,14 @@ const OPTIONAL_SCOPE_ATTRIBUTES = [
  * @param productTheme Optional product theme override.
  * @param presetId    Optional theme-preset id (e.g. `'lando'`, `'midnight'`).
  * @param tintChrome  Whether to set the `data-tint-chrome` boolean attribute.
+ * @param deriveScopedTokens (#11) When `true`, seed `vars` with the tonal-ramp
+ *        + interaction-state `color-mix()` FORMULAS (`getScopedDerivedColorVars`)
+ *        before preset/product vars are layered on. `:root`'s formulas in
+ *        tokens.css already re-derive correctly for `documentElement` (the
+ *        `applyTheme` root path), so only `ThemeScope` — which targets a
+ *        non-root wrapper the `:root` CSS rule can't reach — passes `true`.
+ *        Leaving this `false`/omitted keeps the root path byte-for-byte
+ *        unchanged.
  * @returns `{ attributes, vars, colorScheme }` — attributes to SET (absent
  *          optional ones should be removed by the caller), `--*` vars to write,
  *          and the `color-scheme` value.
@@ -578,13 +589,19 @@ export function computeThemeAttrs(
   productTheme?: ProductTheme,
   presetId?: string,
   tintChrome?: boolean,
+  deriveScopedTokens?: boolean,
 ): {
   attributes: Record<string, string>
   vars: Record<string, string>
   colorScheme: ResolvedTheme
 } {
   const attributes: Record<string, string> = { 'data-theme': mode }
-  const vars: Record<string, string> = {}
+  // #11 — scoped ramp/state formulas go in FIRST, at the lowest precedence:
+  // a preset's or product theme's explicit literal (e.g. a preset's own
+  // `primaryHover` hex) still overwrites the formula below, exactly like the
+  // inline preset/product writes already outrank tokens.css's `:root` CSS on
+  // the root path.
+  const vars: Record<string, string> = deriveScopedTokens ? getScopedDerivedColorVars(mode) : {}
 
   // Opt-in brand-tinted chrome: boolean attribute (empty-string value) gates
   // the `[data-tint-chrome]` token block.
