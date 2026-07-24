@@ -1,6 +1,16 @@
 /*
- * @lando-labs/lando-ds — Cascade-layer ORDER PRIMER (issue #462)
+ * @lando-labs/lando-ds — Cascade-layer ORDER PRIMER (issue #462, #13)
  * ---------------------------------------------------------------------------
+ * NOTE (#13): as of this version, `@lando-labs/lando-ds/styles` (the main DS
+ * stylesheet) declares this SAME order statement itself — `app-reset` and
+ * `app` included — so importing this primer is no longer required just to
+ * make `@layer app { … }` beat DS components. Import THIS file separately
+ * only when you need `app`/`app-reset`'s position fixed BEFORE the DS
+ * stylesheet loads at all (e.g. hand-rolled critical CSS extraction, or a
+ * bundler where you can't guarantee the DS stylesheet is the first CSS
+ * encountered). Importing both is a harmless no-op — re-declaring
+ * already-positioned layers does not move them. See reference/css-layers.md.
+ *
  * Import this FIRST, before your own reset and before the DS stylesheet, when
  * you consume the DS alongside a global CSS reset (e.g. the create-next-app
  * default `globals.css` with `* { margin: 0; padding: 0 }`).

@@ -2,7 +2,7 @@
 AI-Generated Documentation
 Created by: design-system-specialist
 Date: 2026-06-23
-Purpose: CSS cascade-layers contract — published layer order, override rules, escape hatch, semver/browser promise, critical-CSS note (#267/#268)
+Purpose: CSS cascade-layers contract — published layer order, override rules, escape hatch, semver/browser promise, critical-CSS note (#267/#268); `app`/`app-reset` load-order robustness + honest limits (#13)
 -->
 
 # CSS Cascade Layers
@@ -37,33 +37,47 @@ The DS stylesheet emits this statement **first**, before any rule, at the very
 top of the bundled `design-system.css`:
 
 ```css
-@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
 ```
 
 Declaring the order up front fixes precedence regardless of the order the
-underlying rules happen to land in the bundle.
+underlying rules happen to land in the bundle. Two of these seven names —
+`app-reset` and `app` — are **consumer-opt-in**: the DS itself never puts
+rules in them. They exist purely to reserve a fixed, correct slot in the
+precedence order (below and above the five DS layers, respectively) for
+whatever the consumer chooses to put there. If you never write
+`@layer app-reset { … }` or `@layer app { … }`, they're empty and invisible.
 
 | Layer           | Priority | Contents                                                                 |
 | --------------- | -------- | ------------------------------------------------------------------------ |
-| `ll.reset`      | lowest   | Box-sizing + margin/padding reset; stripped browser defaults (lists, images, button chrome) |
+| `app-reset`     | lowest   | **Consumer-owned, opt-in.** A consumer reset that must not clobber DS component spacing — see "Consuming alongside a CSS reset" below |
+| `ll.reset`      | ↓        | Box-sizing + margin/padding reset; stripped browser defaults (lists, images, button chrome) |
 | `ll.tokens`     | ↓        | Design-token custom properties — `:root`, `[data-theme="dark"]`, `@media` token overrides |
 | `ll.base`       | ↓        | Opinionated, token-driven base element styling — `body` type, `a`, headings, `code`, `table`, selection, scrollbars, `@media print` |
 | `ll.components` | ↓        | **Every `*.module.css`** — all component styles (`Button`, `Card`, `Input`, …) |
-| `ll.utilities`  | highest  | DS utility classes — `.container`, `.sr-only`, `.skip-to-content`, `.visually-hidden` |
+| `ll.utilities`  | ↓        | DS utility classes — `.container`, `.sr-only`, `.skip-to-content`, `.visually-hidden` |
+| `app`           | highest  | **Consumer-owned, opt-in.** Deliberate overrides that must beat every DS layer but stay beatable by the consumer's own unlayered CSS — see "Escape hatch" below |
 
-Within this group, **later layers win**. So a DS utility class beats a DS
-component style, which beats DS base element styling, which beats the reset.
+Within this group, **later layers win**. So the consumer's `app` layer beats
+a DS utility class, which beats a DS component style, which beats DS base
+element styling, which beats the reset, which beats the consumer's
+`app-reset`.
 
 ### The rule that matters most
 
 ```
-unlayered consumer CSS  >  ll.utilities  >  ll.components  >  ll.base  >  ll.tokens  >  ll.reset
+unlayered consumer CSS  >  app  >  ll.utilities  >  ll.components  >  ll.base  >  ll.tokens  >  ll.reset  >  app-reset
 ```
 
 **Anything you author outside a layer beats all of the above.** Per the CSS
 cascade, unlayered styles are treated as a higher-priority origin than any
 named layer, so selector specificity and import order between *your* CSS and
 the *DS* CSS stop mattering for overrides.
+
+`app`/`app-reset` are just as reliable as the five `ll.*` layers **as long as
+the DS stylesheet is the first CSS containing an `@layer` construct that the
+browser parses** — see "Load-order caveat" below for the one scenario where
+that isn't automatically true.
 
 ---
 
@@ -87,17 +101,16 @@ unlayered, and unlayered always wins.
 
 There are two supported fixes.
 
-### Fix A (recommended) — give your reset a layer, before the DS layers
+### Fix A (recommended) — put your reset in the `app-reset` layer
 
-Declare a layer order that places your reset in a layer **below** the DS layers,
-and keep your real app overrides in a layer **above** them (or unlayered).
-Because layer precedence is fixed by **first appearance**, this order statement
-must come before the first `@layer NAME { … }` block anywhere — put it at the
-very top of your global CSS, ahead of the DS stylesheet import:
+`@lando-labs/lando-ds/styles` declares `app-reset` (lowest priority) and
+`app` (highest DS-adjacent priority) itself — see "The published layer order"
+above — so you don't need a separate order statement for the basic case. Just
+import the DS stylesheet, then bucket your reset and your overrides into the
+layers it already reserved for you:
 
 ```css
-/* Declared FIRST — establishes precedence low → high, left → right */
-@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
+@import '@lando-labs/lando-ds/styles';
 
 @layer app-reset {
   /* Your reset now sits BELOW the DS layers, so it no longer clobbers
@@ -105,18 +118,29 @@ very top of your global CSS, ahead of the DS stylesheet import:
   * { margin: 0; padding: 0; box-sizing: border-box; }
 }
 
-/* Then import the DS. Its own `@layer …;` statement is a no-op re-declaration
-   now that the order is already fixed above. */
-@import '@lando-labs/lando-ds/styles';
-
 @layer app {
   /* Deliberate overrides that should beat DS components but stay beatable by
      your page-level unlayered CSS. */
 }
 ```
 
-The DS ships this exact order statement as an importable one-liner so you don't
-have to hand-copy (and risk drifting from) the five DS layer names:
+```tsx
+// or from JS
+import '@lando-labs/lando-ds/styles'
+import './globals.css' // contains the @layer app-reset / @layer app blocks above
+```
+
+This works because `app-reset` and `app` are already-known layer names by the
+time your blocks run — declaring rules for an already-positioned layer never
+moves it, per the cascade-layers spec. See "Load-order caveat" below for the
+one condition this depends on (the DS stylesheet must be the first CSS with
+an `@layer` construct that the browser parses) and what to do if your bundler
+can't guarantee that.
+
+**Optional, stricter guarantee — the standalone primer.** If you want
+`app-reset`/`app`'s position fixed even *before* the DS stylesheet itself has
+loaded (e.g. you're hand-assembling critical CSS, or your bundler's chunk
+order is genuinely unpredictable), import the primer first instead:
 
 ```css
 @import '@lando-labs/lando-ds/layer-order.css'; /* the @layer …; primer */
@@ -129,10 +153,10 @@ import '@lando-labs/lando-ds/layer-order.css'
 import '@lando-labs/lando-ds/styles'
 ```
 
-The primer contains only the order statement above — no rules — so it's inert
-except for fixing precedence. After it, `app-reset` is the lowest-priority
-layer, the DS layers sit in the middle, and `app` (plus anything unlayered)
-wins.
+The primer contains only the order statement — no rules — so it's inert
+except for fixing precedence as early as possible. Importing it is never
+wrong, even now that it's redundant with the main stylesheet's own statement:
+re-declaring an already-positioned layer is a documented no-op.
 
 ### Fix B — use the flattened, unlayered DS bundle
 
@@ -202,6 +226,19 @@ condition the spec derives the override win from). `jsdom`'s CSSOM does not
 resolve `@layer` precedence, so the runtime "is it red?" check belongs in a
 real browser — hence the manual recipe above.
 
+**Automated real-browser proof (#13).** The structural check above proves the
+*shape* of the CSS but cannot prove the *cascade actually resolves* the way
+the shape implies — `jsdom` doesn't implement `@layer` precedence at all, and
+a real consumer's bundler can chunk/order CSS differently than the library's
+own build does. `tests/e2e/layer-override.spec.ts` closes that gap: it drives
+a real Chromium browser against the built package (via the `examples/next-app-router`
+fixture at `/e2e/layer-override`, consumed through the same `file:`-symlinked
+`dist/` as every other e2e fixture) and asserts `getComputedStyle` for both a
+`@layer app` override and an unlayered override, proving both actually beat
+the DS component rule — not just that the CSS is shaped correctly. Run it with
+`npm run test:e2e` (see `tests/e2e/playwright.config.ts` for the one-time
+setup).
+
 ---
 
 ## Escape hatch — writing *into* the DS layers
@@ -248,14 +285,77 @@ overrides.**
 
 ---
 
+## Load-order caveat (#13)
+
+CSS cascade-layer order is fixed by **first appearance** — the first time the
+browser encounters a `@layer` statement or block naming a given layer,
+anywhere across every stylesheet on the page, that layer's relative position
+is locked in for the rest of the document. Everything in this doc follows
+from that rule, and it's also the one way the `app`/`app-reset` contract can
+fail silently:
+
+**If a consumer's own `@layer app { … }` block is physically encountered by
+the browser *before* the DS stylesheet's order statement, `app` gets fixed
+at whatever position it's first seen in — which, for a plain `@layer app {}`
+with no preceding order statement, is the very bottom (lowest priority),
+because nothing else has been positioned yet.** When the DS stylesheet's own
+statement runs afterward, `ll.reset` … `ll.utilities` (all new names at that
+point) get appended *after* `app`, and the override that was supposed to beat
+DS components now loses to them instead — with no error, no warning, just an
+override that mysteriously doesn't apply.
+
+For a normal `<link>`/`@import` chain where the DS stylesheet is imported
+before the consumer's own CSS, this can't happen — the DS statement is
+processed first, so `app` is new when the DS statement runs and gets
+appended *after* `ll.utilities`, exactly as intended (this is what "The
+published layer order" above and the e2e proof in `tests/e2e/layer-override.spec.ts`
+verify). The residual risk is entirely at the **bundler** layer: some
+bundlers' CSS chunking/code-splitting can concatenate or `<link>` stylesheets
+in an order that doesn't match your source import order — most plausibly when
+a component-level stylesheet is promoted into a shared/vendor chunk that
+loads before route-specific CSS. The DS cannot detect or prevent that from
+inside a published `.css` file; there is no CSS-only mechanism that forces
+"my stylesheet loads first" against an uncooperative bundler.
+
+**What to do if you suspect this:**
+
+1. **Make the DS stylesheet load as early as possible** — import it (or the
+   `layer-order.css` primer, which is even lighter) at the very top of your
+   root/global CSS entry, before any of your own `@layer`-using CSS.
+2. **Verify it, don't assume it** — open DevTools → Elements → check the
+   `<head>` for the order your stylesheets actually landed in, or use the
+   manual proof recipe above against your real app (not just this repo's
+   example).
+3. **If your bundler genuinely can't guarantee load order** (some
+   code-splitting configurations can't), the `app`/`app-reset` layers are not
+   a reliable override path for you. Fall back to **unlayered CSS**, which
+   wins regardless of load order because unlayered is a higher-priority
+   *origin* than any layer, full stop — or consume
+   `@lando-labs/lando-ds/styles.unlayered.css` (Fix B above) so nothing on
+   the DS side is layered either. Both of those are load-order-proof by
+   construction, unlike named-layer overrides.
+
+This is the honest limit of the contract: **unlayered CSS always wins, no
+exceptions. `@layer app` wins whenever the DS stylesheet is the first CSS
+with an `@layer` construct the browser parses — true by default for a normal
+import chain, but not something a stylesheet can force against a bundler that
+reorders chunks.**
+
+---
+
 ## Stability & browser support promise
 
-- **Semver.** The five layer names — `ll.reset`, `ll.tokens`, `ll.base`,
-  `ll.components`, `ll.utilities` — and their relative order are a **public
-  contract**. They will not be renamed or reordered outside a **major** version
-  bump. Adding a *new* layer (always slotted so existing precedence is
-  preserved) is a minor change. The CI guard `src/test/css-layers.test.ts`
-  fails the build if the published order ever drifts from this document.
+- **Semver.** The seven layer names — `app-reset`, `ll.reset`, `ll.tokens`,
+  `ll.base`, `ll.components`, `ll.utilities`, `app` — and their relative order
+  are a **public contract**. They will not be renamed or reordered outside a
+  **major** version bump. `app-reset` and `app` are consumer-owned (the DS
+  never puts rules in them) but their *position* in the order statement is
+  part of the same contract. Adding a *new* DS-owned layer (always slotted so
+  existing precedence is preserved) is a minor change. The CI guard
+  `src/test/css-layers.test.ts` fails the build if the published order ever
+  drifts from this document, and `tests/e2e/layer-override.spec.ts` fails CI
+  if a real browser ever resolves the cascade differently than this document
+  promises.
 - **Browser floor.** Cascade layers are
   [Baseline 2022](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) —
   supported in all current evergreen browsers (Chrome/Edge 99+, Firefox 97+,
@@ -274,7 +374,7 @@ If you extract and inline **critical CSS** (above-the-fold styles in a
 statement *first* in that inlined block:
 
 ```css
-@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
 /* …your inlined critical rules, including any layered DS rules… */
 ```
 
@@ -296,5 +396,7 @@ critical-CSS pipelines.)
 - [reference/design-tokens-implementation.md](./design-tokens-implementation.md) — the token layer (`ll.tokens`) in depth
 - `src/styles/index.css` — the order statement (source of truth)
 - `src/styles/tokens.css` / `src/styles/global.css` — hand-authored base-layer mapping
+- `src/styles/layer-order.css` — the standalone primer (redundant with, but harmless alongside, the main stylesheet's own statement)
 - `vite.config.ts` — the `wrapModulesInComponentLayer` PostCSS plugin that wraps every `*.module.css` in `ll.components`
-- `src/test/css-layers.test.ts` — the anti-drift CI guard
+- `src/test/css-layers.test.ts` — the structural anti-drift CI guard (jsdom; shape of the CSS)
+- `tests/e2e/layer-override.spec.ts` — the real-browser CI guard (Playwright; the cascade actually resolves as promised)

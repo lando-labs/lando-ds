@@ -211,12 +211,17 @@ jobs:
         run: npx next build
         working-directory: ./examples/next-app-router
 
-  # Real-browser overlay e2e suite (#14 v2/v3, tests/e2e/overlays-in-modal.spec.ts).
-  # Covers behavior jsdom cannot model at all — e.g. a <dialog> opened via
-  # showModal() marking everything outside its subtree `inert`, which blocks
-  # pointer events regardless of paint order — so it runs Playwright against a
-  # real Chromium against the example app's dev server (which consumes the
-  # freshly built dist/ via the `file:../..` dependency).
+  # Real-browser e2e suite — tests/e2e/*.spec.ts, run via the shared
+  # tests/e2e/playwright.config.ts (testDir picks up every spec in the
+  # directory). Covers behavior jsdom cannot model at all:
+  #   - overlays-in-modal.spec.ts (#14 v2/v3) — a <dialog> opened via
+  #     showModal() marking everything outside its subtree `inert`, which
+  #     blocks pointer events regardless of paint order.
+  #   - layer-override.spec.ts (#13) — CSS cascade-`@layer` precedence, which
+  #     jsdom's CSSOM does not resolve at all.
+  # Both run Playwright against a real Chromium against the example app's dev
+  # server (which consumes the freshly built dist/ via the `file:../..`
+  # dependency).
   #
   # Kept as its own job (rather than folded into the `test` job above) so the
   # one-time Chromium + OS dependency install doesn't slow down the primary

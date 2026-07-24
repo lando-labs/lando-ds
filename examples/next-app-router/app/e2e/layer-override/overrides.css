@@ -1,0 +1,24 @@
+/*
+ * E2E fixture — `@layer app` / unlayered override proof (#13,
+ * tests/e2e/layer-override.spec.ts).
+ *
+ * Committed, permanent test infrastructure — see the long comment in
+ * `page.tsx` for why this fixture exists.
+ *
+ * Deliberately does NOT import the `layer-order.css` primer anywhere in this
+ * route tree beyond what the root layout already provides (see
+ * `app/layout.tsx`) — this exercises the plain, undocumented-effort path:
+ * import the DS stylesheet, then write `@layer app { … }` / unlayered CSS
+ * and expect it to just work, per reference/css-layers.md.
+ */
+
+@layer app {
+  .layer-app-override {
+    background-color: rgb(255 0 0);
+  }
+}
+
+/* NOT inside any @layer — unlayered CSS beats every layer unconditionally. */
+.unlayered-override {
+  background-color: rgb(0 128 0);
+}

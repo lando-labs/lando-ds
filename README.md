@@ -129,25 +129,30 @@ without worrying about stylesheet load order.** Any CSS you write *outside* a
 layer (i.e. normal CSS — which is what you almost always write) automatically
 wins over every DS rule.
 
-### The five layers
+### The seven layers
 
 The DS stylesheet declares this layer order, once, at the very top of the
 bundle:
 
 ```css
-@layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+@layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
 ```
 
 | Layer           | What's in it                                                        |
 | --------------- | ------------------------------------------------------------------- |
+| `app-reset`     | **Consumer-owned, opt-in** — a reset you want below every DS layer  |
 | `ll.reset`      | Box-sizing + margin/padding reset, stripped browser defaults        |
 | `ll.tokens`     | Design-token custom properties (`:root`, `[data-theme="dark"]`, …)  |
 | `ll.base`       | Opinionated, token-driven base element styling (`body`, `a`, `code`)|
 | `ll.components` | **Every component's styles** (`Button`, `Card`, `Input`, …)         |
 | `ll.utilities`  | DS utility classes (`.container`, `.sr-only`, `.skip-to-content`)   |
+| `app`           | **Consumer-owned, opt-in** — overrides you want above every DS layer|
 
-Layers earlier in that list have **lower** priority than layers later in the
-list. And the one rule that matters most:
+`app-reset` and `app` are reserved slots the DS never puts rules in — they
+exist so `@layer app { … }` reliably beats every DS layer as soon as you
+import `@lando-labs/lando-ds/styles`, with no separate setup required. Layers
+earlier in that list have **lower** priority than layers later in the list.
+And the one rule that matters most:
 
 > **Unlayered CSS beats every layer.** Your application's normal (unlayered)
 > styles always win over DS component styles — regardless of selector

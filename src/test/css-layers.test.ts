@@ -1,22 +1,30 @@
 // @vitest-environment node
 
 /**
- * CSS cascade-layers contract guard (issues #267 / #268).
+ * CSS cascade-layers contract guard (issues #267 / #268 / #13).
  *
  * The design system publishes its CSS inside named cascade layers so that a
  * consumer's UNLAYERED CSS always overrides DS component styles without
  * `!important` or stylesheet-load-order luck. The published order is:
  *
- *   @layer ll.reset, ll.tokens, ll.base, ll.components, ll.utilities;
+ *   @layer app-reset, ll.reset, ll.tokens, ll.base, ll.components, ll.utilities, app;
  *
- * and a consumer's unlayered rules outrank ALL of those by the cascade-layer
- * spec. This test locks that contract against the *built* artifact
+ * `app-reset` and `app` are consumer-opt-in (the DS never puts rules in them)
+ * but their *position* — below and above the five DS layers, respectively —
+ * is part of the same public contract (#13): declaring them here, in the
+ * MAIN stylesheet's own statement, means `@layer app { … }` reliably beats
+ * `ll.components` as soon as a consumer imports `@lando-labs/lando-ds/styles`,
+ * without also needing the separate `layer-order.css` primer. See
+ * reference/css-layers.md "The published layer order" and "Load-order caveat".
+ *
+ * A consumer's unlayered rules outrank ALL of the above by the cascade-layer
+ * spec. This test locks the contract against the *built* artifact
  * (`dist/design-system.css`) so it cannot silently drift from the docs
  * (README "Customizing & overriding styles" + reference/css-layers.md):
  *
- *   1. The bundle OPENS with the five-layer order statement (whitespace
+ *   1. The bundle OPENS with the seven-layer order statement (whitespace
  *      tolerant — the minifier strips spaces after commas).
- *   2. All five documented layer names are present (anti-drift: docs ↔ build).
+ *   2. All seven documented layer names are present (anti-drift: docs ↔ build).
  *   3. Every `*.module.css` rule is wrapped in `@layer ll.components` (spot-check
  *      Button + a floor on the wrap count so a broken plugin fails loudly).
  *   4. The base stylesheets are mapped to the correct layers and are NOT
@@ -27,6 +35,14 @@
  *      wins as unlayered CSS. (jsdom's CSSOM does not resolve @layer precedence,
  *      so we assert the structural guarantee the spec derives the win from,
  *      rather than a flaky getComputedStyle.)
+ *
+ * What this test CANNOT prove: that a real browser actually resolves `@layer
+ * app` as winning against `ll.components` in a real consumer bundle — jsdom's
+ * CSSOM does not implement `@layer` precedence at all, and a real bundler's
+ * CSS chunk order can differ from this repo's build. That proof lives in
+ * `tests/e2e/layer-override.spec.ts` (real Chromium, via the
+ * `examples/next-app-router` fixture) — see reference/css-layers.md
+ * "Automated real-browser proof (#13)".
  *
  * Self-contained: CI runs `npm test` BEFORE `npm run build` (.github/workflows/
  * test.yml), so the dist artifact may be absent/stale. We build the library CSS
@@ -43,7 +59,15 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(HERE, '../..')
 const DIST_CSS = resolve(REPO_ROOT, 'dist/design-system.css')
 
-const FIVE_LAYERS = ['ll.reset', 'll.tokens', 'll.base', 'll.components', 'll.utilities'] as const
+const SEVEN_LAYERS = [
+  'app-reset',
+  'll.reset',
+  'll.tokens',
+  'll.base',
+  'll.components',
+  'll.utilities',
+  'app',
+] as const
 
 let css = ''
 
@@ -79,14 +103,14 @@ describe('CSS cascade layers (#267/#268)', () => {
     expect(css.length).toBeGreaterThan(10_000)
   })
 
-  it('OPENS with the five-layer order statement (whitespace tolerant)', () => {
+  it('OPENS with the seven-layer order statement, in order (whitespace tolerant)', () => {
     expect(css).toMatch(
-      /^@layer\s+ll\.reset\s*,\s*ll\.tokens\s*,\s*ll\.base\s*,\s*ll\.components\s*,\s*ll\.utilities\s*;/,
+      /^@layer\s+app-reset\s*,\s*ll\.reset\s*,\s*ll\.tokens\s*,\s*ll\.base\s*,\s*ll\.components\s*,\s*ll\.utilities\s*,\s*app\s*;/,
     )
   })
 
-  it('contains all five documented layer names (anti-drift: docs <-> build)', () => {
-    const missing = FIVE_LAYERS.filter((name) => !css.includes(name))
+  it('contains all seven documented layer names (anti-drift: docs <-> build)', () => {
+    const missing = SEVEN_LAYERS.filter((name) => !css.includes(name))
     expect(
       missing,
       `\nThese documented layer names are absent from dist/design-system.css — ` +
@@ -94,6 +118,15 @@ describe('CSS cascade layers (#267/#268)', () => {
         missing.map((m) => `  - ${m}`).join('\n') +
         '\n',
     ).toEqual([])
+  })
+
+  it('positions app-reset before and app after the five DS layers (#13)', () => {
+    // The opening statement is the single source of truth for relative order —
+    // re-derive each layer's index within it rather than trusting substring
+    // presence alone (which the previous test already covers).
+    const statement = css.match(/^@layer\s+([^;]+);/)?.[1] ?? ''
+    const order = statement.split(',').map((s) => s.trim())
+    expect(order).toEqual([...SEVEN_LAYERS])
   })
 
   it('wraps every *.module.css in @layer ll.components (floor on wrap count)', () => {
