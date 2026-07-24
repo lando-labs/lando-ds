@@ -68,6 +68,24 @@ test.describe('ThemeScope inherited system-mode SSR guard (#501)', () => {
     // risk (SSR-stable from first paint) — still correct, still no warning.
     const explicitDark = page.getByTestId('explicit-dark-scope')
     await expect(explicitDark).toHaveAttribute('data-theme', 'dark')
+
+    // Preset case — the gap the bare-scope-only coverage above missed: a
+    // `preset` scope with no explicit `mode` is the SAME inherited-mode
+    // shape as `inherited-scope`, and `preset` is the primary way ThemeScope
+    // gets used in practice. Must settle exactly like the bare case.
+    const inheritedPreset = page.getByTestId('inherited-preset-scope')
+    await expect(inheritedPreset).toHaveAttribute('data-theme', 'dark')
+    await expect(inheritedPreset).toHaveAttribute('data-theme-preset', 'forest')
+
+    const presetPrimaryBase = await inheritedPreset.evaluate((el) =>
+      getComputedStyle(el).getPropertyValue('--color-primary-base'),
+    )
+    expect(presetPrimaryBase).toContain('30%')
+
+    const presetColorScheme = await inheritedPreset.evaluate(
+      (el) => getComputedStyle(el).colorScheme,
+    )
+    expect(presetColorScheme).toBe('dark')
   })
 
   test('light OS preference: zero hydration-mismatch errors, and the inherited scope settles to light', async ({
@@ -91,5 +109,15 @@ test.describe('ThemeScope inherited system-mode SSR guard (#501)', () => {
 
     const explicitDark = page.getByTestId('explicit-dark-scope')
     await expect(explicitDark).toHaveAttribute('data-theme', 'dark')
+
+    // Preset case, light OS side.
+    const inheritedPreset = page.getByTestId('inherited-preset-scope')
+    await expect(inheritedPreset).toHaveAttribute('data-theme', 'light')
+    await expect(inheritedPreset).toHaveAttribute('data-theme-preset', 'forest')
+
+    const presetPrimaryBase = await inheritedPreset.evaluate((el) =>
+      getComputedStyle(el).getPropertyValue('--color-primary-base'),
+    )
+    expect(presetPrimaryBase).toContain('23%')
   })
 })

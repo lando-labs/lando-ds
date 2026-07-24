@@ -22,6 +22,12 @@
  *    mismatched (and stuck on `light` forever) before the fix.
  *  - `explicit-dark-scope`: `mode="dark"` — a warning-free non-regression
  *    guard proving the #428 correct-from-first-paint path is untouched.
+ *  - `inherited-preset-scope`: no `mode` prop, WITH `preset="forest"` — the
+ *    same inherited-mode shape as `inherited-scope`, but exercised via
+ *    `preset` (the primary way ThemeScope is used in practice) rather than
+ *    a bare scope. Closes a coverage hole flagged during #501 review: the
+ *    original suite only ever exercised a bare scope and an explicit-`mode`
+ *    scope, never `preset`.
  *
  * Keep this fixture's DOM stable (ids, testids) — the spec queries it
  * directly, and unrelated page-content changes will break the e2e suite for
@@ -38,6 +44,9 @@ export default function ThemeScopeHydrationFixture() {
       </ThemeScope>
       <ThemeScope mode="dark" data-testid="explicit-dark-scope">
         <p>Explicit dark mode</p>
+      </ThemeScope>
+      <ThemeScope preset="forest" data-testid="inherited-preset-scope">
+        <p>Inherited mode, preset applied</p>
       </ThemeScope>
     </main>
   )
