@@ -38,6 +38,10 @@ import {
 // #11 — the scoped ramp/interaction-state re-derivation ThemeScope needs.
 // See colorDerivation.ts for why this can't just live in tokens.css alone.
 import { getScopedDerivedColorVars } from './colorDerivation'
+// #92 — the scoped mode-dependent BASE token re-derivation ThemeScope needs
+// (the OTHER half of #11's diagnosis: tokens that simply differ by mode,
+// plus their :root-only alias indirections). See scopedModeTokens.ts.
+import { getScopedModeTokenVars } from './scopedModeTokens'
 
 export { themeScript, themeScriptPath, presetColorVars }
 export type { ThemeScriptOptions }
@@ -572,14 +576,22 @@ const OPTIONAL_SCOPE_ATTRIBUTES = [
  * @param productTheme Optional product theme override.
  * @param presetId    Optional theme-preset id (e.g. `'lando'`, `'midnight'`).
  * @param tintChrome  Whether to set the `data-tint-chrome` boolean attribute.
- * @param deriveScopedTokens (#11) When `true`, seed `vars` with the tonal-ramp
- *        + interaction-state `color-mix()` FORMULAS (`getScopedDerivedColorVars`)
- *        before preset/product vars are layered on. `:root`'s formulas in
- *        tokens.css already re-derive correctly for `documentElement` (the
- *        `applyTheme` root path), so only `ThemeScope` — which targets a
- *        non-root wrapper the `:root` CSS rule can't reach — passes `true`.
- *        Leaving this `false`/omitted keeps the root path byte-for-byte
- *        unchanged.
+ * @param deriveScopedTokens (#11, extended by #92) When `true`, seed `vars`
+ *        with TWO scoped re-derivation layers before preset/product vars are
+ *        layered on:
+ *          1. the tonal-ramp + interaction-state `color-mix()` FORMULAS
+ *             (`getScopedDerivedColorVars`, #11);
+ *          2. the mode-dependent BASE tokens + their `:root`-only alias
+ *             indirections (`getScopedModeTokenVars`, #92) — tokens like
+ *             `--color-surface-elevated` / `--color-text-primary` /
+ *             `--shadow-md` that are declared once at `:root` and once more
+ *             inside `[data-theme="dark"]`, neither of which a non-root
+ *             `ThemeScope` wrapper is ever matched by.
+ *        `:root`'s real CSS rules already re-derive correctly for
+ *        `documentElement` (the `applyTheme` root path), so only
+ *        `ThemeScope` — which targets a non-root wrapper those rules can't
+ *        reach — passes `true`. Leaving this `false`/omitted keeps the root
+ *        path byte-for-byte unchanged.
  * @returns `{ attributes, vars, colorScheme }` — attributes to SET (absent
  *          optional ones should be removed by the caller), `--*` vars to write,
  *          and the `color-scheme` value.
@@ -596,12 +608,15 @@ export function computeThemeAttrs(
   colorScheme: ResolvedTheme
 } {
   const attributes: Record<string, string> = { 'data-theme': mode }
-  // #11 — scoped ramp/state formulas go in FIRST, at the lowest precedence:
-  // a preset's or product theme's explicit literal (e.g. a preset's own
-  // `primaryHover` hex) still overwrites the formula below, exactly like the
-  // inline preset/product writes already outrank tokens.css's `:root` CSS on
-  // the root path.
-  const vars: Record<string, string> = deriveScopedTokens ? getScopedDerivedColorVars(mode) : {}
+  // #11 / #92 — scoped ramp/state formulas AND mode-dependent base tokens go
+  // in FIRST, at the lowest precedence: a preset's or product theme's
+  // explicit literal (e.g. a preset's own `primaryHover` hex, or a product
+  // theme overriding `--color-surface`) still overwrites the formula/value
+  // below, exactly like the inline preset/product writes already outrank
+  // tokens.css's `:root` CSS on the root path.
+  const vars: Record<string, string> = deriveScopedTokens
+    ? { ...getScopedDerivedColorVars(mode), ...getScopedModeTokenVars(mode) }
+    : {}
 
   // Opt-in brand-tinted chrome: boolean attribute (empty-string value) gates
   // the `[data-tint-chrome]` token block.
