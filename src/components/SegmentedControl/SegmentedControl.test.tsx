@@ -16,8 +16,8 @@ import { useState } from 'react'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
 import { SegmentedControl, SegmentedControlOption } from './SegmentedControl'
 
@@ -267,6 +267,103 @@ describe('SegmentedControl', () => {
       <SegmentedControl options={OPTIONS} value="list" onChange={() => {}} />
     )
     expect(await axe(container)).toHaveNoViolations()
+  })
+
+  // #91 — the sliding indicator was measured once in a plain `useEffect` on
+  // mount with no `ResizeObserver`, so if the active option's final width wasn't
+  // in effect yet (late-applied CSS, a font swap, a container resize) the
+  // indicator cached stale geometry and stayed wrong until an interaction forced
+  // a re-render. jsdom has no layout engine, so we drive geometry via mocked
+  // rects + a controllable fake `ResizeObserver` and assert the two behaviours
+  // the fix adds: measurement happens on first render (no interaction), and a
+  // post-mount geometry change is picked up through the observer (still no
+  // interaction). Real pixel geometry is verified separately in a browser.
+  describe('indicator measurement (#91)', () => {
+    const INDICATOR = '[aria-hidden="true"]'
+
+    // Geometry the mocked rects report; mutate then fire the observer to
+    // simulate layout settling after mount.
+    let activeWidth = 80
+    const CONTAINER_LEFT = 0
+    const ACTIVE_LEFT = 40
+
+    const roCallbacks: ResizeObserverCallback[] = []
+    let originalRO: typeof globalThis.ResizeObserver
+    let originalGBCR: typeof Element.prototype.getBoundingClientRect
+
+    function installGeometry() {
+      roCallbacks.length = 0
+      activeWidth = 80
+      originalRO = globalThis.ResizeObserver
+      originalGBCR = Element.prototype.getBoundingClientRect
+
+      class FakeResizeObserver {
+        constructor(cb: ResizeObserverCallback) {
+          roCallbacks.push(cb)
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+      globalThis.ResizeObserver =
+        FakeResizeObserver as unknown as typeof globalThis.ResizeObserver
+
+      const rect = (left: number, width: number): DOMRect =>
+        ({
+          left,
+          width,
+          right: left + width,
+          top: 0,
+          bottom: 30,
+          height: 30,
+          x: left,
+          y: 0,
+          toJSON: () => ({}),
+        }) as DOMRect
+
+      Element.prototype.getBoundingClientRect = function (this: Element) {
+        if (this.getAttribute('role') === 'tablist') return rect(CONTAINER_LEFT, 360)
+        if (this.getAttribute('aria-selected') === 'true') return rect(ACTIVE_LEFT, activeWidth)
+        return rect(0, 0)
+      }
+    }
+
+    afterEach(() => {
+      if (originalRO) globalThis.ResizeObserver = originalRO
+      else delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver
+      if (originalGBCR) Element.prototype.getBoundingClientRect = originalGBCR
+    })
+
+    it('measures the indicator on first render, before any interaction', () => {
+      installGeometry()
+      const { container } = render(
+        <SegmentedControl options={OPTIONS} value="list" onChange={() => {}} />
+      )
+      const indicator = container.querySelector(INDICATOR) as HTMLElement
+      // Sized/positioned to the active option straight away — no click needed.
+      expect(indicator.style.width).toBe('80px')
+      expect(indicator.style.transform).toBe(`translateX(${ACTIVE_LEFT}px)`)
+    })
+
+    it('re-measures via ResizeObserver when geometry settles after mount (no interaction)', () => {
+      installGeometry()
+      const { container } = render(
+        <SegmentedControl options={OPTIONS} value="list" onChange={() => {}} />
+      )
+      const indicator = container.querySelector(INDICATOR) as HTMLElement
+      expect(indicator.style.width).toBe('80px')
+      expect(roCallbacks.length).toBeGreaterThan(0)
+
+      // Layout settles (e.g. font swap widens the label) — fire the observer.
+      activeWidth = 200
+      act(() => {
+        for (const cb of roCallbacks) {
+          cb([], {} as ResizeObserver)
+        }
+      })
+      // Corrected without any click / re-render from the consumer.
+      expect(indicator.style.width).toBe('200px')
+    })
   })
 
   describe('uncontrolled (#508)', () => {

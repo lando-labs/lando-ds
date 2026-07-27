@@ -17,9 +17,15 @@
  * />
  */
 
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useControllableState } from '../../hooks/useControllableState'
 import styles from './SegmentedControl.module.css'
+
+// `useLayoutEffect` warns when it runs during SSR. This component is
+// `'use client'`, but Next still renders it on the server, so fall back to
+// `useEffect` there (the effect is a no-op server-side anyway — it only reads
+// live DOM geometry, which doesn't exist until the client).
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 export interface SegmentedControlOption {
   value: string
@@ -111,20 +117,52 @@ export const SegmentedControl = React.forwardRef<HTMLDivElement, SegmentedContro
       }
     }
 
-  // Update indicator position when active option changes
-  useEffect(() => {
-    if (activeButtonRef.current && containerRef.current) {
-      const container = containerRef.current
-      const button = activeButtonRef.current
-      const containerRect = container.getBoundingClientRect()
-      const buttonRect = button.getBoundingClientRect()
+  // Re-derive the indicator geometry from the live DOM. Stable identity (reads
+  // refs only) so the effects below can depend on it without re-subscribing.
+  const measureIndicator = useCallback(() => {
+    const container = containerRef.current
+    const button = activeButtonRef.current
+    if (!container || !button) return
+    const containerRect = container.getBoundingClientRect()
+    const buttonRect = button.getBoundingClientRect()
 
-      setIndicatorStyle({
-        width: buttonRect.width,
-        transform: `translateX(${buttonRect.left - containerRect.left}px)`,
-      })
+    setIndicatorStyle({
+      width: buttonRect.width,
+      transform: `translateX(${buttonRect.left - containerRect.left}px)`,
+    })
+  }, [])
+
+  // Measure when the active option changes. `useLayoutEffect` (pre-paint) avoids
+  // a one-frame flash of the wrong geometry, and a `ResizeObserver` on both the
+  // container and the active option re-measures whenever layout settles later —
+  // late-applied CSS, a font swap, or a container resize. Without the observer
+  // the indicator cached stale mount-time geometry and only corrected itself on
+  // the next interaction-driven re-render (#91).
+  useIsomorphicLayoutEffect(() => {
+    measureIndicator()
+
+    const container = containerRef.current
+    const button = activeButtonRef.current
+    if (!container || !button || typeof ResizeObserver === 'undefined') return
+
+    const observer = new ResizeObserver(() => measureIndicator())
+    observer.observe(container)
+    observer.observe(button)
+    return () => observer.disconnect()
+  }, [value, options, measureIndicator])
+
+  // Web-font swaps reflow the labels after the observers are set up on some
+  // engines; re-measure once fonts have settled to catch that width change.
+  useEffect(() => {
+    if (typeof document === 'undefined' || !('fonts' in document)) return
+    let cancelled = false
+    void document.fonts.ready.then(() => {
+      if (!cancelled) measureIndicator()
+    })
+    return () => {
+      cancelled = true
     }
-  }, [value, options])
+  }, [measureIndicator])
 
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (disabled) return
