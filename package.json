@@ -1,6 +1,6 @@
 {
   "name": "@lando-labs/lando-ds",
-  "version": "0.58.1",
+  "version": "0.59.0",
   "description": "A self-describing, AI-native design system for React — 127 production-ready components, semantic OKLCH design tokens, and a structured meta.json artifact your AI assistant grounds itself against in milliseconds.",
   "author": {
     "name": "Lando Labs",
