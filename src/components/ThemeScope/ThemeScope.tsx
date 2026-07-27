@@ -96,6 +96,35 @@
  * already covers `document.documentElement` directly, so root behavior is
  * unchanged.
  *
+ * ## Mode-dependent BASE token re-derivation (#92)
+ *
+ * The #11 fix above only re-derives the tonal-ramp/interaction-state
+ * FORMULAS. It does NOT touch tokens whose value simply differs by mode
+ * with no formula involved — `--color-surface-elevated`, `--color-text-
+ * primary`, `--shadow-md`, etc. — declared once at `:root` and once more
+ * inside `[data-theme="dark"]` in tokens.css. A nested `ThemeScope` whose
+ * `mode` differs from the surrounding page's mode carries the CORRECT
+ * `data-theme` attribute (so mode-gated component CSS rules like
+ * `[data-theme='dark'] .trigger { … }` fire correctly for the scope), but
+ * without this fix the tokens those rules READ still resolved via ordinary
+ * CSS inheritance from whichever ancestor's mode declared them — i.e. the
+ * PAGE's mode, not the scope's. `computeThemeAttrs(mode, …, deriveScoped
+ * Tokens: true)` now also seeds `vars` with `getScopedModeTokenVars(mode)`
+ * (`../../utils/scopedModeTokens.ts`) — the direct mode-dependent tokens
+ * PLUS their `:root`-only alias indirections (`--color-surface-secondary`
+ * etc. — the DetailCard default-field-row bug, #93) — so a component inside
+ * the scope reading any of these tokens gets the SCOPE's mode value
+ * regardless of what an ancestor `[data-theme='dark']` selector matched.
+ *
+ * This is the PRAGMATIC fix (issue #92's "(a)"), not the architectural one:
+ * ~43 components still gate mode styling on `[data-theme='dark'] .foo`
+ * ANCESTOR selectors (issue #92's "(b)"), which no CSS-only scope override
+ * can fully cancel for every case. (a) is sufficient for the reported cases
+ * because most of those dark rules only swap WHICH token is read — if the
+ * token itself now resolves to the scope's own mode, the rendered result is
+ * correct even when the ancestor-gated rule still matches. (b) is tracked as
+ * follow-up work; see the #92 PR description.
+ *
  * ## Inherited-mode SSR guard (#501)
  *
  * Chose option (a) from the investigation — a placeholder-then-correct

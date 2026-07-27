@@ -229,6 +229,110 @@ describe('ThemeScope — scoped ramp/state re-derivation (#11)', () => {
   })
 })
 
+describe('ThemeScope — scoped mode-dependent BASE token re-derivation (#92)', () => {
+  it('a light-mode scope declares mode-dependent base tokens with their LIGHT values', () => {
+    render(
+      <ThemeScope mode="light" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // The exact bug from #92: Accordion's trigger / Switch's track read
+    // --color-surface-elevated. Before the fix this was ABSENT from the
+    // scope wrapper entirely (silently inherited from whatever mode an
+    // ancestor happened to be in); now it's declared directly, with the
+    // LIGHT value, regardless of any ancestor's mode.
+    expect(wrapper.style.getPropertyValue('--color-surface-elevated')).toBe(
+      'var(--color-neutral-100)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-text-primary')).toBe(
+      'var(--color-neutral-800)',
+    )
+    expect(wrapper.style.getPropertyValue('--shadow-md')).toBe(
+      '0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1)',
+    )
+  })
+
+  it('a dark-mode scope declares mode-dependent base tokens with their DARK values', () => {
+    render(
+      <ThemeScope mode="dark" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    expect(wrapper.style.getPropertyValue('--color-surface-elevated')).toBe(
+      'oklch(0.26 0.005 250)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-text-primary')).toBe(
+      'var(--color-neutral-50)',
+    )
+    expect(wrapper.style.getPropertyValue('--shadow-md')).toBe(
+      '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4)',
+    )
+  })
+
+  it('re-declares the :root-only alias indirections DetailCard\'s default field row reads (#93)', () => {
+    render(
+      <ThemeScope mode="dark" data-testid="scope">
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // These are declared ONLY ONCE at :root in tokens.css (no dark
+    // override); before #92 they were absent from the scope entirely, so
+    // they resolved --color-surface-hover/-elevated at whatever element
+    // :root actually was — the page, not the scope. Now they're
+    // re-declared as the same var()-indirection formula on the scope
+    // itself, so they recompute against the scope's OWN sibling
+    // declaration of the aliased token.
+    expect(wrapper.style.getPropertyValue('--color-surface-secondary')).toBe(
+      'var(--color-surface-elevated)',
+    )
+    expect(wrapper.style.getPropertyValue('--color-surface-tertiary')).toBe(
+      'var(--color-surface-hover)',
+    )
+  })
+
+  it('a product-theme override of a mode-dependent base token still wins over the derived value', () => {
+    render(
+      <ThemeScope
+        mode="dark"
+        theme={{ name: 'custom-surface', tokens: { color: { 'surface-elevated': '#123456' } } }}
+        data-testid="scope"
+      >
+        <div>child</div>
+      </ThemeScope>,
+    )
+
+    const wrapper = screen.getByTestId('scope') as HTMLDivElement
+    // Merge-order contract: derived vars go in FIRST (lowest precedence),
+    // so an explicit product-theme override still overwrites them — mirrors
+    // the same guarantee #11 already pins for the ramp/state formulas.
+    expect(wrapper.style.getPropertyValue('--color-surface-elevated')).toBe('#123456')
+  })
+
+  it('the root ThemeProvider / applyTheme path stays byte-for-byte unchanged (no mode-token vars written)', () => {
+    render(
+      <ThemeProvider disableStorage forcedTheme="dark">
+        <div>app</div>
+      </ThemeProvider>,
+    )
+
+    // The root path never passes `deriveScopedTokens: true` — :root's real
+    // CSS rule already covers documentElement directly, so applyTheme must
+    // NOT start writing these as inline styles (that would just be
+    // redundant with — and could outrank — the real CSS cascade for no
+    // reason).
+    expect(
+      document.documentElement.style.getPropertyValue('--color-surface-elevated'),
+    ).toBe('')
+    expect(document.documentElement.style.getPropertyValue('--color-surface-secondary')).toBe('')
+  })
+})
+
 describe('ThemeScope — multi-scope coexistence', () => {
   it('two sibling scopes apply different themes independently', () => {
     render(
