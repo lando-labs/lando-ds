@@ -325,6 +325,56 @@ describe('brand-tinted chrome holds WCAG AA (#288)', () => {
     expect(tertiaryRatio).toBeCloseTo(4.78, 1)
   })
 
+  /**
+   * #72 — the light-mode `Switch` off-state track. `Switch.module.css` `.track`
+   * paints `--color-border-emphasis`; the earlier `--color-border-default`
+   * measured only 1.53:1 vs white, under the SC 1.4.11 3:1 non-text floor for a
+   * UI component. The off-track sits on `--color-surface` (≈ white) and carries a
+   * white thumb, so one assertion vs `--color-surface` covers both adjacencies.
+   * Locks the emphasis-rung fix so a future token change can't silently drop the
+   * off-track back below 3:1.
+   */
+  it('#72 — Switch off-track (--color-border-emphasis) clears the 3:1 non-text floor (SC 1.4.11) on --color-surface, light', () => {
+    const map = SCENARIOS['light · untinted'].map
+    const oceanDefault = PRIMARIES[0]
+    if (!oceanDefault) throw new Error('PRIMARIES[0] (ocean default) missing')
+    const [, primary] = oceanDefault
+    const track = resolveHex('--color-border-emphasis', map, primary)
+    const surface = resolveHex('--color-surface', map, primary)
+    const ratio = contrastRatio(track, surface)
+    expect(
+      ratio,
+      `off-track --color-border-emphasis = ${track} on --color-surface = ${surface}: ${ratio.toFixed(2)}:1 < ${AA_LARGE}:1`,
+    ).toBeGreaterThanOrEqual(AA_LARGE)
+  })
+
+  /**
+   * #73 — the dark `Button variant="outline"` label is `--color-primary-base`
+   * (Button.module.css `[data-theme='dark'] .outline`). Its resting fill is
+   * `--color-surface`, but its hover/active fill AND the common `Card` interior
+   * is `--color-surface-elevated`, where the label previously measured 4.19:1
+   * (< AA_NORMAL). #86's heavier 30% white-mix on dark `--color-primary-base`
+   * (up from 23%) was tuned to clear this; assert it holds on BOTH surfaces so
+   * the elevated case (the gap the earlier #9 fix missed) stays locked.
+   */
+  it('#73 — dark outline label (--color-primary-base) clears AA on --color-surface AND --color-surface-elevated', () => {
+    const map = SCENARIOS['dark · untinted'].map
+    const oceanDefault = PRIMARIES[0]
+    if (!oceanDefault) throw new Error('PRIMARIES[0] (ocean default) missing')
+    const [, primary] = oceanDefault
+    const label = resolveHex('--color-primary-base', map, primary)
+    const onSurface = contrastRatio(label, resolveHex('--color-surface', map, primary))
+    const onElevated = contrastRatio(label, resolveHex('--color-surface-elevated', map, primary))
+    expect(
+      onSurface,
+      `dark outline label = ${label} on --color-surface: ${onSurface.toFixed(2)}:1`,
+    ).toBeGreaterThanOrEqual(AA_NORMAL)
+    expect(
+      onElevated,
+      `dark outline label = ${label} on --color-surface-elevated: ${onElevated.toFixed(2)}:1`,
+    ).toBeGreaterThanOrEqual(AA_NORMAL)
+  })
+
   for (const [scenarioName, scenario] of Object.entries(SCENARIOS)) {
     // Untinted scenarios are primary-independent (chrome routes through neutral/
     // static-ocean), so one representative primary exercises them fully.
