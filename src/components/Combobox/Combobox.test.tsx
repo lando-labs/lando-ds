@@ -66,6 +66,49 @@ describe('Combobox', () => {
     expect(await screen.findByRole('listbox')).toBeInTheDocument()
   })
 
+  // #74 — the caret/chevron previously had no click handler; clicking it did
+  // nothing (you had to click the input text). It's a flex sibling of the input,
+  // so it now carries its own toggle handler.
+  it('opens the listbox when the caret/chevron is clicked (#74)', async () => {
+    const { container } = render(<Combobox options={fruits} />)
+    const input = screen.getByRole('combobox')
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    const chevron = container.querySelector('[class*="chevron"]') as HTMLElement
+    expect(chevron, 'chevron element present').toBeTruthy()
+    fireEvent.mouseDown(chevron)
+    expect(await screen.findByRole('listbox')).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  // The click most often lands on the inner decorative <svg>, not the span —
+  // the exact hit-test that used to fail. The handler is on the span, so the
+  // bubbled event must still open it.
+  it('opens when the click lands on the inner svg, not the span (#74 hit-test)', async () => {
+    const { container } = render(<Combobox options={fruits} />)
+    const svg = container.querySelector('[class*="chevron"] svg') as SVGElement
+    expect(svg, 'chevron svg present').toBeTruthy()
+    fireEvent.mouseDown(svg)
+    expect(await screen.findByRole('listbox')).toBeInTheDocument()
+  })
+
+  it('caret is a toggle: a second click on the open control closes it (#74)', async () => {
+    const { container } = render(<Combobox options={fruits} />)
+    const input = screen.getByRole('combobox')
+    const chevron = container.querySelector('[class*="chevron"]') as HTMLElement
+    fireEvent.mouseDown(chevron)
+    await screen.findByRole('listbox')
+    fireEvent.mouseDown(chevron)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('caret does nothing when the Combobox is disabled (#74)', () => {
+    const { container } = render(<Combobox options={fruits} disabled />)
+    const chevron = container.querySelector('[class*="chevron"]') as HTMLElement
+    fireEvent.mouseDown(chevron)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
   it('closes the listbox on Escape WITHOUT clearing the selection', async () => {
     render(<Combobox options={fruits} defaultValue="apple" />)
     const input = screen.getByRole('combobox') as HTMLInputElement

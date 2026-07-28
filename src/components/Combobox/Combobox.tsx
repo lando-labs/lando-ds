@@ -543,7 +543,29 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>(
             aria-disabled={disabled}
           />
 
-          <span className={styles.chevron} aria-hidden="true">
+          <span
+            className={styles.chevron}
+            aria-hidden="true"
+            // #74 — the caret reads as the affordance to open the menu, matching
+            // Select's single-target trigger. It's a flex sibling of the input
+            // (not an overlay), so `pointer-events: none` can't route the click
+            // to the input; wire it directly. `onMouseDown` + `preventDefault`
+            // toggles without blurring the input and fires even when the click
+            // lands on the inner decorative <svg> (the event bubbles to here),
+            // which is exactly the hit-test that previously did nothing. Keyboard
+            // users never reach this (aria-hidden, not focusable) — they open via
+            // the input's own focus/keydown handling, so no a11y regression.
+            onMouseDown={(e) => {
+              if (disabled) return
+              e.preventDefault()
+              if (open) {
+                closeListbox()
+              } else {
+                openListbox()
+                inputRef.current?.focus()
+              }
+            }}
+          >
             <svg
               width="16"
               height="16"
