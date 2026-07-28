@@ -112,18 +112,69 @@
  *
  * Legacy `.gradient` class (no slot index) remains for backwards
  * compatibility — it maps to the original ocean-light → teal gradient.
+ *
+ * ----------------------------------------------------------------------
+ * #83 — WCAG AA fix for white-on-gradient initials
+ * ----------------------------------------------------------------------
+ * White initials are normal text at every size below `2xl` (SC 1.4.3,
+ * 4.5:1). Measured against every stop of every slot (light + dark mode,
+ * brand-neutral default + the `lando` preset), the `-light`/`-base` rungs
+ * of BOTH `--color-primary-*` and `--color-secondary-*` fail everywhere
+ * (as low as 1.75:1, `--color-secondary-light` under the `lando` preset,
+ * light mode), and `--color-secondary-medium` additionally fails under the
+ * `lando` preset (3.45:1). `--color-primary-base` cannot move: its dark
+ * value is CI-locked by the #73 fix (Button outline-label AA on an
+ * elevated surface), so this has to be solved at the Avatar layer, not the
+ * shared token.
+ *
+ * Three directions were weighed:
+ *   1. Darken the failing stops per-slot, staying within each slot's own
+ *      hue family. CHOSEN. Every stop below 4.5:1 is swapped for the
+ *      nearest same-family rung that clears it — only `-medium`, `-dark`,
+ *      and `-darker` are safe against white in every mode/preset measured
+ *      (`-light`/`-base` never clear it; `secondary-medium` doesn't either
+ *      under `lando`). Stops that already passed (and slots 3/5, which had
+ *      no failing stop) are untouched, so they stay exactly as vibrant as
+ *      before. See the per-rule comments below for the reasoning on each
+ *      slot, including the handful where the naive nearest-safe-rung swap
+ *      would have collided two stops onto the same color (resolved by
+ *      reversing stop order or moving one stop one rung further).
+ *   2. A uniform darkening scrim composited under the initials, over the
+ *      gradient paint (color-mix black + `background-image` layering).
+ *      REJECTED after a real-browser preview: crushes every slot toward
+ *      the same near-black circle, defeating the "richly-colored, not 20
+ *      identical circles" intent from #59 — a worse regression than the
+ *      one being fixed. (A plain `text-shadow` remains rejected on its own
+ *      merits too: not WCAG-credited, since a shadow isn't a computable
+ *      solid background.)
+ *   3. A minimum size threshold below which initials aren't rendered.
+ *      Rejected: a behavior/API change (removes content some consumers
+ *      already rely on at `xs`/`sm`) when option 1 closes the gap without
+ *      any behavior change.
+ *
+ * The "no structural guarantee" concern that originally counted against
+ * option 1 is addressed by `Avatar.contrast.test.ts`, which parses every
+ * stop token straight out of this file and asserts white ≥ 4.5:1 against
+ * each, in both modes and both the brand-neutral default and `lando`
+ * scenarios — a future rung edit that reintroduces a sub-AA pairing fails
+ * loudly there instead of shipping quietly. Worst ratio pre-fix: 1.75:1.
+ * Worst ratio post-fix: 4.5183:1 (`--color-primary-medium` under `lando` —
+ * a genuine but thin pass; the drift test is what makes that margin safe
+ * to ship rather than a liability).
  */
 
 .gradient {
+  /* was primary-light → secondary-base (both failed everywhere) */
   background: linear-gradient(
     135deg,
-    var(--color-primary-light) 0%,
-    var(--color-secondary-base) 100%
+    var(--color-primary-medium) 0%,
+    var(--color-secondary-darker) 100%
   );
   color: white;
 }
 
 [data-theme='dark'] .gradient {
+  /* unchanged — primary-medium and secondary-dark already clear 4.5:1 */
   background: linear-gradient(
     135deg,
     var(--color-primary-medium) 0%,
@@ -134,33 +185,52 @@
 /* --- Hash-indexed gradient slots --- */
 
 .gradient-0 {
+  /*
+   * was primary-light → primary-medium — primary-light failed, and its
+   * nearest safe primary rung (medium) is already this pair's OTHER stop,
+   * which would collapse the gradient to a flat fill. Reversed order
+   * (dark → medium) instead of shifting both stops darker, so it stays
+   * visually distinct from .gradient-3's medium → dark (same two rungs,
+   * opposite direction) rather than becoming a third identical copy.
+   */
   background: linear-gradient(
     135deg,
-    var(--color-primary-light) 0%,
+    var(--color-primary-dark) 0%,
     var(--color-primary-medium) 100%
   );
   color: white;
 }
 
 .gradient-1 {
+  /*
+   * was secondary-light → secondary-medium — BOTH failed (light always;
+   * medium under `lando`). Only secondary-dark/-darker are safe against
+   * white in every scenario, so this slot is necessarily secondary-dark →
+   * secondary-darker in both modes (see the dark override below) — there
+   * is no third safe secondary rung to keep it distinct from its own dark
+   * variant, an intrinsic cost of the per-slot approach for a hue family
+   * with only two safe rungs.
+   */
   background: linear-gradient(
     135deg,
-    var(--color-secondary-light) 0%,
-    var(--color-secondary-medium) 100%
+    var(--color-secondary-dark) 0%,
+    var(--color-secondary-darker) 100%
   );
   color: white;
 }
 
 .gradient-2 {
+  /* was primary-base → secondary-base (both failed everywhere) */
   background: linear-gradient(
     135deg,
-    var(--color-primary-base) 0%,
-    var(--color-secondary-base) 100%
+    var(--color-primary-medium) 0%,
+    var(--color-secondary-dark) 100%
   );
   color: white;
 }
 
 .gradient-3 {
+  /* unchanged — primary-medium and primary-dark already clear 4.5:1 */
   background: linear-gradient(
     135deg,
     var(--color-primary-medium) 0%,
@@ -170,9 +240,15 @@
 }
 
 .gradient-4 {
+  /*
+   * was secondary-medium → primary-medium — secondary-medium failed under
+   * `lando`. Moved to secondary-darker rather than secondary-dark to avoid
+   * mirroring .gradient-2's primary-medium → secondary-dark as the same
+   * two colors in reverse.
+   */
   background: linear-gradient(
     135deg,
-    var(--color-secondary-medium) 0%,
+    var(--color-secondary-darker) 0%,
     var(--color-primary-medium) 100%
   );
   color: white;
@@ -183,34 +259,51 @@
    * #271 — was a coral (warm) accent via the stray --color-coral-* test ramp.
    * Coral was removed from the palette; this slot now draws the deepest
    * secondary (teal) span so it stays on-brand and visually distinct from the
-   * other secondary-based slots (slot-1 uses light→medium). Routed through the
+   * other secondary-based slots (slot-1 uses dark→darker). Routed through the
    * --color-secondary-* alias (not --color-teal-* directly) to satisfy the
    * brand-token CI guard.
+   *
+   * #83 — was secondary-base → secondary-dark; secondary-base failed
+   * everywhere. secondary-dark (the passing partner) is left untouched;
+   * the failing stop moves to secondary-darker rather than colliding with
+   * it, with the pair reversed (darker → dark) so it doesn't just become
+   * .gradient-1's dark → darker again.
    */
   background: linear-gradient(
     135deg,
-    var(--color-secondary-base) 0%,
+    var(--color-secondary-darker) 0%,
     var(--color-secondary-dark) 100%
   );
   color: white;
 }
 
 .gradient-6 {
+  /*
+   * was primary-light → secondary-base (both failed everywhere). Reversed
+   * order (secondary-dark → primary-medium) relative to .gradient-2's
+   * primary-medium → secondary-dark so the two don't render as the same
+   * gradient — still the same underlying safe rungs, just opposite ends.
+   */
   background: linear-gradient(
     135deg,
-    var(--color-primary-light) 0%,
-    var(--color-secondary-base) 100%
+    var(--color-secondary-dark) 0%,
+    var(--color-primary-medium) 100%
   );
   color: white;
 }
 
 /* Dark-mode variants — drop a step darker so white initials retain contrast
- * against the richer surrounding page surface. */
+ * against the richer surrounding page surface. Only .gradient-1's dark
+ * override needed a #83 change (secondary-medium failed under `lando`);
+ * the other six were already using safe rungs and are untouched. */
 [data-theme='dark'] .gradient-0 {
   background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);
 }
 [data-theme='dark'] .gradient-1 {
-  background: linear-gradient(135deg, var(--color-secondary-medium) 0%, var(--color-secondary-dark) 100%);
+  /* was secondary-medium → secondary-dark; secondary-medium failed under
+   * `lando`, and its nearest safe rung (dark) was already this pair's
+   * other stop — shifted both stops one rung darker instead of colliding. */
+  background: linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary-darker) 100%);
 }
 [data-theme='dark'] .gradient-2 {
   background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-secondary-dark) 100%);
